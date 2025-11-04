@@ -1,0 +1,10 @@
+[
+  { "name": "Brasil", "code": "br", "dial": "55" },
+  { "name": "Estados Unidos", "code": "us", "dial": "1" },
+  { "name": "Portugal", "code": "pt", "dial": "351" },
+  { "name": "Espanha", "code": "es", "dial": "34" },
+  { "name": "Alemanha", "code": "de", "dial": "49" },
+  { "name": "França", "code": "fr", "dial": "33" },
+  { "name": "Argentina", "code": "ar", "dial": "54" },
+  { "name": "México", "code": "mx", "dial": "52" }
+]
