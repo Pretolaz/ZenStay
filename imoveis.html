@@ -17,12 +17,12 @@
 
     <main class="content">
         <header class="header">
-            <h1>🏡 Gerenciar Imóveis</h1>
+            <h1 id="main-title">🏡 Gerenciar Imóveis</h1>
             <button id="toggle-theme">🌗</button>
         </header>
 
-        <section class="dashboard">
-            <!-- Formulário -->
+        <section class="dashboard" id="imoveis-list-section">
+            <!-- Formulário de Imóveis -->
             <div class="card" style="flex: 1 1 100%;">
                 <h3>➕ Cadastrar Novo Imóvel</h3>
                 <form id="formImovel">
@@ -75,11 +75,11 @@
                         <textarea id="instrucoesChegada" placeholder="Instruções para chegar..."></textarea>
                     </div>
 
-                    <button type="submit" class="btn">💾 Salvar</button>
+                    <button type="submit" class="btn">💾 Salvar Imóvel</button>
                 </form>
             </div>
 
-            <!-- Tabela -->
+            <!-- Tabela de Imóveis -->
             <div class="card" style="flex: 1 1 100%;">
                 <h3>📋 Lista de Imóveis</h3>
                 <table id="tabelaImoveis">
@@ -96,11 +96,76 @@
                 </table>
             </div>
         </section>
+
+        <!-- Seção de Gerenciamento de Cômodos (Inicialmente oculta) -->
+        <section class="dashboard" id="comodos-section" style="display: none;">
+            <div class="card" style="flex: 1 1 100%;">
+                <h3 id="comodos-title">Gerenciar Cômodos para: <span id="imovel-apelido-comodos"></span></h3>
+                <form id="formComodo">
+                    <input type="hidden" id="comodoId">
+                    <input type="hidden" id="comodoImovelId">
+
+                    <div class="form-row">
+                        <div class="input-group">
+                            <span>#️⃣</span>
+                            <input type="number" id="codigoComodo" placeholder="Código (auto)" readonly>
+                        </div>
+                        <div class="input-group">
+                            <span>📝</span>
+                            <input type="text" id="nomeComodo" placeholder="Nome do cômodo" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <span>✨</span>
+                            <select id="iconeComodo" required>
+                                <option value="">Selecione um ícone</option>
+                                <option value="🛋️">🛋️ Sala</option>
+                                <option value="🛏️">🛏️ Quarto</option>
+                                <option value="🚽">🚽 Banheiro</option>
+                                <option value="🍽️">🍽️ Cozinha</option>
+                                <option value="🧺">🧺 Lavanderia</option>
+                                <option value="🚪">🚪 Corredor</option>
+                                <option value=" балко"> балко Varanda</option>
+                                <option value="🏊">🏊 Piscina</option>
+                                <option value="🌳">🌳 Jardim</option>
+                                <option value="🚗">🚗 Garagem</option>
+                                <option value="💻">💻 Escritório</option>
+                                <option value="📺">📺 Sala de TV</option>
+                                <option value="💡">💡 Outro</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">➕ Adicionar Cômodo</button>
+                    <button type="button" class="btn btn-secondary" id="cancelarComodo">❌ Cancelar</button>
+                </form>
+            </div>
+
+            <div class="card" style="flex: 1 1 100%;">
+                <h3>📋 Lista de Cômodos</h3>
+                <table id="tabelaComodos">
+                    <thead>
+                        <tr>
+                            <th>Cód.</th>
+                            <th>Ícone</th>
+                            <th>Nome</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="form-row" style="justify-content: flex-end;">
+                <button type="button" class="btn" id="voltarParaImoveis">↩️ Voltar aos Imóveis</button>
+            </div>
+        </section>
+
     </main>
 
     <!-- Scripts -->
     <script src="assets/js/storage.js"></script>
     <script src="assets/js/main.js"></script>
+    <script src="assets/js/entities/comodo.js"></script>
     <script src="assets/js/entities/imovel.js"></script>
 
     <!-- Sidebar dinâmica -->
@@ -119,13 +184,15 @@
 
     <!-- CRUD de Imóveis -->
     <script>
-        const tabela = document.querySelector('#tabelaImoveis tbody');
-        const form = document.getElementById('formImovel');
-        const campos = ['codigo', 'apelido', 'situacao', 'nome', 'descricao', 'endereco', 'googleMapsLink', 'instrucoesChegada'];
+        const tabelaImoveis = document.querySelector('#tabelaImoveis tbody');
+        const formImovel = document.getElementById('formImovel');
+        const camposImovel = ['codigo', 'apelido', 'situacao', 'nome', 'descricao', 'endereco', 'googleMapsLink', 'instrucoesChegada'];
+
+        let currentEditingImovel = null; // Variável para armazenar o imóvel sendo editado
 
         function carregarImoveis() {
             const imoveis = Imovel.listarTodos();
-            tabela.innerHTML = '';
+            tabelaImoveis.innerHTML = '';
             imoveis.forEach(imovel => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -135,21 +202,21 @@
                     <td>${imovel.situacao}</td>
                     <td>
                         <button class="action-btn" onclick="editarImovel(${imovel.codigo})" title="Editar">✏️</button>
+                        <button class="action-btn" onclick="gerenciarComodos(${imovel.codigo})" title="Gerenciar Cômodos">🚪</button>
                         <button class="action-btn" onclick="excluirImovel(${imovel.codigo})" title="Excluir">🗑️</button>
                     </td>
                 `;
-                tabela.appendChild(row);
+                tabelaImoveis.appendChild(row);
             });
         }
 
         function salvarImovel(e) {
             e.preventDefault();
             const imovelId = document.getElementById('imovelId').value;
-            const imoveis = Imovel.listarTodos();
             
             let imovel;
             if (imovelId) {
-                const imovelExistente = imoveis.find(imovel => imovel.codigo == imovelId);
+                const imovelExistente = Imovel.listarTodos().find(imovel => imovel.codigo == imovelId);
                 imovel = new Imovel(
                     imovelExistente.codigo,
                     document.getElementById('apelido').value,
@@ -159,7 +226,7 @@
                     document.getElementById('endereco').value,
                     document.getElementById('googleMapsLink').value,
                     document.getElementById('instrucoesChegada').value,
-                    imovelExistente.comodos
+                    imovelExistente.comodos || []
                 );
             } else {
                 imovel = new Imovel(
@@ -175,38 +242,39 @@
             }
             
             imovel.salvar();
-            form.reset();
+            formImovel.reset();
             document.getElementById('imovelId').value = '';
             carregarImoveis();
+            currentEditingImovel = null; // Resetar após salvar
         }
 
         function editarImovel(codigo) {
-            const imoveis = Imovel.listarTodos();
-            const imovel = imoveis.find(imovel => imovel.codigo === codigo);
+            const imovel = Imovel.listarTodos().find(imovel => imovel.codigo === codigo);
             if (imovel) {
-                campos.forEach(c => {
+                camposImovel.forEach(c => {
                     if(document.getElementById(c)) {
                         document.getElementById(c).value = imovel[c] || '';
                     }
                 });
                 document.getElementById('imovelId').value = imovel.codigo;
+                currentEditingImovel = imovel; // Armazenar o imóvel que está sendo editado
+                document.querySelector('#formImovel button[type="submit"]').textContent = '💾 Salvar Alterações';
             }
         }
 
         function excluirImovel(codigo) {
             if (confirm('Excluir este imóvel?')) {
-                const imoveis = Imovel.listarTodos();
-                const imovel = imoveis.find(imovel => imovel.codigo === codigo);
-                if (imovel) {
-                    const imovelObj = new Imovel(imovel.codigo);
-                    imovelObj.excluir();
-                    carregarImoveis();
-                }
+                const imovel = new Imovel(codigo); // Instancia um imóvel para usar o método excluir
+                imovel.excluir();
+                carregarImoveis();
             }
         }
 
-        form.addEventListener('submit', salvarImovel);
+        formImovel.addEventListener('submit', salvarImovel);
         window.addEventListener('DOMContentLoaded', carregarImoveis);
     </script>
+
+    <!-- CRUD de Cômodos para o Imóvel -->
+    <script src="assets/js/comodos-imovel.js"></script>
 </body>
 </html>
