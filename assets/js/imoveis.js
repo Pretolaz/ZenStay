@@ -3,8 +3,7 @@
 // Elementos do DOM
 const adicionarImovelBtn = document.getElementById('adicionarImovelBtn');
 const formImovelContainer = document.getElementById('formImovelContainer');
-const formImovel = document.getElementById('formImovel');
-const tabelaImoveis = document.querySelector('#tabelaImoveis tbody');
+const formImovelElement = document.getElementById('formImovel'); // Renomeado para evitar conflito
 const imoveisCardsContainer = document.getElementById('imoveisCardsContainer');
 const fotoImovelInput = document.getElementById('fotoImovel');
 
@@ -30,7 +29,7 @@ function ocultarFormulario() {
 }
 
 function limparFormulario() {
-    formImovel.reset();
+    formImovelElement.reset();
     currentEditingImovel = null;
     fotoImovelURL = '';
 }
@@ -44,9 +43,11 @@ function fecharModal() {
 }
 
 // Lógica para mostrar/ocultar o formulário
-adicionarImovelBtn.addEventListener('click', () => {
-    mostrarFormulario();
-});
+if (adicionarImovelBtn) {
+    adicionarImovelBtn.addEventListener('click', () => {
+        mostrarFormulario();
+    });
+}
 
 // Lógica para carregar e exibir os cards dos imóveis
 function carregarImoveis() {
@@ -185,6 +186,7 @@ function salvarImovel(e) {
             googleMapsLink,
             instrucoesChegada,
             fotoImovelURL, // Passa a URL da foto
+            [] // Garante que comodos seja um array, mesmo que vazio
         );
     } else {
         // Novo imóvel
@@ -197,7 +199,8 @@ function salvarImovel(e) {
             endereco,
             googleMapsLink,
             instrucoesChegada,
-            fotoImovelURL // Passa a URL da foto
+            fotoImovelURL, // Passa a URL da foto
+            [] // Garante que comodos seja um array, mesmo que vazio
         );
     }
 
@@ -209,21 +212,27 @@ function salvarImovel(e) {
 }
 
 // Lógica para lidar com o upload da foto
-fotoImovelInput.addEventListener('change', function() {
-    const file = fotoImovelInput.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            fotoImovelURL = e.target.result; // Armazena a URL da foto
-            // Pré-visualizar a imagem (opcional)
-            // previewFoto.src = fotoImovelURL;
+if (fotoImovelInput) {
+    fotoImovelInput.addEventListener('change', function() {
+        const file = fotoImovelInput.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                fotoImovelURL = e.target.result; // Armazena a URL da foto
+                // Pré-visualizar a imagem (opcional)
+                // previewFoto.src = fotoImovelURL;
+            }
+            reader.readAsDataURL(file);
+        } else {
+            fotoImovelURL = ''; // Limpa a URL se nenhum arquivo for selecionado
         }
-        reader.readAsDataURL(file);
-    } else {
-        fotoImovelURL = ''; // Limpa a URL se nenhum arquivo for selecionado
-    }
-});
+    });
+}
 
 // Event listeners
-formImovel.addEventListener('submit', salvarImovel);
+if (formImovelElement) {
+    formImovelElement.addEventListener('submit', salvarImovel);
+}
+
+// Chamar a função para carregar os imóveis ao carregar a página
 window.addEventListener('DOMContentLoaded', carregarImoveis);
