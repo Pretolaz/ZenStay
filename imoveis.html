@@ -222,6 +222,35 @@
 
     <!-- Sidebar dinâmica e lógica de navegação por hash -->
     <script>
+        // Lógica para marcar o link ativo ao carregar a página e expandir o submenu se necessário
+        const setActiveSidebarLink = () => {
+            const path = window.location.pathname.split("/").pop();
+            const hash = window.location.hash;
+            console.log('setActiveSidebarLink - path:', path, 'hash:', hash);
+
+            document.querySelectorAll(".sidebar a").forEach(link => {
+                link.classList.remove("active");
+                const linkHref = link.getAttribute("href");
+                console.log('Verificando link:', linkHref);
+
+                if (linkHref === path + hash) {
+                    link.classList.add("active");
+                    console.log('Link ativo encontrado e marcado:', linkHref);
+                    const parentSubmenu = link.closest('.has-submenu');
+                    if (parentSubmenu) {
+                        console.log('Link ativo está dentro de um submenu.');
+                        const submenuElement = parentSubmenu.querySelector('.submenu');
+                        const arrowElement = parentSubmenu.querySelector('.arrow');
+                        if (submenuElement) submenuElement.style.display = 'block';
+                        if (arrowElement) arrowElement.textContent = '▼';
+                        const submenuToggleElement = parentSubmenu.querySelector('.submenu-toggle');
+                        if (submenuToggleElement) submenuToggleElement.classList.add('active');
+                        console.log('Submenu pai expandido.');
+                    }
+                }
+            });
+        };
+
         fetch("assets/components/sidebar.html")
             .then(res => res.text())
             .then(html => {
@@ -273,35 +302,6 @@
                         }
                     }
                 });
-
-                // Lógica para marcar o link ativo ao carregar a página e expandir o submenu se necessário
-                const setActiveSidebarLink = () => {
-                    const path = window.location.pathname.split("/").pop();
-                    const hash = window.location.hash;
-                    console.log('setActiveSidebarLink - path:', path, 'hash:', hash);
-
-                    document.querySelectorAll(".sidebar a").forEach(link => {
-                        link.classList.remove("active");
-                        const linkHref = link.getAttribute("href");
-                        console.log('Verificando link:', linkHref);
-
-                        if (linkHref === path + hash) {
-                            link.classList.add("active");
-                            console.log('Link ativo encontrado e marcado:', linkHref);
-                            const parentSubmenu = link.closest('.has-submenu');
-                            if (parentSubmenu) {
-                                console.log('Link ativo está dentro de um submenu.');
-                                const submenuElement = parentSubmenu.querySelector('.submenu');
-                                const arrowElement = parentSubmenu.querySelector('.arrow');
-                                if (submenuElement) submenuElement.style.display = 'block';
-                                if (arrowElement) arrowElement.textContent = '▼';
-                                const submenuToggleElement = parentSubmenu.querySelector('.submenu-toggle');
-                                if (submenuToggleElement) submenuToggleElement.classList.add('active');
-                                console.log('Submenu pai expandido.');
-                            }
-                        }
-                    });
-                };
 
                 setActiveSidebarLink(); // Chama ao carregar a sidebar
 
