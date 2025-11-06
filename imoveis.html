@@ -81,11 +81,14 @@
                             <textarea id="instrucoesChegada" placeholder="Instruções para chegar..."></textarea>
                         </div>
     
-                        <!-- Campo para a foto do imóvel -->
+                        <!-- Campo para a foto do imóvel e pré-visualização -->
                         <div class="form-row">
                             <div class="input-group">
                                 <span>📷</span>
                                 <input type="file" id="fotoImovel" accept="image/*">
+                            </div>
+                            <div class="input-group">
+                                <img id="previewFotoImovel" src="" alt="Pré-visualização da Foto" style="max-width: 100px; max-height: 100px; display: none; margin-top: 10px; border-radius: 5px;">
                             </div>
                         </div>
 
@@ -220,6 +223,7 @@
                 <img id="modalImovelFoto" src="" alt="Foto do Imóvel" style="max-width: 100%;">
                 <p id="modalImovelNome"></p>
                 <p id="modalImovelEndereco"></p>
+                <p id="modalImovelSituacao"></p>
                 <p id="modalImovelDescricao"></p>
                 <div class="modal-actions">
                     <button class="btn" onclick="editarImovelModal()">✏️ Editar</button>
@@ -306,7 +310,9 @@
                 // Após carregar o sidebar, dispare a lógica de exibição de seção com base no hash
                 window.dispatchEvent(new Event('hashchange'));
             })
-            .catch(err => console.error("Erro ao carregar sidebar:", err));
+            .catch(err => {
+                /* console.error("Erro ao carregar sidebar:", err) */
+            }); // Console log removido
 
         // Lógica de manipulação do hash da URL para exibir a seção correta
         const gerenciarImoveisSection = document.getElementById('gerenciar-imoveis-section');
