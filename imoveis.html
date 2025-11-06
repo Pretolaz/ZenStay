@@ -23,78 +23,78 @@
 
         <!-- Seção de Gerenciamento de Imóveis -->
         <section class="dashboard" id="gerenciar-imoveis-section">
-            <!-- Formulário de Imóveis -->
             <div class="card" style="flex: 1 1 100%;">
-                <h3>➕ Cadastrar Novo Imóvel</h3>
-                <form id="formImovel">
-                    <input type="hidden" id="imovelId">
+                <h3>➕ Gerenciar Imóveis</h3>
+                <!-- Botão para Adicionar Imóvel -->
+                <button id="adicionarImovelBtn" class="btn">➕ Adicionar Imóvel</button>
+    
+                <!-- Formulário de Imóveis (Inicialmente oculto) -->
+                <div id="formImovelContainer" style="display: none;">
+                    <h3>➕ Cadastrar Novo Imóvel</h3>
+                    <form id="formImovel">
+                        <input type="hidden" id="imovelId">
 
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>#️⃣</span>
-                            <input type="number" id="codigo" placeholder="Código (auto)" readonly>
+                        <div class="form-row">
+                            <div class="input-group">
+                                <span>#️⃣</span>
+                                <input type="number" id="codigo" placeholder="Código (auto)" readonly>
+                            </div>
+                            <div class="input-group">
+                                <span>🏷️</span>
+                                <input type="text" id="apelido" placeholder="Apelido do imóvel" required>
+                            </div>
                         </div>
-                        <div class="input-group">
-                            <span>🏷️</span>
-                            <input type="text" id="apelido" placeholder="Apelido do imóvel" required>
-                        </div>
-                    </div>
 
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>📝</span>
-                            <input type="text" id="nome" placeholder="Nome do imóvel" required>
+                        <div class="form-row">
+                            <div class="input-group">
+                                <span>📝</span>
+                                <input type="text" id="nome" placeholder="Nome do imóvel" required>
+                            </div>
+                            <div class="input-group">
+                                <span>🚩</span>
+                                <select id="situacao" required>
+                                    <option value="Liberado">Liberado</option>
+                                    <option value="Locado">Locado</option>
+                                    <option value="Em limpeza">Em limpeza</option>
+                                    <option value="Suspenso">Suspenso</option>
+                                    <option value="Inativo">Inativo</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="input-group">
-                            <span>🚩</span>
-                            <select id="situacao" required>
-                                <option value="Liberado">Liberado</option>
-                                <option value="Locado">Locado</option>
-                                <option value="Em limpeza">Em limpeza</option>
-                                <option value="Suspenso">Suspenso</option>
-                                <option value="Inativo">Inativo</option>
-                            </select>
+
+                        <div class="form-row">
+                            <div class="input-group">
+                                <span>📍</span>
+                                <input type="text" id="endereco" placeholder="Endereço completo" required>
+                            </div>
+                            <div class="input-group">
+                                <span>🗺️</span>
+                                <input type="text" id="googleMapsLink" placeholder="Link do Google Maps">
+                            </div>
                         </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>📍</span>
-                            <input type="text" id="endereco" placeholder="Endereço completo" required>
+                        
+                        <div class="form-row">
+                            <textarea id="descricao" placeholder="Descrição da casa..."></textarea>
                         </div>
-                        <div class="input-group">
-                            <span>🗺️</span>
-                            <input type="text" id="googleMapsLink" placeholder="Link do Google Maps">
+
+                        <div class="form-row">
+                            <textarea id="instrucoesChegada" placeholder="Instruções para chegar..."></textarea>
                         </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <textarea id="descricao" placeholder="Descrição da casa..."></textarea>
-                    </div>
+    
+                        <!-- Campo para a foto do imóvel -->
+                        <div class="form-row">
+                            <div class="input-group">
+                                <span>📷</span>
+                                <input type="file" id="fotoImovel" accept="image/*">
+                            </div>
+                        </div>
 
-                    <div class="form-row">
-                        <textarea id="instrucoesChegada" placeholder="Instruções para chegar..."></textarea>
-                    </div>
+                        <button type="submit" class="btn">💾 Salvar Imóvel</button>
+                    </form>
+                </div>
 
-                    <button type="submit" class="btn">💾 Salvar Imóvel</button>
-                </form>
-            </div>
-
-            <!-- Tabela de Imóveis -->
-            <div class="card" style="flex: 1 1 100%;">
-                <h3>📋 Lista de Imóveis</h3>
-                <table id="tabelaImoveis">
-                    <thead>
-                        <tr>
-                            <th>Cód.</th>
-                            <th>Apelido</th>
-                            <th>Nome</th>
-                            <th>Situacao</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <!-- Container para os cards de imóveis -->
+                <div id="imoveisCardsContainer" class="dashboard"></div>
             </div>
         </section>
 
@@ -127,7 +127,7 @@
                                 <option value="🍽️">🍽️ Cozinha</option>
                                 <option value="🧺">🧺 Lavanderia</option>
                                 <option value="🚪">🚪 Corredor</option>
-                                <option value=" balcon"> balcon Varanda</option>
+                                <option value=" балко"> балко Varanda</option>
                                 <option value="🏊">🏊 Piscina</option>
                                 <option value="🌳">🌳 Jardim</option>
                                 <option value="🚗">🚗 Garagem</option>
@@ -212,6 +212,22 @@
             </div>
         </section>
 
+        <!-- Modal de visualização do Imóvel -->
+        <div id="imovelModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close-button" onclick="fecharModal()">&times;</span>
+                <h3 id="modalImovelApelido"></h3>
+                <img id="modalImovelFoto" src="" alt="Foto do Imóvel" style="max-width: 100%;">
+                <p id="modalImovelNome"></p>
+                <p id="modalImovelEndereco"></p>
+                <p id="modalImovelDescricao"></p>
+                <div class="modal-actions">
+                    <button class="btn" onclick="editarImovelModal()">✏️ Editar</button>
+                    <button class="btn btn-danger" onclick="excluirImovelModal()">🗑️ Excluir</button>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <!-- Scripts -->
@@ -226,21 +242,26 @@
         const setActiveSidebarLink = () => {
             const path = window.location.pathname.split("/").pop();
             const hash = window.location.hash;
+            console.log('setActiveSidebarLink - path:', path, 'hash:', hash);
 
             document.querySelectorAll(".sidebar a").forEach(link => {
                 link.classList.remove("active");
                 const linkHref = link.getAttribute("href");
+                console.log('Verificando link:', linkHref);
 
                 if (linkHref === path + hash) {
                     link.classList.add("active");
+                    console.log('Link ativo encontrado e marcado:', linkHref);
                     const parentSubmenu = link.closest('.has-submenu');
                     if (parentSubmenu) {
+                        console.log('Link ativo está dentro de um submenu.');
                         const submenuElement = parentSubmenu.querySelector('.submenu');
                         const arrowElement = parentSubmenu.querySelector('.arrow');
                         if (submenuElement) submenuElement.style.display = 'block';
                         if (arrowElement) arrowElement.textContent = '▼';
                         const submenuToggleElement = parentSubmenu.querySelector('.submenu-toggle');
                         if (submenuToggleElement) submenuToggleElement.classList.add('active');
+                        console.log('Submenu pai expandido.');
                     }
                 }
             });
@@ -251,44 +272,51 @@
             .then(html => {
                 const sidebarElement = document.getElementById("sidebar");
                 sidebarElement.innerHTML = html;
+                console.log('Sidebar HTML carregado e inserido.');
                 
                 // Lógica de expansão do submenu e marcação de ativo (com delegação de eventos)
                 sidebarElement.addEventListener('click', (e) => {
+                    console.log('Clique na sidebar detectado!', e.target);
                     const submenuToggle = e.target.closest('.submenu-toggle');
                     if (submenuToggle) {
+                        console.log('Clicou em um submenu-toggle:', submenuToggle);
                         e.preventDefault();
                         const parentLi = submenuToggle.closest('.has-submenu');
                         const submenu = parentLi ? parentLi.querySelector('.submenu') : null;
                         const arrow = submenuToggle.querySelector('.arrow');
 
+                        console.log('parentLi:', parentLi, 'submenu:', submenu, 'arrow:', arrow);
+
                         if (submenu && arrow) {
                             if (submenu.style.display === 'block') {
                                 submenu.style.display = 'none';
                                 arrow.textContent = '▶'; 
+                                console.log('Submenu contraído.');
                             } else {
                                 submenu.style.display = 'block';
                                 arrow.textContent = '▼'; 
+                                console.log('Submenu expandido.');
                             }
+                        } else {
+                             console.log('Erro: Submenu ou arrow não encontrados para toggle.');
                         }
-                    } else { // Se clicou em um link normal na sidebar
-                         const clickedLink = e.target.closest("a");
-                         if (clickedLink && clickedLink.getAttribute('href') !== '#') {
-                             // Se for um link de navegação, remove a classe 'active' dos outros e adiciona neste
-                             document.querySelectorAll(".sidebar a").forEach(link => link.classList.remove("active"));
-                             clickedLink.classList.add("active");
-                             // Garante que o submenu pai esteja expandido se o link for de um submenu
-                             const parentSubmenuItem = clickedLink.closest('.has-submenu');
-                             if (parentSubmenuItem) {
-                                 const submenuElement = parentSubmenuItem.querySelector('.submenu');
-                                 const arrowElement = parentSubmenuItem.querySelector('.arrow');
-                                 if (submenuElement) submenuElement.style.display = 'block';
-                                 if (arrowElement) arrowElement.textContent = '▼';
-                                 const submenuToggleElement = parentSubmenuItem.querySelector('.submenu-toggle');
-                                 if (submenuToggleElement) submenuToggleElement.classList.add('active');
-                             }
-                         }
+                    } else {
+                        console.log('Não clicou em um submenu-toggle.');
                     }
 
+                    // Lógica para marcar link ativo ao clicar em qualquer item do sidebar
+                    // Remove ativo de todos os links primeiro
+                    document.querySelectorAll(".sidebar a").forEach(link => link.classList.remove("active"));
+                    let clickedLink = e.target.closest("a");
+                    if (clickedLink) {
+                        clickedLink.classList.add("active");
+                        // Se for um item de submenu, garante que o pai também esteja marcado como ativo
+                        const parentSubmenuItem = clickedLink.closest('.has-submenu');
+                        if (parentSubmenuItem) {
+                            const parentToggle = parentSubmenuItem.querySelector('.submenu-toggle');
+                            if (parentToggle) parentToggle.classList.add('active');
+                        }
+                    }
                 });
 
                 setActiveSidebarLink(); // Chama ao carregar a sidebar
@@ -305,6 +333,7 @@
 
         function showSectionFromHash() {
             const hash = window.location.hash;
+            console.log('showSectionFromHash - Hash atual:', hash);
             gerenciarImoveisSection.style.display = 'none';
             comodosImovelSection.style.display = 'none';
             inventarioObjetosSection.style.display = 'none';
@@ -354,82 +383,19 @@
         let currentEditingImovel = null; 
 
         function carregarImoveis() {
-            const imoveis = Imovel.listarTodos();
-            tabelaImoveis.innerHTML = '';
-            imoveis.forEach(imovel => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${imovel.codigo}</td>
-                    <td>${imovel.apelido}</td>
-                    <td>${imovel.nome}</td>
-                    <td>${imovel.situacao}</td>
-                    <td>
-                        <button class="action-btn" onclick="editarImovel(${imovel.codigo})" title="Editar">✏️</button>
-                        <button class="action-btn" onclick="excluirImovel(${imovel.codigo})" title="Excluir">🗑️</button>
-                    </td>
-                `;
-                tabelaImoveis.appendChild(row);
-            });
+           // Código para carregar imóveis será transferido para imoveis.js
         }
 
         function salvarImovel(e) {
-            e.preventDefault();
-            const imovelId = document.getElementById('imovelId').value;
-            
-            let imovel;
-            if (imovelId) {
-                const imovelExistente = Imovel.listarTodos().find(imovel => imovel.codigo == imovelId);
-                imovel = new Imovel(
-                    imovelExistente.codigo,
-                    document.getElementById('apelido').value,
-                    document.getElementById('situacao').value,
-                    document.getElementById('nome').value,
-                    document.getElementById('descricao').value,
-                    document.getElementById('endereco').value,
-                    document.getElementById('googleMapsLink').value,
-                    document.getElementById('instrucoesChegada').value,
-                    imovelExistente.comodos || []
-                );
-            } else {
-                imovel = new Imovel(
-                    null,
-                    document.getElementById('apelido').value,
-                    document.getElementById('situacao').value,
-                    document.getElementById('nome').value,
-                    document.getElementById('descricao').value,
-                    document.getElementById('endereco').value,
-                    document.getElementById('googleMapsLink').value,
-                    document.getElementById('instrucoesChegada').value
-                );
-            }
-            
-            imovel.salvar();
-            formImovel.reset();
-            document.getElementById('imovelId').value = '';
-            carregarImoveis();
-            currentEditingImovel = null; 
+           // Código para salvar imóveis será transferido para imoveis.js
         }
 
         function editarImovel(codigo) {
-            const imovel = Imovel.listarTodos().find(imovel => imovel.codigo === codigo);
-            if (imovel) {
-                camposImovel.forEach(c => {
-                    if(document.getElementById(c)) {
-                        document.getElementById(c).value = imovel[c] || '';
-                    }
-                });
-                document.getElementById('imovelId').value = imovel.codigo;
-                currentEditingImovel = imovel; 
-                document.querySelector('#formImovel button[type="submit"]').textContent = '💾 Salvar Alterações';
-            }
+            // Código para editar imóveis será transferido para imoveis.js
         }
 
         function excluirImovel(codigo) {
-            if (confirm('Excluir este imóvel?')) {
-                const imovel = new Imovel(codigo); 
-                imovel.excluir();
-                carregarImoveis();
-            }
+           // Código para excluir imóveis será transferido para imoveis.js
         }
 
         formImovel.addEventListener('submit', salvarImovel);
@@ -440,5 +406,7 @@
     <script src="assets/js/comodos-imovel.js"></script>
     <!-- CRUD de Objetos para o Cômodo -->
     <script src="assets/js/objetos-comodo.js"></script>
+    <!-- Script específico para a página de Imóveis -->
+    <script src="assets/js/imoveis.js"></script>
 </body>
 </html>

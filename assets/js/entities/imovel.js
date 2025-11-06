@@ -1,5 +1,5 @@
 class Imovel {
-    constructor(codigo, apelido, situacao, nome, descricao, endereco, googleMapsLink, instrucoesChegada, comodos = [], fotoUrl = '') {
+    constructor(codigo, apelido, situacao, nome, descricao, endereco, googleMapsLink, instrucoesChegada, foto, comodos = []) {
         this.codigo = codigo;
         this.apelido = apelido;
         this.situacao = situacao;
@@ -8,8 +8,8 @@ class Imovel {
         this.endereco = endereco;
         this.googleMapsLink = googleMapsLink;
         this.instrucoesChegada = instrucoesChegada;
-        this.comodos = comodos.map(comodoData => new Comodo(comodoData.codigo, comodoData.nome, comodoData.icone, comodoData.objetos || []));
-        this.fotoUrl = fotoUrl; // Nova propriedade para a URL da foto
+        this.foto = foto || ''; // URL da foto do imóvel
+        this.comodos = comodos.map(comodoData => new Comodo(comodoData.codigo, comodoData.nome, comodoData.icone));
     }
 
     static listarTodos() {
@@ -23,8 +23,8 @@ class Imovel {
             imovelData.endereco,
             imovelData.googleMapsLink,
             imovelData.instrucoesChegada,
-            imovelData.comodos,
-            imovelData.fotoUrl // Inclui a fotoUrl ao carregar
+            imovelData.foto,
+            imovelData.comodos
         ));
     }
 
@@ -63,9 +63,8 @@ class Imovel {
         Imovel.salvarTodos(imoveis);
     }
 
-    // Métodos para gerenciar cômodos
-    adicionarComodo(codigo, nome, icone) {
-        const novoComodo = new Comodo(codigo, nome, icone);
+    adicionarComodo(nome, icone) {
+        const novoComodo = new Comodo(null, nome, icone);
         this.comodos.push(novoComodo);
         this.salvar();
     }

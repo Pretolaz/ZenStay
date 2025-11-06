@@ -18,7 +18,7 @@ body {
     top: 0; 
     left: 0; 
     width: 220px; 
-    height: 100vh;                               /* Garante altura total da tela */ 
+    height: 100vh; /* Garante altura total da tela */ 
     background-color: var(--sidebar-bg); 
     color: var(--text); 
     display: flex; 
@@ -26,7 +26,7 @@ body {
     justify-content: flex-start; 
     padding: 20px; 
     box-sizing: border-box; 
-    overflow-y: auto;                         /* Adiciona scroll se o menu for grande */ 
+    overflow-y: auto; /* Adiciona scroll se o menu for grande */ 
     z-index: 1000; /* Adiciona z-index para garantir que a sidebar esteja acima */
 } 
 
@@ -136,155 +136,157 @@ body {
     flex-wrap: wrap; 
 } 
 
-.card { 
-    flex: 1; 
-    min-width: 200px; 
-    background: var(--card); 
-    border-radius: 12px; 
-    padding: 20px; 
-    text-align: center; 
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); 
-    transition: transform 0.2s; 
-} 
-
-.card:hover { 
-    transform: translateY(-5px); 
-} 
-
-.card h3 { 
-    font-weight: 500; 
-    color: var(--accent); 
-    margin-bottom: 10px; 
-} 
-
-.card p { 
-    font-size: 1.3em; 
-    font-weight: 600; 
-}
-
-/* NOVOS ESTILOS PARA GERENCIAR IMÓVEIS */
-.imoveis-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-    width: 100%;
-}
-
-.imovel-card {
+/* Estilos para o card */
+.card {
+    flex: 1;
+    min-width: 200px;
     background: var(--card);
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.3s, box-shadow 0.3s;
-    display: flex;
-    flex-direction: column;
-}
-
-.imovel-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-}
-
-.imovel-card-image {
-    width: 100%;
-    height: 150px;
-    object-fit: cover;
-    background-color: var(--hover);
-}
-
-.imovel-card-body {
-    padding: 15px;
-    text-align: left;
-    flex-grow: 1;
-}
-
-.imovel-card-body h4 {
-    margin: 0;
-    font-size: 1.2em;
-    color: var(--text);
-}
-
-.imovel-card-body p {
-    font-size: 0.9em;
-    opacity: 0.8;
-    margin: 5px 0 0;
-}
-
-.imovel-card-footer {
-    padding: 10px 15px;
-    border-top: 1px solid var(--border);
-}
-
-.situacao-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.8em;
-    font-weight: 500;
-    color: #fff;
-}
-
-.situacao-liberado { background-color: #28a745; } /* Verde */
-.situacao-locado { background-color: #fd7e14; } /* Laranja */
-.situacao-em-limpeza { background-color: #ffc107; color: #212529; } /* Amarelo */
-.situacao-suspenso { background-color: #dc3545; } /* Vermelho */
-.situacao-inativo { background-color: #6c757d; } /* Cinza */
-
-/* MODAL */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.7);
-    z-index: 2000;
-    display: none; /* Alterado por JS */
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-content {
-    background: var(--card);
-    padding: 30px;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 600px;
+    padding: 20px;
     text-align: center;
-    position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
 }
 
-.modal-close {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: none;
-    border: none;
-    font-size: 1.5em;
-    color: var(--text);
-    cursor: pointer;
+.card:hover {
+    transform: translateY(-5px);
 }
 
-.modal-image {
-    width: 100%;
-    max-height: 400px;
-    object-fit: contain;
-    border-radius: 8px;
+.card h3 {
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 10px;
+}
+
+.card p {
+    font-size: 1.3em;
+    font-weight: 600;
+}
+
+/* Estilos para o formImovelContainer quando visível */
+#gerenciar-imoveis-section #formImovelContainer {
+    display: block; /* Garante que o formulário seja exibido */
     margin-bottom: 20px;
 }
 
-.modal-actions {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
+/* Estilos para os cards de imóveis */
+.imovel-card {
+    position: relative;
+    flex: 1 1 300px; /* Largura base de 300px, permitindo que cresçam e encolham */
+    min-width: 250px;
+    max-width: 400px; /* Largura máxima para evitar que fiquem muito grandes */
+    border-radius: 15px;
+    overflow: hidden; /* Garante que a imagem não vaze para fora do card */
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Sombra mais forte */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.btn-danger {
-    background-color: #dc3545;
+.imovel-card:hover {
+    transform: translateY(-8px); /* Eleva um pouco mais no hover */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4); /* Sombra mais forte no hover */
 }
-.btn-danger:hover {
-    background-color: #c82333;
+
+.imovel-card img {
+    width: 100%;
+    height: 200px; /* Altura fixa para as imagens */
+    object-fit: cover; /* Recorta a imagem para preencher o espaço */
+    display: block; /* Remove espaço extra abaixo da imagem */
+}
+
+.imovel-card-content {
+    padding: 20px;
+    text-align: left;
+}
+
+.imovel-card-content h3 {
+    font-size: 1.5em;
+    margin-bottom: 8px;
+    color: var(--accent);
+}
+
+.imovel-card-content p {
+    font-size: 1em;
+    margin-bottom: 6px;
+    color: var(--text);
+}
+
+/* Cores e estilos para a situação do imóvel */
+.situacao-liberado {
+    color: #28a745; /* Verde */
+}
+
+.situacao-locado {
+    color: #ffc107; /* Laranja */
+}
+
+.situacao-em-limpeza {
+    color: #ffda6b; /* Amarelo */
+}
+
+.situacao-suspenso {
+    color: #dc3545; /* Vermelho */
+}
+
+.situacao-inativo {
+    color: #6c757d; /* Cinza */
+}
+
+/* Estilos para o modal */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.8); /* Black w/ opacity */
+}
+
+.modal-content {
+    position: relative;
+    background-color: var(--card);
+    margin: 10% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid var(--border);
+    width: 80%; /* Could be more or less, depending on screen size */
+    max-width: 600px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    animation: slideIn 0.4s ease-out;
+}
+
+/* The Close Button */
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    color: var(--text);
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-actions {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.modal-actions .btn {
+    margin: 0 10px;
+}
+
+/* Animação para o modal */
+@keyframes slideIn {
+    from {transform: translateY(-200px); opacity: 0;}
+    to {transform: translateY(0); opacity: 1;}
 }
