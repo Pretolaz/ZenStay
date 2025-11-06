@@ -161,3 +161,130 @@ body {
     font-size: 1.3em; 
     font-weight: 600; 
 }
+
+/* NOVOS ESTILOS PARA GERENCIAR IMÓVEIS */
+.imoveis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    width: 100%;
+}
+
+.imovel-card {
+    background: var(--card);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+}
+
+.imovel-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.imovel-card-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    background-color: var(--hover);
+}
+
+.imovel-card-body {
+    padding: 15px;
+    text-align: left;
+    flex-grow: 1;
+}
+
+.imovel-card-body h4 {
+    margin: 0;
+    font-size: 1.2em;
+    color: var(--text);
+}
+
+.imovel-card-body p {
+    font-size: 0.9em;
+    opacity: 0.8;
+    margin: 5px 0 0;
+}
+
+.imovel-card-footer {
+    padding: 10px 15px;
+    border-top: 1px solid var(--border);
+}
+
+.situacao-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 500;
+    color: #fff;
+}
+
+.situacao-liberado { background-color: #28a745; } /* Verde */
+.situacao-locado { background-color: #fd7e14; } /* Laranja */
+.situacao-em-limpeza { background-color: #ffc107; color: #212529; } /* Amarelo */
+.situacao-suspenso { background-color: #dc3545; } /* Vermelho */
+.situacao-inativo { background-color: #6c757d; } /* Cinza */
+
+/* MODAL */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 2000;
+    display: none; /* Alterado por JS */
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: var(--card);
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    text-align: center;
+    position: relative;
+}
+
+.modal-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.modal-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+}
+.btn-danger:hover {
+    background-color: #c82333;
+}
