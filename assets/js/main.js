@@ -13,36 +13,5 @@ window.addEventListener('DOMContentLoaded', () => {
         document.getElementById('theme-style').setAttribute('href', `theme/${saved}.css`);
     }
 
-    // Ativa automaticamente o link da página atual
-    const currentPage = window.location.pathname.split('/').pop();
-    document.querySelectorAll('.sidebar a').forEach(link => {
-        const href = link.getAttribute('href');
-        if (href === currentPage) {
-            link.classList.add('active');
-            // Se o link ativo estiver dentro de um submenu, expandir o submenu pai
-            const parentSubmenu = link.closest('.submenu');
-            if (parentSubmenu) {
-                parentSubmenu.style.display = 'block';
-                const parentHasSubmenu = parentSubmenu.closest('.has-submenu');
-                if (parentHasSubmenu) {
-                    parentHasSubmenu.classList.add('expanded');
-                }
-            }
-        } else {
-            link.classList.remove('active');
-        }
-    });
-
-    // Lógica para expandir/recolher submenus
-    document.querySelectorAll('.submenu-toggle').forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault(); // Previne a navegação para href="#"
-            const parentLi = this.closest('.has-submenu');
-            parentLi.classList.toggle('expanded'); // Alterna a classe 'expanded'
-            const submenu = parentLi.querySelector('.submenu');
-            if (submenu) {
-                submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
-            }
-        });
-    });
+    // The sidebar related JS is moved to the fetch block in index.html
 });
