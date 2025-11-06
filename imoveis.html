@@ -21,7 +21,8 @@
             <button id="toggle-theme">🌗</button>
         </header>
 
-        <section class="dashboard" id="imoveis-list-section">
+        <!-- Seção de Gerenciamento de Imóveis -->
+        <section class="dashboard" id="gerenciar-imoveis-section">
             <!-- Formulário de Imóveis -->
             <div class="card" style="flex: 1 1 100%;">
                 <h3>➕ Cadastrar Novo Imóvel</h3>
@@ -97,8 +98,8 @@
             </div>
         </section>
 
-        <!-- Seção de Gerenciamento de Cômodos (Inicialmente oculta) -->
-        <section class="dashboard" id="comodos-section" style="display: none;">
+        <!-- Seção de Gerenciamento de Cômodos -->
+        <section class="dashboard" id="comodos-imovel-section" style="display: none;">
             <div class="card" style="flex: 1 1 100%;">
                 <h3 id="comodos-title">Gerenciar Cômodos para: <span id="imovel-apelido-comodos"></span></h3>
                 <form id="formComodo">
@@ -155,13 +156,10 @@
                     <tbody></tbody>
                 </table>
             </div>
-            <div class="form-row" style="justify-content: flex-end;">
-                <button type="button" class="btn" id="voltarParaImoveis">↩️ Voltar aos Imóveis</button>
-            </div>
         </section>
 
-        <!-- Seção de Gerenciamento de Objetos (Inicialmente oculta) -->
-        <section class="dashboard" id="objetos-section" style="display: none;">
+        <!-- Seção de Gerenciamento de Objetos (Inventário) -->
+        <section class="dashboard" id="inventario-objetos-section" style="display: none;">
             <div class="card" style="flex: 1 1 100%;">
                 <h3 id="objetos-title">Gerenciar Objetos para: <span id="imovel-comodo-nome-objetos"></span></h3>
                 <form id="formObjeto">
@@ -212,9 +210,6 @@
                     <tbody></tbody>
                 </table>
             </div>
-            <div class="form-row" style="justify-content: flex-end;">
-                <button type="button" class="btn" id="voltarParaComodos">↩️ Voltar para Cômodos</button>
-            </div>
         </section>
 
     </main>
@@ -232,11 +227,68 @@
             .then(html => {
                 document.getElementById("sidebar").innerHTML = html;
                 const path = window.location.pathname.split("/").pop();
+                const hash = window.location.hash;
+
                 document.querySelectorAll(".sidebar a").forEach(link => {
-                    if (link.getAttribute("href") === path) link.classList.add("active");
+                    const linkHref = link.getAttribute("href");
+                    if (linkHref === path + hash) {
+                        link.classList.add("active");
+                        // Se for um item de submenu, expande o pai
+                        if (link.closest('.submenu')) {
+                            const parentSubmenu = link.closest('.has-submenu');
+                            if (parentSubmenu) {
+                                parentSubmenu.querySelector('.submenu').style.display = 'block';
+                                parentSubmenu.querySelector('.arrow').textContent = '▼';
+                                parentSubmenu.querySelector('.submenu-toggle').classList.add('active');
+                            }
+                        }
+                    } else if (linkHref === path && !hash && linkHref !== '#') { // Para o link pai sem hash, se não for um link de toggle
+                        link.classList.add("active");
+                    }
                 });
+                // Após carregar o sidebar, dispare a lógica de exibição de seção com base no hash
+                window.dispatchEvent(new Event('hashchange'));
             })
             .catch(err => console.error("Erro ao carregar sidebar:", err));
+
+        // Lógica de manipulação do hash da URL para exibir a seção correta
+        const gerenciarImoveisSection = document.getElementById('gerenciar-imoveis-section');
+        const comodosImovelSection = document.getElementById('comodos-imovel-section');
+        const inventarioObjetosSection = document.getElementById('inventario-objetos-section');
+
+        function showSectionFromHash() {
+            const hash = window.location.hash;
+            gerenciarImoveisSection.style.display = 'none';
+            comodosImovelSection.style.display = 'none';
+            inventarioObjetosSection.style.display = 'none';
+
+            if (hash === '#comodos') {
+                comodosImovelSection.style.display = 'flex';
+                document.getElementById('main-title').textContent = '🚪 Gerenciar Cômodos';
+                // Aqui você pode carregar o primeiro imóvel ou pedir para o usuário selecionar
+                // Por enquanto, vamos limpar o currentImovelComodos se não houver um selecionado
+                if (!window.currentImovelComodos() && Imovel.listarTodos().length > 0) {
+                    gerenciarComodos(Imovel.listarTodos()[0].codigo); // Carrega o primeiro imóvel por padrão
+                }
+            } else if (hash === '#inventario') {
+                inventarioObjetosSection.style.display = 'flex';
+                document.getElementById('main-title').textContent = '📦 Inventário de Objetos';
+                // Similarmente, pode carregar o primeiro cômodo do primeiro imóvel por padrão
+                if (!window.currentComodoObjetos && Imovel.listarTodos().length > 0) {
+                    const primeiroImovel = Imovel.listarTodos()[0];
+                    if (primeiroImovel.comodos.length > 0) {
+                        gerenciarObjetosDoComodo(primeiroImovel.comodos[0].codigo); // Carrega o primeiro cômodo do primeiro imóvel
+                    }
+                }
+            } else { // Padrão: #gerenciar ou nenhum hash
+                gerenciarImoveisSection.style.display = 'flex';
+                document.getElementById('main-title').textContent = '🏡 Gerenciar Imóveis';
+            }
+            carregarImoveis(); // Sempre recarrega a lista de imóveis
+        }
+
+        window.addEventListener('hashchange', showSectionFromHash);
+        window.addEventListener('DOMContentLoaded', showSectionFromHash);
     </script>
 
     <!-- CRUD de Imóveis -->
@@ -259,7 +311,7 @@
                     <td>${imovel.situacao}</td>
                     <td>
                         <button class="action-btn" onclick="editarImovel(${imovel.codigo})" title="Editar">✏️</button>
-                        <button class="action-btn" onclick="gerenciarComodos(${imovel.codigo})" title="Gerenciar Cômodos">🚪</button>
+                        <!-- Botão de gerenciar cômodos removido aqui, agora via menu lateral -->
                         <button class="action-btn" onclick="excluirImovel(${imovel.codigo})" title="Excluir">🗑️</button>
                     </td>
                 `;

@@ -9,10 +9,10 @@ const tipoObjetoInput = document.getElementById('tipoObjeto');
 const nomeObjetoInput = document.getElementById('nomeObjeto');
 const quantidadeObjetoInput = document.getElementById('quantidadeObjeto');
 const tabelaObjetosBody = document.querySelector('#tabelaObjetos tbody');
-const voltarParaComodosBtn = document.getElementById('voltarParaComodos');
 const cancelarObjetoBtn = document.getElementById('cancelarObjeto');
 
-let currentComodoObjetos = null; // Armazena o objeto Comodo cujos objetos estão sendo gerenciados
+// currentComodoObjetos será setado em imoveis.html ou via gerenciarObjetosDoComodo
+let currentComodoObjetos = null; 
 
 // Função chamada ao clicar em "Gerenciar Objetos" em um cômodo
 function gerenciarObjetosDoComodo(codigoComodo) {
@@ -23,7 +23,6 @@ function gerenciarObjetosDoComodo(codigoComodo) {
             currentComodoObjetos = comodo;
             imovelComodoNomeObjetos.textContent = `${imovelAtual.apelido} > ${comodo.nome}`;
             objetoComodoIdInput.value = comodo.codigo; // Guarda o ID do cômodo no campo oculto
-            window.toggleSection('objetos');
             carregarObjetosDoComodo();
         } else {
             console.error('Cômodo não encontrado para gerenciar objetos.');
@@ -69,18 +68,16 @@ function salvarObjeto(e) {
     const quantidade = parseInt(quantidadeObjetoInput.value);
 
     if (codigoObjeto) {
-        // Editando objeto existente
         currentComodoObjetos.editarObjeto(codigoObjeto, tipo, nome, quantidade);
     } else {
-        // Adicionando novo objeto
         currentComodoObjetos.adicionarObjeto(tipo, nome, quantidade);
     }
 
     formObjeto.reset();
-    objetoIdInput.value = ''; // Limpa o campo de edição
+    objetoIdInput.value = ''; 
     codigoObjetoInput.value = '';
     document.querySelector('#formObjeto button[type="submit"]').textContent = '➕ Adicionar Objeto';
-    carregarObjetosDoComodo(); // Recarrega a tabela de objetos
+    carregarObjetosDoComodo(); 
 }
 
 // Preenche o formulário para edição de um objeto
@@ -114,7 +111,6 @@ function excluirObjeto(codigoObjeto) {
 
 // Event Listeners
 formObjeto.addEventListener('submit', salvarObjeto);
-voltarParaComodosBtn.addEventListener('click', () => window.toggleSection('comodos'));
 cancelarObjetoBtn.addEventListener('click', () => {
     formObjeto.reset();
     objetoIdInput.value = '';
@@ -125,4 +121,5 @@ cancelarObjetoBtn.addEventListener('click', () => {
 // Expor funções globalmente
 window.gerenciarObjetosDoComodo = gerenciarObjetosDoComodo;
 window.editarObjeto = editarObjeto;
-window.excluirObjeto = excluirObcljeto;
+window.excluirObjeto = excluirObjeto;
+window.currentComodoObjetos = currentComodoObjetos; // Expor o cômodo atual para o main script se necessário
