@@ -1,5 +1,5 @@
 class Imovel {
-    constructor(codigo, apelido, situacao, nome, descricao, endereco, googleMapsLink, instrucoesChegada, comodos = []) {
+    constructor(codigo, apelido, situacao, nome, descricao, endereco, googleMapsLink, instrucoesChegada, comodos = [], fotoUrl = '') {
         this.codigo = codigo;
         this.apelido = apelido;
         this.situacao = situacao;
@@ -8,7 +8,8 @@ class Imovel {
         this.endereco = endereco;
         this.googleMapsLink = googleMapsLink;
         this.instrucoesChegada = instrucoesChegada;
-        this.comodos = comodos.map(comodoData => new Comodo(comodoData.codigo, comodoData.nome, comodoData.icone));
+        this.comodos = comodos.map(comodoData => new Comodo(comodoData.codigo, comodoData.nome, comodoData.icone, comodoData.objetos || []));
+        this.fotoUrl = fotoUrl; // Nova propriedade para a URL da foto
     }
 
     static listarTodos() {
@@ -22,7 +23,8 @@ class Imovel {
             imovelData.endereco,
             imovelData.googleMapsLink,
             imovelData.instrucoesChegada,
-            imovelData.comodos
+            imovelData.comodos,
+            imovelData.fotoUrl // Inclui a fotoUrl ao carregar
         ));
     }
 
@@ -61,8 +63,9 @@ class Imovel {
         Imovel.salvarTodos(imoveis);
     }
 
-    adicionarComodo(nome, icone) {
-        const novoComodo = new Comodo(null, nome, icone);
+    // Métodos para gerenciar cômodos
+    adicionarComodo(codigo, nome, icone) {
+        const novoComodo = new Comodo(codigo, nome, icone);
         this.comodos.push(novoComodo);
         this.salvar();
     }
