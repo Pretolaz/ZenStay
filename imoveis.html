@@ -160,6 +160,63 @@
             </div>
         </section>
 
+        <!-- Seção de Gerenciamento de Objetos (Inicialmente oculta) -->
+        <section class="dashboard" id="objetos-section" style="display: none;">
+            <div class="card" style="flex: 1 1 100%;">
+                <h3 id="objetos-title">Gerenciar Objetos para: <span id="imovel-comodo-nome-objetos"></span></h3>
+                <form id="formObjeto">
+                    <input type="hidden" id="objetoId">
+                    <input type="hidden" id="objetoComodoId">
+
+                    <div class="form-row">
+                        <div class="input-group">
+                            <span>#️⃣</span>
+                            <input type="number" id="codigoObjeto" placeholder="Código (auto)" readonly>
+                        </div>
+                        <div class="input-group">
+                            <span>📦</span>
+                            <select id="tipoObjeto" required>
+                                <option value="">Selecione o Tipo</option>
+                                <option value="Móvel">Móvel</option>
+                                <option value="Utensílio">Utensílio</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <span>🛋️</span>
+                            <input type="text" id="nomeObjeto" placeholder="Nome do Objeto" required>
+                        </div>
+                        <div class="input-group">
+                            <span>🔢</span>
+                            <input type="number" id="quantidadeObjeto" placeholder="Quantidade" min="1" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">➕ Adicionar Objeto</button>
+                    <button type="button" class="btn btn-secondary" id="cancelarObjeto">❌ Cancelar</button>
+                </form>
+            </div>
+
+            <div class="card" style="flex: 1 1 100%;">
+                <h3>📋 Lista de Objetos</h3>
+                <table id="tabelaObjetos">
+                    <thead>
+                        <tr>
+                            <th>Cód.</th>
+                            <th>Tipo</th>
+                            <th>Nome</th>
+                            <th>Qtd.</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="form-row" style="justify-content: flex-end;">
+                <button type="button" class="btn" id="voltarParaComodos">↩️ Voltar para Cômodos</button>
+            </div>
+        </section>
+
     </main>
 
     <!-- Scripts -->
@@ -276,5 +333,7 @@
 
     <!-- CRUD de Cômodos para o Imóvel -->
     <script src="assets/js/comodos-imovel.js"></script>
+    <!-- CRUD de Objetos para o Cômodo -->
+    <script src="assets/js/objetos-comodo.js"></script>
 </body>
 </html>

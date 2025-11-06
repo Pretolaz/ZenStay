@@ -46,7 +46,7 @@ textarea {
     width: 100%;
     padding: 10px;
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 6x;
     background: var(--card);
     color: var(--text);
     margin-bottom: 15px;
@@ -74,6 +74,16 @@ textarea:focus {
 
 .btn:hover {
     background: var(--hover-accent);
+}
+
+.btn-secondary {
+    background: var(--border);
+    color: var(--text);
+    margin-left: 10px; /* Espaçamento entre botões */
+}
+
+.btn-secondary:hover {
+    background: var(--hover);
 }
 
 /* Estilos para a tabela */

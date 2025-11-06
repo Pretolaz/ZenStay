@@ -2,6 +2,8 @@
 
 const imoveisListSection = document.getElementById('imoveis-list-section');
 const comodosSection = document.getElementById('comodos-section');
+const objetosSection = document.getElementById('objetos-section'); // Nova seção
+
 const imovelApelidoComodos = document.getElementById('imovel-apelido-comodos');
 const formComodo = document.getElementById('formComodo');
 const comodoIdInput = document.getElementById('comodoId');
@@ -14,19 +16,29 @@ const voltarParaImoveisBtn = document.getElementById('voltarParaImoveis');
 const cancelarComodoBtn = document.getElementById('cancelarComodo');
 
 let currentImovelComodos = null; // Armazena o objeto Imovel cujos cômodos estão sendo gerenciados
+let currentEditingComodo = null; // Armazena o objeto Comodo que está sendo editado (ou nulo)
 
 // Função para alternar a visibilidade das seções
-function toggleComodosSection(show) {
-    if (show) {
-        imoveisListSection.style.display = 'none';
-        comodosSection.style.display = 'flex'; // Usar flex para manter o layout
-    } else {
+function toggleSection(sectionToShow) {
+    imoveisListSection.style.display = 'none';
+    comodosSection.style.display = 'none';
+    objetosSection.style.display = 'none';
+
+    if (sectionToShow === 'imoveis') {
         imoveisListSection.style.display = 'flex';
-        comodosSection.style.display = 'none';
-        currentImovelComodos = null; // Limpa o imóvel atual ao voltar
-        formComodo.reset(); // Reseta o formulário de cômodos
-        comodoIdInput.value = ''; // Limpa o ID do cômodo em edição
+        currentImovelComodos = null;
+        currentEditingComodo = null;
+        formComodo.reset();
+        comodoIdInput.value = '';
         document.querySelector('#formComodo button[type="submit"]').textContent = '➕ Adicionar Cômodo';
+    } else if (sectionToShow === 'comodos') {
+        comodosSection.style.display = 'flex';
+        currentEditingComodo = null;
+        formComodo.reset();
+        comodoIdInput.value = '';
+        document.querySelector('#formComodo button[type="submit"]').textContent = '➕ Adicionar Cômodo';
+    } else if (sectionToShow === 'objetos') {
+        objetosSection.style.display = 'flex';
     }
 }
 
@@ -37,7 +49,7 @@ function gerenciarComodos(codigoImovel) {
         currentImovelComodos = imovel;
         imovelApelidoComodos.textContent = imovel.apelido;
         comodoImovelIdInput.value = imovel.codigo; // Guarda o ID do imóvel no campo oculto
-        toggleComodosSection(true);
+        toggleSection('comodos');
         carregarComodosDoImovel();
     } else {
         console.error('Imóvel não encontrado para gerenciar cômodos.');
@@ -56,6 +68,7 @@ function carregarComodosDoImovel() {
                 <td>${comodo.nome}</td>
                 <td>
                     <button class="action-btn" onclick="editarComodo(${comodo.codigo})" title="Editar">✏️</button>
+                    <button class="action-btn" onclick="gerenciarObjetosDoComodo(${comodo.codigo})" title="Gerenciar Objetos">📦</button>
                     <button class="action-btn" onclick="excluirComodo(${comodo.codigo})" title="Excluir">🗑️</button>
                 </td>
             `;
@@ -79,19 +92,22 @@ function salvarComodo(e) {
 
     if (codigoComodo) {
         // Editando cômodo existente
-        currentImovelComodos.editarComodo(codigoComodo, nome, icone);
+        const comodoToUpdate = currentImovelComodos.comodos.find(c => c.codigo === codigoComodo);
+        if (comodoToUpdate) {
+            comodoToUpdate.nome = nome;
+            comodoToUpdate.icone = icone;
+        }
     } else {
         // Adicionando novo cômodo
-        // Gerar um novo código para o cômodo dentro do contexto do imóvel
-        const novoCodigo = currentImovelComodos.comodos.length > 0 
-            ? Math.max(...currentImovelComodos.comodos.map(c => c.codigo)) + 1 
-            : 1;
-        currentImovelComodos.adicionarComodo(novoCodigo, nome, icone); // Passa o novo código
+        // O código do cômodo é gerado pelo próprio Comodo na sua construção, ou seja, se for nulo ele gera
+        const novoComodo = new Comodo(null, nome, icone);
+        currentImovelComodos.comodos.push(novoComodo);
     }
 
     currentImovelComodos.salvar(); // Salva o imóvel com os cômodos atualizados
     formComodo.reset();
     comodoIdInput.value = ''; // Limpa o campo de edição
+    codigoComodoInput.value = ''; // Limpa o código do cômodo (se houver)
     document.querySelector('#formComodo button[type="submit"]').textContent = '➕ Adicionar Cômodo';
     carregarComodosDoImovel(); // Recarrega a tabela de cômodos
 }
@@ -101,6 +117,7 @@ function editarComodo(codigoComodo) {
     if (currentImovelComodos) {
         const comodo = currentImovelComodos.comodos.find(c => c.codigo === codigoComodo);
         if (comodo) {
+            currentEditingComodo = comodo; // Define o cômodo que está sendo editado
             comodoIdInput.value = comodo.codigo;
             codigoComodoInput.value = comodo.codigo;
             nomeComodoInput.value = comodo.nome;
@@ -112,13 +129,14 @@ function editarComodo(codigoComodo) {
 
 // Exclui um cômodo
 function excluirComodo(codigoComodo) {
-    if (confirm('Tem certeza que deseja excluir este cômodo?')) {
+    if (confirm('Tem certeza que deseja excluir este cômodo e todos os seus objetos associados?')) {
         if (currentImovelComodos) {
-            currentImovelComodos.removerComodo(codigoComodo);
+            currentImovelComodos.comodos = currentImovelComodos.comodos.filter(c => c.codigo !== codigoComodo);
             currentImovelComodos.salvar(); // Salva o imóvel com os cômodos atualizados
             carregarComodosDoImovel();
             formComodo.reset();
             comodoIdInput.value = '';
+            codigoComodoInput.value = '';
             document.querySelector('#formComodo button[type="submit"]').textContent = '➕ Adicionar Cômodo';
         }
     }
@@ -126,15 +144,19 @@ function excluirComodo(codigoComodo) {
 
 // Event Listeners
 formComodo.addEventListener('submit', salvarComodo);
-voltarParaImoveisBtn.addEventListener('click', () => toggleComodosSection(false));
+voltarParaImoveisBtn.addEventListener('click', () => toggleSection('imoveis'));
 cancelarComodoBtn.addEventListener('click', () => {
     formComodo.reset();
     comodoIdInput.value = '';
     codigoComodoInput.value = '';
     document.querySelector('#formComodo button[type="submit"]').textContent = '➕ Adicionar Cômodo';
+    currentEditingComodo = null;
 });
 
-// Certificar que a função gerenciarComodos está disponível globalmente
+// Expor funções globalmente para serem acessíveis do HTML
 window.gerenciarComodos = gerenciarComodos;
 window.editarComodo = editarComodo;
 window.excluirComodo = excluirComodo;
+window.toggleSection = toggleSection; // Expor para objetos-comodo.js
+window.currentImovelComodos = () => currentImovelComodos; // Expor para objetos-comodo.js
+window.currentEditingComodo = () => currentEditingComodo; // Expor para objetos-comodo.js
