@@ -15,6 +15,8 @@ const modalImovelNome = document.getElementById('modalImovelNome');
 const modalImovelEndereco = document.getElementById('modalImovelEndereco');
 const modalImovelDescricao = document.getElementById('modalImovelDescricao');
 const modalImovelSituacao = document.getElementById('modalImovelSituacao'); 
+const modalImovelMoveis = document.getElementById('modalImovelMoveis');
+const modalImovelUtensilios = document.getElementById('modalImovelUtensilios');
 
 let currentEditingImovel = null;
 let fotoImovelURL = ''; 
@@ -56,6 +58,27 @@ adicionarImovelBtn.addEventListener('click', () => {
     document.getElementById('formImovel').querySelector('button[type="submit"]').textContent = '💾 Salvar Imóvel';
 });
 
+// Lógica para calcular móveis e utensílios
+function calcularInventario(imovel) {
+    let totalMoveis = 0;
+    let totalUtensilios = 0;
+
+    if (imovel.comodos) {
+        imovel.comodos.forEach(comodo => {
+            if (comodo.objetos) {
+                comodo.objetos.forEach(objeto => {
+                    if (objeto.tipo === 'Móvel') {
+                        totalMoveis += objeto.quantidade;
+                    } else if (objeto.tipo === 'Utensílio') {
+                        totalUtensilios += objeto.quantidade;
+                    }
+                });
+            }
+        });
+    }
+    return { totalMoveis, totalUtensilios };
+}
+
 // Lógica para carregar e exibir os cards dos imóveis
 function carregarImoveis() {
     const imoveis = Imovel.listarTodos();
@@ -95,28 +118,14 @@ function carregarImoveis() {
                 break;
             default:
                 situacaoClass = 'situacao-inativo';
-                situacaoIcon = '❓';
+                situacaoIcon = '❓
+                ';
                 break;
         }
 
         const fotoSrc = imovel.foto || 'https://via.placeholder.com/300x200?text=Sem+Foto';
 
-        let totalMoveis = 0;
-        let totalUtensilios = 0;
-
-        if (imovel.comodos) {
-            imovel.comodos.forEach(comodo => {
-                if (comodo.objetos) {
-                    comodo.objetos.forEach(objeto => {
-                        if (objeto.tipo === 'Móvel') {
-                            totalMoveis += objeto.quantidade;
-                        } else if (objeto.tipo === 'Utensílio') {
-                            totalUtensilios += objeto.quantidade;
-                        }
-                    });
-                }
-            });
-        }
+        const { totalMoveis, totalUtensilios } = calcularInventario(imovel);
 
         card.innerHTML = `
             <h3 class="imovel-card-apelido">${imovel.apelido}</h3>
@@ -147,6 +156,11 @@ function abrirModal(imovel) {
     modalImovelEndereco.textContent = `Endereço: ${imovel.endereco}`;
     modalImovelDescricao.textContent = `Descrição: ${imovel.descricao}`;
     modalImovelSituacao.textContent = `Situação: ${imovel.situacao}`; 
+    
+    const { totalMoveis, totalUtensilios } = calcularInventario(imovel);
+    modalImovelMoveis.textContent = `Móveis: ${totalMoveis}`;
+    modalImovelUtensilios.textContent = `Utensílios: ${totalUtensilios}`;
+
     mostrarModal();
 }
 

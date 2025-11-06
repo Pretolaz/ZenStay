@@ -220,11 +220,19 @@
             <div class="modal-content">
                 <span class="close-button" onclick="fecharModal()">&times;</span>
                 <h3 id="modalImovelApelido"></h3>
-                <img id="modalImovelFoto" src="" alt="Foto do Imóvel" style="max-width: 100%;">
-                <p id="modalImovelNome"></p>
-                <p id="modalImovelEndereco"></p>
-                <p id="modalImovelSituacao"></p>
-                <p id="modalImovelDescricao"></p>
+                <div class="modal-body-content">
+                    <div class="modal-image-container">
+                        <img id="modalImovelFoto" src="" alt="Foto do Imóvel">
+                    </div>
+                    <div class="modal-details-container">
+                        <p id="modalImovelNome"></p>
+                        <p id="modalImovelEndereco"></p>
+                        <p id="modalImovelSituacao"></p>
+                        <p id="modalImovelMoveis"></p> <!-- Novo campo para móveis -->
+                        <p id="modalImovelUtensilios"></p> <!-- Novo campo para utensílios -->
+                        <p id="modalImovelDescricao"></p>
+                    </div>
+                </div>
                 <div class="modal-actions">
                     <button class="btn" onclick="editarImovelModal()">✏️ Editar</button>
                     <button class="btn btn-danger" onclick="excluirImovelModal()">🗑️ Excluir</button>
@@ -340,11 +348,6 @@
                 currentSectionTitle = '📦 Inventário de Objetos';
                 if (window.currentComodoObjetos && window.currentComodoObjetos.codigo) {
                     window.gerenciarObjetosDoComodo(window.currentComodoObjetos.codigo); 
-                } else if (Imovel.listarTodos().length > 0) {
-                    const primeiroImovel = Imovel.listarTodos()[0];
-                    if (primeiroImovel.comodos.length > 0) {
-                        window.gerenciarObjetosDoComodo(primeiroImovel.comodos[0].codigo); 
-                    }
                 }
             } else { 
                 gerenciarImoveisSection.style.display = 'flex';
