@@ -22,69 +22,71 @@
 </aside>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const submenuToggle = document.querySelector('.submenu-toggle');
-    const submenu = document.querySelector('.submenu');
-    const arrow = submenuToggle.querySelector('.arrow');
+  const submenuToggle = document.querySelector('.submenu-toggle');
+  const submenu = document.querySelector('.submenu');
+  const arrow = submenuToggle ? submenuToggle.querySelector('.arrow') : null; // Verificação adicionada
 
-    // Função para manter o submenu aberto se um item filho estiver ativo
-    const checkActiveSubmenu = () => {
-      const currentPath = window.location.pathname.split('/').pop();
-      const currentHash = window.location.hash;
-      const activeSubmenuLink = submenu.querySelector(`a[href="${currentPath}${currentHash}"]`);
-      
-      if (activeSubmenuLink) {
+  // Função para manter o submenu aberto se um item filho estiver ativo
+  const checkActiveSubmenu = () => {
+    const currentPath = window.location.pathname.split('/').pop();
+    const currentHash = window.location.hash;
+    // Certifica-se de que submenu existe antes de tentar selecionar elementos dentro dele
+    const activeSubmenuLink = submenu ? submenu.querySelector(`a[href="${currentPath}${currentHash}"]`) : null;
+    
+    if (activeSubmenuLink) {
+      if (submenu) submenu.style.display = 'block';
+      if (arrow) arrow.textContent = '▼'; // Vira para baixo
+      activeSubmenuLink.classList.add('active');
+      if (submenuToggle) submenuToggle.classList.add('active'); // Marca o pai como ativo também
+    } else if (currentPath === 'imoveis.html') {
+      // Se estiver na página de imóveis, mas nenhum subitem está ativo, mostra o gerenciador por padrão
+      // Isso pode ser ajustado para o comportamento desejado, por enquanto mantém o submenu fechado
+    }
+  };
+
+  // Adiciona evento de clique para alternar o submenu
+  if (submenuToggle && submenu && arrow) { // Verifica se todos os elementos existem
+    submenuToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (submenu.style.display === 'block') {
+        submenu.style.display = 'none';
+        arrow.textContent = '▶'; // Vira para a direita
+      } else {
         submenu.style.display = 'block';
         arrow.textContent = '▼'; // Vira para baixo
-        activeSubmenuLink.classList.add('active');
-        submenuToggle.classList.add('active'); // Marca o pai como ativo também
-      } else if (currentPath === 'imoveis.html') {
-        // Se estiver na página de imóveis, mas nenhum subitem está ativo, mostra o gerenciador por padrão
-        // Isso pode ser ajustado para o comportamento desejado, por enquanto mantém o submenu fechado
       }
-    };
-
-    // Adiciona evento de clique para alternar o submenu
-    if (submenuToggle) {
-      submenuToggle.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (submenu.style.display === 'block') {
-          submenu.style.display = 'none';
-          arrow.textContent = '▶'; // Vira para a direita
-        } else {
-          submenu.style.display = 'block';
-          arrow.textContent = '▼'; // Vira para baixo
-        }
-      });
-    }
-
-    // Marca o link principal como ativo (se for a página principal do submenu)
-    const mainImoveisLink = document.querySelector('a[href="imoveis.html"]');
-    if (mainImoveisLink && window.location.pathname.split('/').pop() === 'imoveis.html' && !window.location.hash) {
-        mainImoveisLink.classList.add('active');
-    }
-
-    // Marca o item de menu lateral como ativo
-    const path = window.location.pathname.split("/").pop();
-    const hash = window.location.hash;
-    document.querySelectorAll(".sidebar a").forEach(link => {
-        const linkHref = link.getAttribute("href");
-        if (linkHref === path + hash) {
-            link.classList.add("active");
-            // Se for um item de submenu, expande o pai
-            if (link.closest('.submenu')) {
-                const parentSubmenu = link.closest('.has-submenu');
-                if (parentSubmenu) {
-                    parentSubmenu.querySelector('.submenu').style.display = 'block';
-                    parentSubmenu.querySelector('.arrow').textContent = '▼';
-                    parentSubmenu.querySelector('.submenu-toggle').classList.add('active');
-                }
-            }
-        } else if (linkHref === path && !hash) { // Para o link pai sem hash
-            link.classList.add("active");
-        }
     });
+  }
 
-    checkActiveSubmenu();
+  // Marca o link principal como ativo (se for a página principal do submenu)
+  const mainImoveisLink = document.querySelector('a[href="imoveis.html"]');
+  if (mainImoveisLink && window.location.pathname.split('/').pop() === 'imoveis.html' && !window.location.hash) {
+      mainImoveisLink.classList.add('active');
+  }
+
+  // Marca o item de menu lateral como ativo
+  const path = window.location.pathname.split("/").pop();
+  const hash = window.location.hash;
+  document.querySelectorAll(".sidebar a").forEach(link => {
+      const linkHref = link.getAttribute("href");
+      if (linkHref === path + hash) {
+          link.classList.add("active");
+          // Se for um item de submenu, expande o pai
+          if (link.closest('.submenu')) {
+              const parentSubmenu = link.closest('.has-submenu');
+              if (parentSubmenu) {
+                  const parentSubmenuElement = parentSubmenu.querySelector('.submenu');
+                  const parentArrow = parentSubmenu.querySelector('.arrow');
+                  if (parentSubmenuElement) parentSubmenuElement.style.display = 'block';
+                  if (parentArrow) parentArrow.textContent = '▼';
+                  const parentSubmenuToggle = parentSubmenu.querySelector('.submenu-toggle');
+                  if (parentSubmenuToggle) parentSubmenuToggle.classList.add('active');
+              }
+          }
+      } else if (linkHref === path && !hash && linkHref !== '#') { 
+          link.classList.add("active");
+      }
   });
+
+  checkActiveSubmenu();
 </script>
