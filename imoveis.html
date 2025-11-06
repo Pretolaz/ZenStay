@@ -227,25 +227,36 @@
             .then(html => {
                 const sidebarElement = document.getElementById("sidebar");
                 sidebarElement.innerHTML = html;
+                console.log('Sidebar HTML carregado e inserido.');
                 
                 // Lógica de expansão do submenu e marcação de ativo (com delegação de eventos)
                 sidebarElement.addEventListener('click', (e) => {
+                    console.log('Clique na sidebar detectado!', e.target);
                     const submenuToggle = e.target.closest('.submenu-toggle');
                     if (submenuToggle) {
+                        console.log('Clicou em um submenu-toggle:', submenuToggle);
                         e.preventDefault();
                         const parentLi = submenuToggle.closest('.has-submenu');
                         const submenu = parentLi ? parentLi.querySelector('.submenu') : null;
                         const arrow = submenuToggle.querySelector('.arrow');
 
+                        console.log('parentLi:', parentLi, 'submenu:', submenu, 'arrow:', arrow);
+
                         if (submenu && arrow) {
                             if (submenu.style.display === 'block') {
                                 submenu.style.display = 'none';
                                 arrow.textContent = '▶'; 
+                                console.log('Submenu contraído.');
                             } else {
                                 submenu.style.display = 'block';
                                 arrow.textContent = '▼'; 
+                                console.log('Submenu expandido.');
                             }
+                        } else {
+                             console.log('Erro: Submenu ou arrow não encontrados para toggle.');
                         }
+                    } else {
+                        console.log('Não clicou em um submenu-toggle.');
                     }
 
                     // Lógica para marcar link ativo ao clicar em qualquer item do sidebar
@@ -267,20 +278,26 @@
                 const setActiveSidebarLink = () => {
                     const path = window.location.pathname.split("/").pop();
                     const hash = window.location.hash;
+                    console.log('setActiveSidebarLink - path:', path, 'hash:', hash);
 
                     document.querySelectorAll(".sidebar a").forEach(link => {
                         link.classList.remove("active");
                         const linkHref = link.getAttribute("href");
+                        console.log('Verificando link:', linkHref);
+
                         if (linkHref === path + hash) {
                             link.classList.add("active");
+                            console.log('Link ativo encontrado e marcado:', linkHref);
                             const parentSubmenu = link.closest('.has-submenu');
                             if (parentSubmenu) {
+                                console.log('Link ativo está dentro de um submenu.');
                                 const submenuElement = parentSubmenu.querySelector('.submenu');
                                 const arrowElement = parentSubmenu.querySelector('.arrow');
                                 if (submenuElement) submenuElement.style.display = 'block';
                                 if (arrowElement) arrowElement.textContent = '▼';
                                 const submenuToggleElement = parentSubmenu.querySelector('.submenu-toggle');
                                 if (submenuToggleElement) submenuToggleElement.classList.add('active');
+                                console.log('Submenu pai expandido.');
                             }
                         }
                     });
@@ -300,6 +317,7 @@
 
         function showSectionFromHash() {
             const hash = window.location.hash;
+            console.log('showSectionFromHash - Hash atual:', hash);
             gerenciarImoveisSection.style.display = 'none';
             comodosImovelSection.style.display = 'none';
             inventarioObjetosSection.style.display = 'none';
@@ -309,7 +327,6 @@
             if (hash === '#comodos') {
                 comodosImovelSection.style.display = 'flex';
                 currentSectionTitle = '🚪 Gerenciar Cômodos';
-                // Tenta carregar o imóvel atual ou o primeiro imóvel por padrão
                 if (window.currentImovelComodos() && window.currentImovelComodos().codigo) {
                     window.gerenciarComodos(window.currentImovelComodos().codigo); 
                 } else if (Imovel.listarTodos().length > 0) {
@@ -318,7 +335,6 @@
             } else if (hash === '#inventario') {
                 inventarioObjetosSection.style.display = 'flex';
                 currentSectionTitle = '📦 Inventário de Objetos';
-                // Tenta carregar o cômodo atual ou o primeiro cômodo do primeiro imóvel por padrão
                 if (window.currentComodoObjetos && window.currentComodoObjetos.codigo) {
                     window.gerenciarObjetosDoComodo(window.currentComodoObjetos.codigo); 
                 } else if (Imovel.listarTodos().length > 0) {
