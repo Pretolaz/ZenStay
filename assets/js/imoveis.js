@@ -3,7 +3,7 @@
 // Elementos do DOM
 const adicionarImovelBtn = document.getElementById('adicionarImovelBtn');
 const formImovelContainer = document.getElementById('formImovelContainer');
-const formImovelElement = document.getElementById('formImovel'); // Renomeado para evitar conflito
+const formImovel = document.getElementById('formImovel');
 const imoveisCardsContainer = document.getElementById('imoveisCardsContainer');
 const fotoImovelInput = document.getElementById('fotoImovel');
 
@@ -15,23 +15,25 @@ const modalImovelEndereco = document.getElementById('modalImovelEndereco');
 const modalImovelDescricao = document.getElementById('modalImovelDescricao');
 
 let currentEditingImovel = null;
-
-// URL da foto do imóvel (será armazenada aqui)
-let fotoImovelURL = '';
+let fotoImovelURL = ''; // URL da foto do imóvel (será armazenada aqui)
 
 // Funções auxiliares
 function mostrarFormulario() {
     formImovelContainer.style.display = 'block';
+    formImovel.scrollIntoView({ behavior: 'smooth' });
 }
 
 function ocultarFormulario() {
     formImovelContainer.style.display = 'none';
+    limparFormulario();
 }
 
 function limparFormulario() {
-    formImovelElement.reset();
+    formImovel.reset();
+    document.getElementById('imovelId').value = '';
     currentEditingImovel = null;
     fotoImovelURL = '';
+    // Se houver uma pré-visualização de imagem, limpá-la também
 }
 
 function mostrarModal() {
@@ -43,16 +45,21 @@ function fecharModal() {
 }
 
 // Lógica para mostrar/ocultar o formulário
-if (adicionarImovelBtn) {
-    adicionarImovelBtn.addEventListener('click', () => {
-        mostrarFormulario();
-    });
-}
+adicionarImovelBtn.addEventListener('click', () => {
+    limparFormulario(); // Limpa antes de mostrar para um novo cadastro
+    mostrarFormulario();
+    document.getElementById('formImovel').querySelector('button[type="submit"]').textContent = '💾 Salvar Imóvel';
+});
 
 // Lógica para carregar e exibir os cards dos imóveis
 function carregarImoveis() {
     const imoveis = Imovel.listarTodos();
     imoveisCardsContainer.innerHTML = '';
+
+    if (imoveis.length === 0) {
+        imoveisCardsContainer.innerHTML = '<p style="width: 100%; text-align: center; color: var(--text-light);">Nenhum imóvel cadastrado. Clique em "Adicionar Imóvel" para começar.</p>';
+        return;
+    }
 
     imoveis.forEach(imovel => {
         const card = document.createElement('div');
@@ -88,11 +95,11 @@ function carregarImoveis() {
         }
 
         card.innerHTML = `
-            <img src="${imovel.foto || 'assets/img/no-image.png'}" alt="${imovel.apelido}">
+            <img src="${imovel.foto || 'https://via.placeholder.com/300x200?text=Sem+Foto'}" alt="${imovel.apelido}">
             <div class="imovel-card-content">
-                <h3>${imovel.apelido}</h3>
+                <h3>${imovel.apelido} <span class="situacao-tag ${situacaoClass}">${situacaoIcon} ${imovel.situacao}</span></h3>
                 <p>${imovel.nome}</p>
-                <p class="${situacaoClass}">${situacaoIcon} ${imovel.situacao}</p>
+                <p>${imovel.endereco}</p>
             </div>
         `;
 
@@ -108,16 +115,11 @@ function carregarImoveis() {
 function abrirModal(imovel) {
     currentEditingImovel = imovel;
     modalImovelApelido.textContent = imovel.apelido;
-    modalImovelFoto.src = imovel.foto || 'assets/img/no-image.png';
+    modalImovelFoto.src = imovel.foto || 'https://via.placeholder.com/600x400?text=Sem+Foto';
     modalImovelNome.textContent = `Nome: ${imovel.nome}`;
     modalImovelEndereco.textContent = `Endereço: ${imovel.endereco}`;
     modalImovelDescricao.textContent = `Descrição: ${imovel.descricao}`;
     mostrarModal();
-}
-
-// Lógica para fechar o modal
-function fecharModal() {
-    imovelModal.style.display = 'none';
 }
 
 // Lógica para editar o imóvel (abre o formulário com os dados)
@@ -133,13 +135,8 @@ function editarImovelModal() {
         document.getElementById('endereco').value = imovel.endereco;
         document.getElementById('googleMapsLink').value = imovel.googleMapsLink;
         document.getElementById('instrucoesChegada').value = imovel.instrucoesChegada;
-        fotoImovelURL = imovel.foto; // Carrega a URL da foto existente
-        // Exibe a foto atual (se houver)
-        if (imovel.foto) {
-            // Criar uma pré-visualização da imagem
-        }
-
-        formImovelContainer.scrollIntoView({ behavior: 'smooth' }); // Scroll até o formulário
+        fotoImovelURL = imovel.foto; 
+        document.getElementById('formImovel').querySelector('button[type="submit"]').textContent = '💾 Salvar Alterações';
         fecharModal();
     }
 }
@@ -175,9 +172,8 @@ function salvarImovel(e) {
 
     let imovel;
     if (imovelId) {
-        // Editar imóvel existente
         imovel = new Imovel(
-            imovelId,
+            parseInt(imovelId),
             apelido,
             situacao,
             nome,
@@ -185,11 +181,10 @@ function salvarImovel(e) {
             endereco,
             googleMapsLink,
             instrucoesChegada,
-            fotoImovelURL, // Passa a URL da foto
-            [] // Garante que comodos seja um array, mesmo que vazio
+            fotoImovelURL,
+            currentEditingImovel ? currentEditingImovel.comodos : [] // Mantém os cômodos ao editar
         );
     } else {
-        // Novo imóvel
         imovel = new Imovel(
             null,
             apelido,
@@ -199,40 +194,37 @@ function salvarImovel(e) {
             endereco,
             googleMapsLink,
             instrucoesChegada,
-            fotoImovelURL, // Passa a URL da foto
-            [] // Garante que comodos seja um array, mesmo que vazio
+            fotoImovelURL
         );
     }
 
     imovel.salvar();
-    limparFormulario();
     ocultarFormulario();
     carregarImoveis();
-
 }
 
 // Lógica para lidar com o upload da foto
-if (fotoImovelInput) {
-    fotoImovelInput.addEventListener('change', function() {
-        const file = fotoImovelInput.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                fotoImovelURL = e.target.result; // Armazena a URL da foto
-                // Pré-visualizar a imagem (opcional)
-                // previewFoto.src = fotoImovelURL;
-            }
-            reader.readAsDataURL(file);
-        } else {
-            fotoImovelURL = ''; // Limpa a URL se nenhum arquivo for selecionado
+fotoImovelInput.addEventListener('change', function() {
+    const file = fotoImovelInput.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            fotoImovelURL = e.target.result; // Armazena a URL da foto em Base64
         }
-    });
-}
+        reader.readAsDataURL(file);
+    } else {
+        fotoImovelURL = ''; 
+    }
+});
 
 // Event listeners
-if (formImovelElement) {
-    formImovelElement.addEventListener('submit', salvarImovel);
-}
+formImovel.addEventListener('submit', salvarImovel);
 
-// Chamar a função para carregar os imóveis ao carregar a página
+// Expor funções globalmente se necessário para outros scripts ou HTML inline
+window.carregarImoveis = carregarImoveis;
+window.fecharModal = fecharModal;
+window.editarImovelModal = editarImovelModal;
+window.excluirImovelModal = excluirImovelModal;
+
+// Chamada inicial para carregar os imóveis quando a página estiver pronta
 window.addEventListener('DOMContentLoaded', carregarImoveis);

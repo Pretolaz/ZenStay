@@ -242,26 +242,21 @@
         const setActiveSidebarLink = () => {
             const path = window.location.pathname.split("/").pop();
             const hash = window.location.hash;
-            console.log('setActiveSidebarLink - path:', path, 'hash:', hash);
 
             document.querySelectorAll(".sidebar a").forEach(link => {
                 link.classList.remove("active");
                 const linkHref = link.getAttribute("href");
-                console.log('Verificando link:', linkHref);
 
                 if (linkHref === path + hash) {
                     link.classList.add("active");
-                    console.log('Link ativo encontrado e marcado:', linkHref);
                     const parentSubmenu = link.closest('.has-submenu');
                     if (parentSubmenu) {
-                        console.log('Link ativo está dentro de um submenu.');
                         const submenuElement = parentSubmenu.querySelector('.submenu');
                         const arrowElement = parentSubmenu.querySelector('.arrow');
                         if (submenuElement) submenuElement.style.display = 'block';
                         if (arrowElement) arrowElement.textContent = '▼';
                         const submenuToggleElement = parentSubmenu.querySelector('.submenu-toggle');
                         if (submenuToggleElement) submenuToggleElement.classList.add('active');
-                        console.log('Submenu pai expandido.');
                     }
                 }
             });
@@ -272,45 +267,32 @@
             .then(html => {
                 const sidebarElement = document.getElementById("sidebar");
                 sidebarElement.innerHTML = html;
-                console.log('Sidebar HTML carregado e inserido.');
                 
                 // Lógica de expansão do submenu e marcação de ativo (com delegação de eventos)
                 sidebarElement.addEventListener('click', (e) => {
-                    console.log('Clique na sidebar detectado!', e.target);
                     const submenuToggle = e.target.closest('.submenu-toggle');
                     if (submenuToggle) {
-                        console.log('Clicou em um submenu-toggle:', submenuToggle);
                         e.preventDefault();
                         const parentLi = submenuToggle.closest('.has-submenu');
                         const submenu = parentLi ? parentLi.querySelector('.submenu') : null;
                         const arrow = submenuToggle.querySelector('.arrow');
 
-                        console.log('parentLi:', parentLi, 'submenu:', submenu, 'arrow:', arrow);
-
                         if (submenu && arrow) {
                             if (submenu.style.display === 'block') {
                                 submenu.style.display = 'none';
                                 arrow.textContent = '▶'; 
-                                console.log('Submenu contraído.');
                             } else {
                                 submenu.style.display = 'block';
                                 arrow.textContent = '▼'; 
-                                console.log('Submenu expandido.');
                             }
-                        } else {
-                             console.log('Erro: Submenu ou arrow não encontrados para toggle.');
-                        }
-                    } else {
-                        console.log('Não clicou em um submenu-toggle.');
-                    }
+                        } 
+                    } 
 
                     // Lógica para marcar link ativo ao clicar em qualquer item do sidebar
-                    // Remove ativo de todos os links primeiro
                     document.querySelectorAll(".sidebar a").forEach(link => link.classList.remove("active"));
                     let clickedLink = e.target.closest("a");
                     if (clickedLink) {
                         clickedLink.classList.add("active");
-                        // Se for um item de submenu, garante que o pai também esteja marcado como ativo
                         const parentSubmenuItem = clickedLink.closest('.has-submenu');
                         if (parentSubmenuItem) {
                             const parentToggle = parentSubmenuItem.querySelector('.submenu-toggle');
@@ -333,7 +315,6 @@
 
         function showSectionFromHash() {
             const hash = window.location.hash;
-            console.log('showSectionFromHash - Hash atual:', hash);
             gerenciarImoveisSection.style.display = 'none';
             comodosImovelSection.style.display = 'none';
             inventarioObjetosSection.style.display = 'none';
@@ -364,7 +345,7 @@
                 currentSectionTitle = '🏡 Gerenciar Imóveis';
             }
             document.getElementById('main-title').textContent = currentSectionTitle;
-            carregarImoveis(); 
+            // carregarImoveis(); // Removido daqui, será chamado por imoveis.js
 
             // Re-aplicar a classe ativa na sidebar após a mudança de hash e carregamento da seção
             setActiveSidebarLink();
@@ -374,39 +355,11 @@
         window.addEventListener('DOMContentLoaded', showSectionFromHash);
     </script>
 
-    <!-- CRUD de Imóveis -->
-    <script>
-        const tabelaImoveis = document.querySelector('#tabelaImoveis tbody');
-        const formImovel = document.getElementById('formImovel');
-        const camposImovel = ['codigo', 'apelido', 'situacao', 'nome', 'descricao', 'endereco', 'googleMapsLink', 'instrucoesChegada'];
-
-        let currentEditingImovel = null; 
-
-        function carregarImoveis() {
-           // Código para carregar imóveis será transferido para imoveis.js
-        }
-
-        function salvarImovel(e) {
-           // Código para salvar imóveis será transferido para imoveis.js
-        }
-
-        function editarImovel(codigo) {
-            // Código para editar imóveis será transferido para imoveis.js
-        }
-
-        function excluirImovel(codigo) {
-           // Código para excluir imóveis será transferido para imoveis.js
-        }
-
-        formImovel.addEventListener('submit', salvarImovel);
-        window.addEventListener('DOMContentLoaded', carregarImoveis);
-    </script>
-
+    <!-- Script específico para a página de Imóveis -->
+    <script src="assets/js/imoveis.js"></script>
     <!-- CRUD de Cômodos para o Imóvel -->
     <script src="assets/js/comodos-imovel.js"></script>
     <!-- CRUD de Objetos para o Cômodo -->
     <script src="assets/js/objetos-comodo.js"></script>
-    <!-- Script específico para a página de Imóveis -->
-    <script src="assets/js/imoveis.js"></script>
 </body>
 </html>
