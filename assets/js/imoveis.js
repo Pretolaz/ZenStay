@@ -118,8 +118,7 @@ function carregarImoveis() {
                 break;
             default:
                 situacaoClass = 'situacao-inativo';
-                situacaoIcon = '❓
-                ';
+                situacaoIcon = '';
                 break;
         }
 
