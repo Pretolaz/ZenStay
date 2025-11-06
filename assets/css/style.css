@@ -18,7 +18,7 @@ body {
     top: 0; 
     left: 0; 
     width: 220px; 
-    height: 100vh; /* Garante altura total da tela */ 
+    height: 100vh; 
     background-color: var(--sidebar-bg); 
     color: var(--text); 
     display: flex; 
@@ -26,8 +26,8 @@ body {
     justify-content: flex-start; 
     padding: 20px; 
     box-sizing: border-box; 
-    overflow-y: auto; /* Adiciona scroll se o menu for grande */ 
-    z-index: 1000; /* Adiciona z-index para garantir que a sidebar esteja acima */
+    overflow-y: auto; 
+    z-index: 1000;
 } 
 
 
@@ -73,7 +73,7 @@ body {
     list-style: none;
     padding-left: 15px;
     margin-top: 5px;
-    display: none; /* Inicia oculto */
+    display: none; 
 }
 
 .sidebar .submenu li a {
@@ -94,7 +94,7 @@ body {
 /* MAIN CONTENT */ 
 .content { 
     flex: 1; 
-    margin-left: 220px; /* Adicionado para evitar sobreposição com a sidebar */
+    margin-left: 220px; 
     background: var(--background); 
     color: var(--text); 
     display: flex; 
@@ -134,7 +134,7 @@ body {
     gap: 20px; 
     padding: 30px; 
     flex-wrap: wrap; 
-} 
+}
 
 /* Estilos para o card */
 .card {
@@ -165,50 +165,74 @@ body {
 
 /* Estilos para o formImovelContainer quando visível */
 #gerenciar-imoveis-section #formImovelContainer {
-    display: block; /* Garante que o formulário seja exibido */
+    display: block; 
     margin-bottom: 20px;
 }
 
 /* Estilos para os cards de imóveis */
 .imovel-card {
     position: relative;
-    flex: 1 1 300px; /* Largura base de 300px, permitindo que cresçam e encolham */
-    min-width: 250px;
-    max-width: 400px; /* Largura máxima para evitar que fiquem muito grandes */
+    flex: 1 1 300px; 
+    min-width: 280px;
+    max-width: 320px; 
+    background-color: var(--card);
     border-radius: 15px;
-    overflow: hidden; /* Garante que a imagem não vaze para fora do card */
+    overflow: hidden; 
     cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Sombra mais forte */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); 
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 15px; /* Adicionado para espaçamento na parte inferior */
 }
 
 .imovel-card:hover {
-    transform: translateY(-8px); /* Eleva um pouco mais no hover */
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4); /* Sombra mais forte no hover */
+    transform: translateY(-8px); 
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4); 
 }
 
-.imovel-card img {
+.imovel-card-apelido {
+    font-size: 1.6em;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 15px 0 10px 0; /* Espaçamento ajustado */
+    text-align: center;
     width: 100%;
-    height: 200px; /* Altura fixa para as imagens */
-    object-fit: cover; /* Recorta a imagem para preencher o espaço */
-    display: block; /* Remove espaço extra abaixo da imagem */
+}
+
+.imovel-card-mini-foto {
+    width: 90%; /* Ajustado para caber no card */
+    height: 180px; /* Altura fixa */
+    object-fit: cover; 
+    border-radius: 10px; /* Bordas arredondadas para a foto */
+    margin-bottom: 15px;
 }
 
 .imovel-card-content {
-    padding: 20px;
+    padding: 0 15px;
     text-align: left;
+    width: 100%;
 }
 
 .imovel-card-content h3 {
-    font-size: 1.5em;
+    font-size: 1.2em;
     margin-bottom: 8px;
     color: var(--accent);
 }
 
 .imovel-card-content p {
-    font-size: 1em;
-    margin-bottom: 6px;
+    font-size: 0.95em;
+    margin-bottom: 5px;
     color: var(--text);
+}
+
+.situacao-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    margin-bottom: 10px;
 }
 
 /* Cores e estilos para a situação do imóvel */
@@ -234,55 +258,70 @@ body {
 
 /* Estilos para o modal */
 .modal {
-    display: none; /* Hidden by default */
+    display: none; 
     position: fixed;
     z-index: 1;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgba(0, 0, 0, 0.8); /* Black w/ opacity */
+    overflow: auto; 
+    background-color: rgba(0, 0, 0, 0.8); 
 }
 
 .modal-content {
     position: relative;
     background-color: var(--card);
-    margin: 10% auto; /* 15% from the top and centered */
-    padding: 20px;
+    margin: 8% auto; /* Ajustado para subir um pouco */
+    padding: 25px;
     border: 1px solid var(--border);
-    width: 80%; /* Could be more or less, depending on screen size */
-    max-width: 600px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 90%; 
+    max-width: 700px; /* Aumentado um pouco o max-width */
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
     animation: slideIn 0.4s ease-out;
+}
+
+.modal-content img#modalImovelFoto {
+    max-width: 100%;
+    height: auto; /* Mantém a proporção */
+    max-height: 400px; /* Altura máxima para a imagem do modal */
+    object-fit: contain; /* Garante que a imagem inteira seja visível */
+    border-radius: 8px;
+    margin-bottom: 20px;
 }
 
 /* The Close Button */
 .close-button {
     position: absolute;
-    top: 10px;
-    right: 15px;
+    top: 15px;
+    right: 20px;
     color: var(--text);
-    font-size: 28px;
+    font-size: 32px; /* Aumentado o tamanho */
     font-weight: bold;
     cursor: pointer;
+    transition: color 0.2s;
 }
 
 .close-button:hover,
 .close-button:focus {
-    color: #fff;
+    color: var(--accent); /* Muda a cor no hover */
     text-decoration: none;
     cursor: pointer;
 }
 
 .modal-actions {
-    margin-top: 20px;
+    margin-top: 25px;
     text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 15px; /* Espaçamento entre os botões */
 }
 
 .modal-actions .btn {
-    margin: 0 10px;
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 8px;
 }
 
 /* Animação para o modal */

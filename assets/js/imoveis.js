@@ -6,7 +6,7 @@ const formImovelContainer = document.getElementById('formImovelContainer');
 const formImovel = document.getElementById('formImovel');
 const imoveisCardsContainer = document.getElementById('imoveisCardsContainer');
 const fotoImovelInput = document.getElementById('fotoImovel');
-const previewFotoImovel = document.getElementById('previewFotoImovel'); // Adicionado para pré-visualização da foto
+const previewFotoImovel = document.getElementById('previewFotoImovel'); 
 
 const imovelModal = document.getElementById('imovelModal');
 const modalImovelApelido = document.getElementById('modalImovelApelido');
@@ -14,10 +14,10 @@ const modalImovelFoto = document.getElementById('modalImovelFoto');
 const modalImovelNome = document.getElementById('modalImovelNome');
 const modalImovelEndereco = document.getElementById('modalImovelEndereco');
 const modalImovelDescricao = document.getElementById('modalImovelDescricao');
-const modalImovelSituacao = document.getElementById('modalImovelSituacao'); // Adicionado para exibir situação no modal
+const modalImovelSituacao = document.getElementById('modalImovelSituacao'); 
 
 let currentEditingImovel = null;
-let fotoImovelURL = ''; // URL da foto do imóvel (será armazenada aqui)
+let fotoImovelURL = ''; 
 
 // Funções auxiliares
 function mostrarFormulario() {
@@ -51,7 +51,7 @@ function fecharModal() {
 
 // Lógica para mostrar/ocultar o formulário
 adicionarImovelBtn.addEventListener('click', () => {
-    limparFormulario(); // Limpa antes de mostrar para um novo cadastro
+    limparFormulario(); 
     mostrarFormulario();
     document.getElementById('formImovel').querySelector('button[type="submit"]').textContent = '💾 Salvar Imóvel';
 });
@@ -99,16 +99,34 @@ function carregarImoveis() {
                 break;
         }
 
-        const fotoSrc = imovel.foto || 'https://via.placeholder.com/150x100?text=Sem+Foto';
+        const fotoSrc = imovel.foto || 'https://via.placeholder.com/300x200?text=Sem+Foto';
+
+        let totalMoveis = 0;
+        let totalUtensilios = 0;
+
+        if (imovel.comodos) {
+            imovel.comodos.forEach(comodo => {
+                if (comodo.objetos) {
+                    comodo.objetos.forEach(objeto => {
+                        if (objeto.tipo === 'Móvel') {
+                            totalMoveis += objeto.quantidade;
+                        } else if (objeto.tipo === 'Utensílio') {
+                            totalUtensilios += objeto.quantidade;
+                        }
+                    });
+                }
+            });
+        }
 
         card.innerHTML = `
+            <h3 class="imovel-card-apelido">${imovel.apelido}</h3>
             <img src="${fotoSrc}" alt="${imovel.apelido}" class="imovel-card-mini-foto">
             <div class="imovel-card-content">
-                <h3>${imovel.apelido}</h3>
-                <p class="imovel-card-endereco">${imovel.endereco}</p>
                 <div class="situacao-info ${situacaoClass}">
                     <span>${situacaoIcon} ${imovel.situacao}</span>
                 </div>
+                <p>Móveis: ${totalMoveis}</p>
+                <p>Utensílios: ${totalUtensilios}</p>
             </div>
         `;
 
@@ -124,11 +142,11 @@ function carregarImoveis() {
 function abrirModal(imovel) {
     currentEditingImovel = imovel;
     modalImovelApelido.textContent = imovel.apelido;
-    modalImovelFoto.src = imovel.foto || 'https://via.placeholder.com/600x400?text=Sem+Foto';
+    modalImovelFoto.src = imovel.foto || 'https://via.placeholder.com/600x400?text=Sem+Foto'; 
     modalImovelNome.textContent = `Nome: ${imovel.nome}`;
     modalImovelEndereco.textContent = `Endereço: ${imovel.endereco}`;
     modalImovelDescricao.textContent = `Descrição: ${imovel.descricao}`;
-    modalImovelSituacao.textContent = `Situação: ${imovel.situacao}`; // Exibe a situação no modal
+    modalImovelSituacao.textContent = `Situação: ${imovel.situacao}`; 
     mostrarModal();
 }
 
@@ -196,7 +214,7 @@ function salvarImovel(e) {
             googleMapsLink,
             instrucoesChegada,
             fotoImovelURL,
-            currentEditingImovel ? currentEditingImovel.comodos : [] // Mantém os cômodos ao editar
+            currentEditingImovel ? currentEditingImovel.comodos : [] 
         );
     } else {
         imovel = new Imovel(
@@ -223,7 +241,7 @@ fotoImovelInput.addEventListener('change', function() {
     if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            fotoImovelURL = e.target.result; // Armazena a URL da foto em Base64
+            fotoImovelURL = e.target.result; 
             if (previewFotoImovel) {
                 previewFotoImovel.src = fotoImovelURL;
                 previewFotoImovel.style.display = 'block';

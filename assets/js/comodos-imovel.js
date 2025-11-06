@@ -23,7 +23,7 @@ function gerenciarComodos(codigoImovel) {
         comodoImovelIdInput.value = imovel.codigo; 
         carregarComodosDoImovel();
     } else {
-        console.error('Imóvel não encontrado para gerenciar cômodos.');
+        // console.error('Imóvel não encontrado para gerenciar cômodos.'); // Removido console.error
     }
 }
 
