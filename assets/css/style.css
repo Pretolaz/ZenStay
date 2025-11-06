@@ -76,6 +76,11 @@ body {
     display: none; 
 }
 
+/* Quando o submenu está expandido */
+.sidebar .has-submenu.expanded .submenu {
+    display: block;
+}
+
 .sidebar .submenu li a {
     padding: 8px 10px;
     font-size: 0.9em;
@@ -89,6 +94,11 @@ body {
 
 .sidebar .arrow {
     transition: transform 0.2s;
+}
+
+/* Rotação da seta quando o submenu está expandido */
+.sidebar .has-submenu.expanded .arrow {
+    transform: rotate(90deg);
 }
 
 /* MAIN CONTENT */ 
