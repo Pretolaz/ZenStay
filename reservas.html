@@ -138,7 +138,7 @@
                         }
                         
                          // Prevent default behavior if clicking on the active non-submenu link
-                        if (!parentLi.classList.contains('has-submenu')) {
+                        if (parentLi && !parentLi.classList.contains('has-submenu')) {
                             link.addEventListener('click', function(e) {
                                 e.preventDefault();
                             });
