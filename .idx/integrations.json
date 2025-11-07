@@ -1,4 +1,6 @@
 {
-  "firebase_hosting": {},
+  "firebase_hosting": {
+    "deploymentHostingUrl": "https://zenstay-d0ac5.web.app"
+  },
   "gemini_api": {}
 }
