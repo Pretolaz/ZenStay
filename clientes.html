@@ -148,6 +148,7 @@
     <!-- Scripts -->
     <script src="assets/js/storage.js"></script>
     <script src="assets/js/main.js"></script>
+    <script src="assets/js/entities/cliente.js"></script> <!-- Adicionado o script da classe Cliente -->
 
     <!-- Sidebar dinâmica -->
     <script>
@@ -247,39 +248,13 @@
         }
 
         function carregarClientes() {
-            let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+            const termoBusca = filtroBuscaInput.value;
+            const tipoOrdenacao = ordenacaoClientesSelect.value;
+            const clientesExibidos = Cliente.filtrarEOrdenar(termoBusca, tipoOrdenacao);
+
             tabela.innerHTML = '';
 
-            const termoBusca = filtroBuscaInput.value.toLowerCase();
-
-            let clientesFiltrados = clientes.filter(cli => {
-                const nomeCorresponde = cli.nome.toLowerCase().includes(termoBusca);
-                const telefoneCorresponde = cli.telefone.toLowerCase().includes(termoBusca) || (cli.codPais && cli.codPais.toLowerCase().includes(termoBusca));
-                return nomeCorresponde || telefoneCorresponde;
-            });
-
-            const tipoOrdenacao = ordenacaoClientesSelect.value;
-
-            clientesFiltrados.sort((a, b) => {
-                switch (tipoOrdenacao) {
-                    case 'codigoInternoDesc':
-                        return (Number(b.codigoInterno) || 0) - (Number(a.codigoInterno) || 0);
-                    case 'codigoInternoAsc':
-                        return (Number(a.codigoInterno) || 0) - (Number(b.codigoInterno) || 0);
-                    case 'nomeAsc':
-                        return a.nome.localeCompare(b.nome);
-                    case 'nomeDesc':
-                        return b.nome.localeCompare(a.nome);
-                    case 'dataCadastroDesc':
-                        return new Date(b.dataCadastro || 0).getTime() - new Date(a.dataCadastro || 0).getTime();
-                    case 'dataCadastroAsc':
-                        return new Date(a.dataCadastro || 0).getTime() - new Date(b.dataCadastro || 0).getTime();
-                    default:
-                        return (Number(b.codigoInterno) || 0) - (Number(a.codigoInterno) || 0); // Default
-                }
-            });
-
-            clientesFiltrados.forEach((cli, index) => {
+            clientesExibidos.forEach(cli => {
                 const pais = countriesList.find(p => String(p.dial) === String(cli.codPais));
                 const bandeira = pais ? `<img src="https://flagcdn.com/w20/${pais.code}.png" alt="${pais.name}">` : '🤷';
                 const linkWhats = `https://wa.me/${cli.codPais}${cli.telefone}`;
@@ -289,8 +264,10 @@
                             <path d="M16.04 2.003a13.89 13.89 0 0 0-11.823 21.43L2 30l6.72-2.177A13.89 13.89 0 1 0 16.04 2.003zm.01 25.12a11.27 11.27 0 0 1-5.74-1.59l-.41-.25-3.99 1.3 1.31-3.88-.27-.4a11.27 11.27 0 1 1 9.1 4.82zm6.25-8.46c-.34-.17-2.04-1.01-2.36-1.12-.32-.12-.55-.17-.78.17s-.89 1.12-1.09 1.35c-.2.22-.4.25-.74.08s-1.43-.52-2.73-1.67a10.12 10.12 0 0 1-1.86-2.32c-.2-.34 0-.52.15-.69.15-.17.34-.43.52-.65.17-.22.23-.37.34-.62.11-.25.06-.47-.03-.65-.09-.17-.78-1.88-1.07-2.56-.28-.68-.57-.58-.78-.59h-.66a1.28 1.28 0 0 0-.93.43c-.32.35-1.22 1.19-1.22 2.9s1.25 3.37 1.43 3.61c.18.25 2.45 3.74 5.93 5.25.83.36 1.48.57 1.98.73.83.27 1.59.23 2.19.14.67-.1 2.04-.83 2.33-1.63.29-.8.29-1.49.2-1.63-.09-.14-.31-.22-.65-.39z" />
                         </svg>
                     </a>`;
-                // Encontrar o índice original do cliente antes da filtragem/ordenação
-                const originalIndex = clientes.findIndex(c => c.codigoInterno === cli.codigoInterno);
+                
+                // Encontrar o índice original do cliente no array completo para ações de edição/exclusão
+                const todosClientes = Cliente.listarTodos();
+                const originalIndex = todosClientes.findIndex(c => c.codigoInterno === cli.codigoInterno);
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -317,72 +294,64 @@
 
         function salvarCliente(e) {
             e.preventDefault();
-            const clientes = JSON.parse(localStorage.getItem('clientes')) || [];
-            const cliente = {};
-            campos.forEach(c => cliente[c] = document.getElementById(c).value);
+            let clienteData = {};
+            campos.forEach(c => clienteData[c] = document.getElementById(c).value);
+            clienteData.index = document.getElementById('clienteId').value; // Pass the index for editing
 
-            const isEditing = document.getElementById('clienteId').value;
+            const todosClientes = Cliente.listarTodos();
+            const isEditing = clienteData.index !== '';
 
-            // Se for um novo cliente, defina a data de cadastro
-            if (!isEditing) {
-                cliente.dataCadastro = new Date().toISOString();
-            } else {
-                // Ao editar, mantenha a data de cadastro existente
-                const originalCliente = clientes[isEditing];
-                cliente.dataCadastro = originalCliente.dataCadastro;
+            const duplicadoTel = todosClientes.find((c, idx) => (
+                (!isEditing || idx != clienteData.index) && 
+                c.telefone === clienteData.telefone && 
+                c.codPais === clienteData.codPais
+            ));
+            const duplicadoPlataforma = clienteData.codigoPlataforma && todosClientes.find((c, idx) => (
+                (!isEditing || idx != clienteData.index) && 
+                c.codigoPlataforma === clienteData.codigoPlataforma
+            ));
+
+            if (duplicadoTel) {
+                mostrarAlerta(`⚠️ O telefone +${clienteData.codPais} ${clienteData.telefone} já está cadastrado (Cód interno: ${duplicadoTel.codigoInterno}).`);
+                return;
+            }
+            if (duplicadoPlataforma) {
+                mostrarAlerta(`⚠️ O código de plataforma "${clienteData.codigoPlataforma}" já está cadastrado (Cód interno: ${duplicadoPlataforma.codigoInterno}).`);
+                return;
             }
 
-            const duplicadoTel = clientes.find((c, idx) => idx != isEditing && c.telefone === cliente.telefone && c.codPais === cliente.codPais);
-            const duplicadoPlataforma = cliente.codigoPlataforma && clientes.find((c, idx) => idx != isEditing && c.codigoPlataforma === cliente.codigoPlataforma);
-
-            if (!isEditing) {
-                if (duplicadoTel) {
-                    mostrarAlerta(`⚠️ O telefone +${cliente.codPais} ${cliente.telefone} já está cadastrado (Cód interno: ${duplicadoTel.codigoInterno}).`);
-                    return;
-                }
-                if (duplicadoPlataforma) {
-                    mostrarAlerta(`⚠️ O código de plataforma "${cliente.codigoPlataforma}" já está cadastrado (Cód interno: ${duplicadoPlataforma.codigoInterno}).`);
-                    return;
-                }
-            }
-
-
-            if (!cliente.codigoInterno) {
-                const lastCode = clientes.length ? Math.max(...clientes.map(c => Number(c.codigoInterno) || 0)) : 1000;
-                cliente.codigoInterno = Number(lastCode) + 1;
-            }
-
-            if (isEditing) clientes[isEditing] = cliente;
-            else clientes.push(cliente);
-
-            localStorage.setItem('clientes', JSON.stringify(clientes));
+            Cliente.salvar(clienteData);
             form.reset();
             document.getElementById('codigoInterno').value = '';
             document.getElementById('codPais').value = 55;
             atualizarBandeira(55);
             document.getElementById('clienteId').value = '';
-            document.getElementById('dataCadastro').value = ''; // Limpa o campo de data de cadastro
+            document.getElementById('dataCadastro').value = ''; 
             carregarClientes();
-            toggleFormVisibility(); // Esconde o formulário após salvar
+            toggleFormVisibility(); 
         }
 
         function editarCliente(index) {
-            const clientes = JSON.parse(localStorage.getItem('clientes')) || [];
-            const cli = clientes[index];
-            campos.forEach(c => document.getElementById(c).value = cli[c] || '');
-            atualizarBandeira(cli.codPais);
-            document.getElementById('clienteId').value = index;
-            document.getElementById('dataCadastro').value = cli.dataCadastro ? formatarData(cli.dataCadastro) : ''; // Exibe a data de cadastro
-            cadastroClienteCard.style.display = 'block'; // Mostra o formulário para edição
-            btnToggleForm.textContent = '✖️ Fechar Formulário';
-            window.scrollTo(0, 0); // Rola para o topo para mostrar o formulário
+            const cli = Cliente.buscarPorIndex(index);
+            if (cli) {
+                campos.forEach(c => {
+                    const element = document.getElementById(c);
+                    if (element) {
+                        element.value = cli[c] || '';
+                    }
+                });
+                atualizarBandeira(cli.codPais);
+                document.getElementById('clienteId').value = index;
+                document.getElementById('dataCadastro').value = cli.dataCadastro ? formatarData(cli.dataCadastro) : '';
+                cadastroClienteCard.style.display = 'block';
+                btnToggleForm.textContent = '✖️ Fechar Formulário';
+                window.scrollTo(0, 0);
+            }
         }
 
         function excluirCliente(index) {
             if (confirm('Excluir este hóspede?')) {
-                const clientes = JSON.parse(localStorage.getItem('clientes')) || [];
-                clientes.splice(index, 1);
-                localStorage.setItem('clientes', JSON.stringify(clientes));
+                Cliente.excluir(index);
                 carregarClientes();
             }
         }
@@ -391,8 +360,8 @@
             if (cadastroClienteCard.style.display === 'none') {
                 cadastroClienteCard.style.display = 'block';
                 btnToggleForm.textContent = '✖️ Fechar Formulário';
-                form.reset(); // Limpa o formulário ao abrir para um novo cadastro
-                document.getElementById('clienteId').value = ''; // Garante que não está em modo de edição
+                form.reset();
+                document.getElementById('clienteId').value = '';
                 document.getElementById('codigoInterno').value = '';
                 document.getElementById('codPais').value = 55;
                 atualizarBandeira(55);
@@ -400,8 +369,8 @@
             } else {
                 cadastroClienteCard.style.display = 'none';
                 btnToggleForm.textContent = '➕ Criar Novo Hóspede';
-                form.reset(); // Limpa o formulário ao fechar
-                document.getElementById('clienteId').value = ''; // Garante que não está em modo de edição
+                form.reset();
+                document.getElementById('clienteId').value = '';
                 document.getElementById('codigoInterno').value = '';
                 document.getElementById('codPais').value = 55;
                 atualizarBandeira(55);
