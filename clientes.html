@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZenStay | Clientess</title>
+    <title>ZenStay | Clientes</title>
 
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/components.css">
@@ -23,8 +23,13 @@
         </header>
 
         <section class="dashboard">
-            <!-- Formulário -->
-            <div class="card" style="flex: 1 1 100%;">
+            <!-- Botão para Cadastrar Novo Hóspede -->
+            <div class="card" style="flex: 1 1 100%; text-align: right;">
+                <button id="btnToggleForm" class="btn">➕ Criar Novo Hóspede</button>
+            </div>
+
+            <!-- Formulário (inicialmente oculto) -->
+            <div id="cadastroClienteCard" class="card" style="flex: 1 1 100%; display: none;">
                 <h3>📝 Cadastrar Novo Hóspede</h3>
                 <div id="alerta" class="alerta-erro"></div>
 
@@ -89,13 +94,31 @@
                         <textarea id="observacao" placeholder="Observações sobre o hóspede..."></textarea>
                     </div>
 
+                    <div class="form-row">
+                        <div class="input-group">
+                            <span>📅</span>
+                            <input type="text" id="dataCadastro" placeholder="Data de Cadastro (automático)" readonly>
+                        </div>
+                    </div>
+
                     <button type="submit" class="btn">💾 Salvar</button>
+                    <button type="button" class="btn btn-secondary" id="btnCancelarCadastro">❌ Cancelar</button>
                 </form>
             </div>
 
             <!-- Tabela -->
             <div class="card" style="flex: 1 1 100%;">
                 <h3>📋 Lista de Hóspedes</h3>
+                <div class="form-row" style="margin-bottom: 15px;">
+                    <div class="input-group">
+                        <span>🔍</span>
+                        <input type="text" id="filtroNome" placeholder="Filtrar por nome...">
+                    </div>
+                    <div class="input-group" style="margin-left: 10px;">
+                        <span>📱</span>
+                        <input type="text" id="filtroTelefone" placeholder="Filtrar por telefone...">
+                    </div>
+                </div>
                 <table id="tabelaClientes">
                     <thead>
                         <tr>
@@ -105,6 +128,7 @@
                             <th>Email</th>
                             <th>Whats App</th>
                             <th>Idioma</th>
+                            <th>Data Cadastro</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
@@ -176,9 +200,15 @@
         const tabela = document.querySelector('#tabelaClientes tbody');
         const form = document.getElementById('formCliente');
         const alerta = document.getElementById('alerta');
-        const campos = ['codigoInterno', 'codigoPlataforma', 'nome', 'email', 'codPais', 'telefone', 'linkChat', 'idioma', 'observacao'];
+        const campos = ['codigoInterno', 'codigoPlataforma', 'nome', 'email', 'codPais', 'telefone', 'linkChat', 'idioma', 'observacao', 'dataCadastro'];
         const flagInfo = document.getElementById('flagInfo');
         const codPaisInput = document.getElementById('codPais');
+        const cadastroClienteCard = document.getElementById('cadastroClienteCard');
+        const btnToggleForm = document.getElementById('btnToggleForm');
+        const btnCancelarCadastro = document.getElementById('btnCancelarCadastro');
+        const filtroNomeInput = document.getElementById('filtroNome');
+        const filtroTelefoneInput = document.getElementById('filtroTelefone');
+
         let countriesList = [];
 
         fetch('assets/data/countries.json')
@@ -203,10 +233,25 @@
 
         codPaisInput.addEventListener('input', e => atualizarBandeira(e.target.value));
 
+        function formatarData(dataString) {
+            const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
+            return new Date(dataString).toLocaleString('pt-BR', options);
+        }
+
         function carregarClientes() {
             const clientes = JSON.parse(localStorage.getItem('clientes')) || [];
             tabela.innerHTML = '';
-            clientes.forEach((cli, index) => {
+
+            const filtroNome = filtroNomeInput.value.toLowerCase();
+            const filtroTelefone = filtroTelefoneInput.value.toLowerCase();
+
+            const clientesFiltrados = clientes.filter(cli => {
+                const nomeCorresponde = cli.nome.toLowerCase().includes(filtroNome);
+                const telefoneCorresponde = cli.telefone.toLowerCase().includes(filtroTelefone) || cli.codPais.toLowerCase().includes(filtroTelefone);
+                return nomeCorresponde && telefoneCorresponde;
+            });
+
+            clientesFiltrados.forEach((cli, index) => {
                 const pais = countriesList.find(p => String(p.dial) === String(cli.codPais));
                 const bandeira = pais ? `<img src="https://flagcdn.com/w20/${pais.code}.png" alt="${pais.name}">` : '🤷';
                 const linkWhats = `https://wa.me/${cli.codPais}${cli.telefone}`;
@@ -224,6 +269,7 @@
                     <td>${cli.email || '-'}</td>
                     <td>+${cli.codPais} ${cli.telefone} ${iconWhats}</td>
                     <td>${cli.idioma}</td>
+                    <td>${cli.dataCadastro ? formatarData(cli.dataCadastro) : '-'}</td>
                     <td>
                         <button class="action-btn" onclick="editarCliente(${index})" title="Editar">✏️</button>
                         <button class="action-btn" onclick="excluirCliente(${index})" title="Excluir">🗑️</button>
@@ -244,10 +290,21 @@
             const cliente = {};
             campos.forEach(c => cliente[c] = document.getElementById(c).value);
 
-            const duplicadoTel = clientes.find(c => c.telefone === cliente.telefone && c.codPais === cliente.codPais);
-            const duplicadoPlataforma = cliente.codigoPlataforma && clientes.find(c => c.codigoPlataforma === cliente.codigoPlataforma);
+            const isEditing = document.getElementById('clienteId').value;
 
-            if (!document.getElementById('clienteId').value) {
+            // Se for um novo cliente, defina a data de cadastro
+            if (!isEditing) {
+                cliente.dataCadastro = new Date().toISOString();
+            } else {
+                // Ao editar, mantenha a data de cadastro existente
+                const originalCliente = clientes[isEditing];
+                cliente.dataCadastro = originalCliente.dataCadastro;
+            }
+
+            const duplicadoTel = clientes.find((c, idx) => idx != isEditing && c.telefone === cliente.telefone && c.codPais === cliente.codPais);
+            const duplicadoPlataforma = cliente.codigoPlataforma && clientes.find((c, idx) => idx != isEditing && c.codigoPlataforma === cliente.codigoPlataforma);
+
+            if (!isEditing) {
                 if (duplicadoTel) {
                     mostrarAlerta(`⚠️ O telefone +${cliente.codPais} ${cliente.telefone} já está cadastrado (Cód interno: ${duplicadoTel.codigoInterno}).`);
                     return;
@@ -258,13 +315,13 @@
                 }
             }
 
+
             if (!cliente.codigoInterno) {
-                const lastCode = clientes.length ? clientes[clientes.length - 1].codigoInterno : 1000;
+                const lastCode = clientes.length ? Math.max(...clientes.map(c => Number(c.codigoInterno) || 0)) : 1000;
                 cliente.codigoInterno = Number(lastCode) + 1;
             }
 
-            const editIndex = document.getElementById('clienteId').value;
-            if (editIndex) clientes[editIndex] = cliente;
+            if (isEditing) clientes[isEditing] = cliente;
             else clientes.push(cliente);
 
             localStorage.setItem('clientes', JSON.stringify(clientes));
@@ -273,7 +330,9 @@
             document.getElementById('codPais').value = 55;
             atualizarBandeira(55);
             document.getElementById('clienteId').value = '';
+            document.getElementById('dataCadastro').value = ''; // Limpa o campo de data de cadastro
             carregarClientes();
+            toggleFormVisibility(); // Esconde o formulário após salvar
         }
 
         function editarCliente(index) {
@@ -282,6 +341,10 @@
             campos.forEach(c => document.getElementById(c).value = cli[c] || '');
             atualizarBandeira(cli.codPais);
             document.getElementById('clienteId').value = index;
+            document.getElementById('dataCadastro').value = cli.dataCadastro ? formatarData(cli.dataCadastro) : ''; // Exibe a data de cadastro
+            cadastroClienteCard.style.display = 'block'; // Mostra o formulário para edição
+            btnToggleForm.textContent = '✖️ Fechar Formulário';
+            window.scrollTo(0, 0); // Rola para o topo para mostrar o formulário
         }
 
         function excluirCliente(index) {
@@ -293,7 +356,33 @@
             }
         }
 
+        function toggleFormVisibility() {
+            if (cadastroClienteCard.style.display === 'none') {
+                cadastroClienteCard.style.display = 'block';
+                btnToggleForm.textContent = '✖️ Fechar Formulário';
+                form.reset(); // Limpa o formulário ao abrir para um novo cadastro
+                document.getElementById('clienteId').value = ''; // Garante que não está em modo de edição
+                document.getElementById('codigoInterno').value = '';
+                document.getElementById('codPais').value = 55;
+                atualizarBandeira(55);
+                document.getElementById('dataCadastro').value = '';
+            } else {
+                cadastroClienteCard.style.display = 'none';
+                btnToggleForm.textContent = '➕ Criar Novo Hóspede';
+                form.reset(); // Limpa o formulário ao fechar
+                document.getElementById('clienteId').value = ''; // Garante que não está em modo de edição
+                document.getElementById('codigoInterno').value = '';
+                document.getElementById('codPais').value = 55;
+                atualizarBandeira(55);
+                document.getElementById('dataCadastro').value = '';
+            }
+        }
+
         form.addEventListener('submit', salvarCliente);
+        btnToggleForm.addEventListener('click', toggleFormVisibility);
+        btnCancelarCadastro.addEventListener('click', toggleFormVisibility);
+        filtroNomeInput.addEventListener('input', carregarClientes);
+        filtroTelefoneInput.addEventListener('input', carregarClientes);
         window.addEventListener('DOMContentLoaded', carregarClientes);
     </script>
 </body>
