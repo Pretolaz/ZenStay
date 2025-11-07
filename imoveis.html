@@ -105,6 +105,16 @@
         <section class="dashboard" id="comodos-imovel-section" style="display: none;">
             <div class="card" style="flex: 1 1 100%;">
                 <h3 id="comodos-title">Gerenciar Cômodos para: <span id="imovel-apelido-comodos"></span></h3>
+                
+                <div class="form-row" style="margin-bottom: 15px;">
+                    <div class="input-group" style="flex: 1;">
+                        <span>🏠</span>
+                        <select id="selectImovelComodos" style="flex: 1; border: none; background: transparent; color: var(--text); padding: 10px 5px;">
+                            <option value="">Selecione um Imóvel</option>
+                        </select>
+                    </div>
+                </div>
+
                 <form id="formComodo">
                     <input type="hidden" id="comodoId">
                     <input type="hidden" id="comodoImovelId">
@@ -297,8 +307,8 @@
                                 submenu.style.display = 'block';
                                 arrow.textContent = '▼'; 
                             }
-                        } 
-                    } 
+                        }
+                    }
 
                     // Lógica para marcar link ativo ao clicar em qualquer item do sidebar
                     let clickedLink = e.target.closest("a");
@@ -330,6 +340,32 @@
         const gerenciarImoveisSection = document.getElementById('gerenciar-imoveis-section');
         const comodosImovelSection = document.getElementById('comodos-imovel-section');
         const inventarioObjetosSection = document.getElementById('inventario-objetos-section');
+        const selectImovelComodos = document.getElementById('selectImovelComodos');
+        const imovelApelidoComodosSpan = document.getElementById('imovel-apelido-comodos');
+
+        function popularSelectImoveisComodos() {
+            const todosImoveis = Imovel.listarTodos();
+            selectImovelComodos.innerHTML = '<option value="">Selecione um Imóvel</option>';
+            todosImoveis.forEach(imovel => {
+                const option = document.createElement('option');
+                option.value = imovel.codigo;
+                option.textContent = imovel.apelido;
+                selectImovelComodos.appendChild(option);
+            });
+        }
+
+        selectImovelComodos.addEventListener('change', (event) => {
+            const codigoImovelSelecionado = event.target.value;
+            if (codigoImovelSelecionado) {
+                window.gerenciarComodos(codigoImovelSelecionado); // Chama a função global
+                const imovelSelecionado = Imovel.listarTodos().find(i => i.codigo == codigoImovelSelecionado);
+                imovelApelidoComodosSpan.textContent = imovelSelecionado ? imovelSelecionado.apelido : 'N/A';
+            } else {
+                // Limpar a lista de cômodos se "Selecione um Imóvel" for escolhido
+                document.getElementById('tabelaComodos').querySelector('tbody').innerHTML = '';
+                imovelApelidoComodosSpan.textContent = '';
+            }
+        });
 
         function showSectionFromHash() {
             const hash = window.location.hash;
@@ -342,11 +378,21 @@
             if (hash === '#comodos') {
                 comodosImovelSection.style.display = 'flex';
                 currentSectionTitle = '🚪 Gerenciar Cômodos';
-                if (window.currentImovelComodos() && window.currentImovelComodos().codigo) {
-                    window.gerenciarComodos(window.currentImovelComodos().codigo); 
-                } else if (Imovel.listarTodos().length > 0) {
-                    window.gerenciarComodos(Imovel.listarTodos()[0].codigo); 
+                popularSelectImoveisComodos(); // Popula o select ao entrar na seção de cômodos
+                const todosImoveis = Imovel.listarTodos();
+
+                if (window.currentImovelComodos && window.currentImovelComodos.codigo) {
+                    selectImovelComodos.value = window.currentImovelComodos.codigo;
+                    window.gerenciarComodos(window.currentImovelComodos.codigo); 
+                    imovelApelidoComodosSpan.textContent = window.currentImovelComodos.apelido;
+                } else if (todosImoveis.length > 0) {
+                    selectImovelComodos.value = todosImoveis[0].codigo;
+                    window.gerenciarComodos(todosImoveis[0].codigo); 
+                    imovelApelidoComodosSpan.textContent = todosImoveis[0].apelido;
+                } else {
+                    imovelApelidoComodosSpan.textContent = 'Nenhum imóvel cadastrado';
                 }
+
             } else if (hash === '#inventario') {
                 inventarioObjetosSection.style.display = 'flex';
                 currentSectionTitle = '📦 Inventário de Objetos';
@@ -358,7 +404,6 @@
                 currentSectionTitle = '🏡 Gerenciar Imóveis';
             }
             document.getElementById('main-title').textContent = currentSectionTitle;
-            // carregarImoveis(); // Removido daqui, será chamado por imoveis.js
 
             // Re-aplicar a classe ativa na sidebar após a mudança de hash e carregamento da seção
             setActiveSidebarLink();
