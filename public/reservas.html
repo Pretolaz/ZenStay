@@ -7,6 +7,7 @@
 
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/kanban-reservas.css"> <!-- Novo CSS para Kanban -->
     <link rel="stylesheet" href="theme/dark.css" id="theme-style">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -17,99 +18,37 @@
 
     <main class="content">
         <header class="header">
-            <h1>🗓️ Gerenciar Reservas</h1>
+            <h1>🗓️ Gerenciar Reservas - Kanban</h1>
             <button id="toggle-theme">🌓</button>
         </header>
 
-        <section class="dashboard">
-            <!-- Formulário -->
-            <div class="card" style="flex: 1 1 100%;">
-                <h3>➕ Registrar Nova Reserva</h3>
-                <form id="formReserva">
-                    <input type="hidden" id="reservaId">
-
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>#️⃣</span>
-                            <input type="number" id="codigoInterno" placeholder="Código interno (auto)" readonly>
-                        </div>
-                        <div class="input-group">
-                            <span>👨‍👩‍👧</span>
-                            <input type="text" id="hospede" placeholder="Nome do hóspede" required>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>🏡</span>
-                            <input type="text" id="imovel" placeholder="Nome do imóvel" required>
-                        </div>
-                        <div class="input-group">
-                            <span>🌐</span>
-                            <input type="text" id="plataforma" placeholder="Plataforma (Airbnb, Booking...)" required>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>📅</span>
-                            <input type="date" id="checkin" required>
-                        </div>
-                        <div class="input-group">
-                            <span>📅</span>
-                            <input type="date" id="checkout" required>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>💸</span>
-                            <input type="number" id="valor" placeholder="Valor total (R$)" step="0.01" required>
-                        </div>
-                        <div class="input-group">
-                            <span>✔️</span>
-                            <select id="status">
-                                <option value="Pendente">Pendente</option>
-                                <option value="Confirmada">Confirmada</option>
-                                <option value="Concluída">Concluída</option>
-                                <option value="Cancelada">Cancelada</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <textarea id="observacao" placeholder="Observações da reserva..."></textarea>
-                    </div>
-
-                    <button type="submit" class="btn">💾 Salvar</button>
-                </form>
+        <section class="kanban-board">
+            <div class="kanban-column" id="hospedes-column">
+                <h3>👥 Hóspedes Disponíveis</h3>
+                <div class="kanban-items" id="hospedes-list">
+                    <!-- Cards de hóspedes serão carregados aqui -->
+                </div>
             </div>
 
-            <!-- Tabela -->
-            <div class="card" style="flex: 1 1 100%;">
-                <h3>📋 Lista de Reservas</h3>
-                <table id="tabelaReservas">
-                    <thead>
-                        <tr>
-                            <th>Cód. Interno</th>
-                            <th>Hóspede</th>
-                            <th>Imóvel</th>
-                            <th>Plataforma</th>
-                            <th>Check-in</th>
-                            <th>Check-out</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+            <div class="kanban-column" id="imoveis-column">
+                <h3>🏡 Imóveis para Reserva</h3>
+                <div class="kanban-items" id="imoveis-list">
+                    <!-- Cards de imóveis e hóspedes arrastados serão carregados aqui -->
+                </div>
             </div>
+        </section>
+
+        <section class="kanban-actions">
+            <button id="salvar-reservas-btn" class="btn">💾 Salvar Reservas</button>
         </section>
     </main>
 
     <!-- Scripts -->
     <script src="assets/js/storage.js"></script>
     <script src="assets/js/main.js"></script>
+    <script src="assets/js/entities/cliente.js"></script> <!-- Incluir Cliente -->
+    <script src="assets/js/entities/imovel.js"></script>   <!-- Incluir Imovel -->
+    <script src="assets/js/kanban-reservas.js"></script> <!-- Novo JS para Kanban -->
 
     <!-- Sidebar dinâmica -->
     <script>
@@ -120,12 +59,10 @@
                 
                 const currentPage = window.location.pathname.split('/').pop();
 
-                // Lógica para expandir/recolher submenus e ativar links
                 document.querySelectorAll('.sidebar a').forEach(link => {
                     const href = link.getAttribute('href');
                     const parentLi = link.closest('li');
 
-                    // Handle active state and submenu expansion
                     if (href === currentPage) {
                         link.classList.add('active');
                         const parentSubmenu = link.closest('.submenu');
@@ -137,7 +74,6 @@
                             }
                         }
                         
-                         // Prevent default behavior if clicking on the active non-submenu link
                         if (parentLi && !parentLi.classList.contains('has-submenu')) {
                             link.addEventListener('click', function(e) {
                                 e.preventDefault();
@@ -148,7 +84,6 @@
                     }
                 });
 
-                // Lógica para expandir/recolher submenus
                 document.querySelectorAll('.submenu-toggle').forEach(item => {
                     item.addEventListener('click', function(e) {
                         e.preventDefault();
@@ -162,75 +97,6 @@
                 });
             })
             .catch(err => console.error("Erro ao carregar sidebar: ", err));
-    </script>
-
-    <!-- CRUD de Reservas -->
-    <script>
-        const tabela = document.querySelector('#tabelaReservas tbody');
-        const form = document.getElementById('formReserva');
-        const campos = ['codigoInterno', 'hospede', 'imovel', 'plataforma', 'checkin', 'checkout', 'valor', 'status', 'observacao'];
-
-        function carregarReservas() {
-            const reservas = JSON.parse(localStorage.getItem('reservas')) || [];
-            tabela.innerHTML = '';
-            reservas.forEach((res, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${res.codigoInterno}</td>
-                    <td>${res.hospede}</td>
-                    <td>${res.imovel}</td>
-                    <td>${res.plataforma}</td>
-                    <td>${res.checkin}</td>
-                    <td>${res.checkout}</td>
-                    <td>${res.status}</td>
-                    <td>
-                        <button class="action-btn" onclick="editarReserva(${index})">✏️</button>
-                        <button class="action-btn" onclick="excluirReserva(${index})">🗑️</button>
-                    </td>`;
-                tabela.appendChild(row);
-            });
-        }
-
-        function salvarReserva(e) {
-            e.preventDefault();
-            const reservas = JSON.parse(localStorage.getItem('reservas')) || [];
-            const res = {};
-            campos.forEach(c => res[c] = document.getElementById(c).value);
-
-            if (!res.codigoInterno) {
-                const lastCode = reservas.length ? reservas[reservas.length - 1].codigoInterno : 6000;
-                res.codigoInterno = Number(lastCode) + 1;
-            }
-
-            const editIndex = document.getElementById('reservaId').value;
-            if (editIndex) reservas[editIndex] = res;
-            else reservas.push(res);
-
-            localStorage.setItem('reservas', JSON.stringify(reservas));
-            form.reset();
-            document.getElementById('codigoInterno').value = '';
-            document.getElementById('reservaId').value = '';
-            carregarReservas();
-        }
-
-        function editarReserva(index) {
-            const reservas = JSON.parse(localStorage.getItem('reservas')) || [];
-            const res = reservas[index];
-            campos.forEach(c => document.getElementById(c).value = res[c] || '');
-            document.getElementById('reservaId').value = index;
-        }
-
-        function excluirReserva(index) {
-            if (confirm('Excluir esta reserva?')) {
-                const reservas = JSON.parse(localStorage.getItem('reservas')) || [];
-                reservas.splice(index, 1);
-                localStorage.setItem('reservas', JSON.stringify(reservas));
-                carregarReservas();
-            }
-        }
-
-        form.addEventListener('submit', salvarReserva);
-        window.addEventListener('DOMContentLoaded', carregarReservas);
     </script>
 </body>
 </html>

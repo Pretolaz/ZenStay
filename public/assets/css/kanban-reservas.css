@@ -1,0 +1,131 @@
+/* Estilos para o Kanban Board de Reservas */
+
+.kanban-board {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+    flex-wrap: wrap; /* Permite que as colunas quebrem linha em telas menores */
+}
+
+.kanban-column {
+    background-color: var(--card-background);
+    border-radius: 8px;
+    padding: 20px;
+    flex: 1; /* Distribui o espaço igualmente */
+    min-width: 300px; /* Garante uma largura mínima para as colunas */
+    box-shadow: var(--shadow-small);
+}
+
+.kanban-column h3 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--primary-text);
+}
+
+.kanban-items {
+    min-height: 150px; /* Altura mínima para as áreas de drop */
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.kanban-item {
+    background-color: var(--background-color); /* Cor de fundo para os cards */
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px 15px;
+    cursor: grab;
+    box-shadow: var(--shadow-extra-small);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.kanban-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
+
+.kanban-item.dragging {
+    opacity: 0.6;
+    border-style: solid;
+}
+
+.kanban-item strong {
+    color: var(--accent-color);
+}
+
+/* Estilos para cards de hóspedes */
+.kanban-item.hospede-card {
+    background-color: var(--light-blue); /* Um azul claro para hóspedes */
+    border-left: 5px solid var(--blue);
+}
+
+/* Estilos para cards de imóveis */
+.kanban-item.imovel-card {
+    background-color: var(--light-green); /* Um verde claro para imóveis */
+    border-left: 5px solid var(--green);
+    flex-direction: column; /* Para empilhar hóspedes dentro */
+    align-items: flex-start;
+}
+
+.imovel-card .hospedes-no-imovel {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border-color);
+    width: 100%;
+}
+
+.imovel-card .hospedes-no-imovel .hospede-item-mini {
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 5px 8px;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.imovel-card .hospedes-no-imovel .hospede-item-mini button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8em;
+    color: var(--red);
+    padding: 0;
+}
+
+.kanban-actions {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.kanban-actions .btn {
+    padding: 12px 25px;
+    font-size: 1.1em;
+}
+
+/* Feedback visual para arrastar sobre áreas */
+.kanban-items.drag-over {
+    background-color: rgba(var(--accent-rgb), 0.1);
+    border-color: var(--accent-color);
+}
+
+/* Responsividade básica */
+@media (max-width: 768px) {
+    .kanban-board {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .kanban-column {
+        width: 90%;
+        min-width: unset;
+    }
+}
