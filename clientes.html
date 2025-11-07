@@ -24,7 +24,7 @@
 
         <section class="dashboard">
             <!-- Botão para Cadastrar Novo Hóspede -->
-            <div class="card" style="flex: 1 1 100%; text-align: right;">
+            <div class="card" style="flex: 1 1 100%; text-align: center;">
                 <button id="btnToggleForm" class="btn">➕ Criar Novo Hóspede</button>
             </div>
 
@@ -108,15 +108,22 @@
 
             <!-- Tabela -->
             <div class="card" style="flex: 1 1 100%;">
-                <h3>📋 Lista de Hóspedes</h3>
-                <div class="form-row" style="margin-bottom: 15px;">
-                    <div class="input-group">
+                <h3>📋 Hóspedes Cadastrados</h3>
+                <div class="form-row" style="margin-bottom: 15px; align-items: center;">
+                    <div class="input-group" style="flex: 1;">
                         <span>🔍</span>
-                        <input type="text" id="filtroNome" placeholder="Filtrar por nome...">
+                        <input type="text" id="filtroBusca" placeholder="Filtrar por nome ou telefone...">
                     </div>
-                    <div class="input-group" style="margin-left: 10px;">
-                        <span>📱</span>
-                        <input type="text" id="filtroTelefone" placeholder="Filtrar por telefone...">
+                    <div class="input-group" style="margin-left: 10px; max-width: 250px;">
+                        <span>Ordenar por:</span>
+                        <select id="ordenacaoClientes" style="flex: 1; border: none; background: transparent; color: var(--text);">
+                            <option value="codigoInternoDesc" selected>Cód. Interno (Recente)</option>
+                            <option value="codigoInternoAsc">Cód. Interno (Antigo)</option>
+                            <option value="nomeAsc">Nome (A-Z)</option>
+                            <option value="nomeDesc">Nome (Z-A)</option>
+                            <option value="dataCadastroDesc">Data Cadastro (Recente)</option>
+                            <option value="dataCadastroAsc">Data Cadastro (Antigo)</option>
+                        </select>
                     </div>
                 </div>
                 <table id="tabelaClientes">
@@ -206,8 +213,8 @@
         const cadastroClienteCard = document.getElementById('cadastroClienteCard');
         const btnToggleForm = document.getElementById('btnToggleForm');
         const btnCancelarCadastro = document.getElementById('btnCancelarCadastro');
-        const filtroNomeInput = document.getElementById('filtroNome');
-        const filtroTelefoneInput = document.getElementById('filtroTelefone');
+        const filtroBuscaInput = document.getElementById('filtroBusca');
+        const ordenacaoClientesSelect = document.getElementById('ordenacaoClientes');
 
         let countriesList = [];
 
@@ -234,21 +241,42 @@
         codPaisInput.addEventListener('input', e => atualizarBandeira(e.target.value));
 
         function formatarData(dataString) {
+            if (!dataString) return '-';
             const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
             return new Date(dataString).toLocaleString('pt-BR', options);
         }
 
         function carregarClientes() {
-            const clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+            let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
             tabela.innerHTML = '';
 
-            const filtroNome = filtroNomeInput.value.toLowerCase();
-            const filtroTelefone = filtroTelefoneInput.value.toLowerCase();
+            const termoBusca = filtroBuscaInput.value.toLowerCase();
 
-            const clientesFiltrados = clientes.filter(cli => {
-                const nomeCorresponde = cli.nome.toLowerCase().includes(filtroNome);
-                const telefoneCorresponde = cli.telefone.toLowerCase().includes(filtroTelefone) || cli.codPais.toLowerCase().includes(filtroTelefone);
-                return nomeCorresponde && telefoneCorresponde;
+            let clientesFiltrados = clientes.filter(cli => {
+                const nomeCorresponde = cli.nome.toLowerCase().includes(termoBusca);
+                const telefoneCorresponde = cli.telefone.toLowerCase().includes(termoBusca) || (cli.codPais && cli.codPais.toLowerCase().includes(termoBusca));
+                return nomeCorresponde || telefoneCorresponde;
+            });
+
+            const tipoOrdenacao = ordenacaoClientesSelect.value;
+
+            clientesFiltrados.sort((a, b) => {
+                switch (tipoOrdenacao) {
+                    case 'codigoInternoDesc':
+                        return (Number(b.codigoInterno) || 0) - (Number(a.codigoInterno) || 0);
+                    case 'codigoInternoAsc':
+                        return (Number(a.codigoInterno) || 0) - (Number(b.codigoInterno) || 0);
+                    case 'nomeAsc':
+                        return a.nome.localeCompare(b.nome);
+                    case 'nomeDesc':
+                        return b.nome.localeCompare(a.nome);
+                    case 'dataCadastroDesc':
+                        return new Date(b.dataCadastro || 0).getTime() - new Date(a.dataCadastro || 0).getTime();
+                    case 'dataCadastroAsc':
+                        return new Date(a.dataCadastro || 0).getTime() - new Date(b.dataCadastro || 0).getTime();
+                    default:
+                        return (Number(b.codigoInterno) || 0) - (Number(a.codigoInterno) || 0); // Default
+                }
             });
 
             clientesFiltrados.forEach((cli, index) => {
@@ -261,6 +289,9 @@
                             <path d="M16.04 2.003a13.89 13.89 0 0 0-11.823 21.43L2 30l6.72-2.177A13.89 13.89 0 1 0 16.04 2.003zm.01 25.12a11.27 11.27 0 0 1-5.74-1.59l-.41-.25-3.99 1.3 1.31-3.88-.27-.4a11.27 11.27 0 1 1 9.1 4.82zm6.25-8.46c-.34-.17-2.04-1.01-2.36-1.12-.32-.12-.55-.17-.78.17s-.89 1.12-1.09 1.35c-.2.22-.4.25-.74.08s-1.43-.52-2.73-1.67a10.12 10.12 0 0 1-1.86-2.32c-.2-.34 0-.52.15-.69.15-.17.34-.43.52-.65.17-.22.23-.37.34-.62.11-.25.06-.47-.03-.65-.09-.17-.78-1.88-1.07-2.56-.28-.68-.57-.58-.78-.59h-.66a1.28 1.28 0 0 0-.93.43c-.32.35-1.22 1.19-1.22 2.9s1.25 3.37 1.43 3.61c.18.25 2.45 3.74 5.93 5.25.83.36 1.48.57 1.98.73.83.27 1.59.23 2.19.14.67-.1 2.04-.83 2.33-1.63.29-.8.29-1.49.2-1.63-.09-.14-.31-.22-.65-.39z" />
                         </svg>
                     </a>`;
+                // Encontrar o índice original do cliente antes da filtragem/ordenação
+                const originalIndex = clientes.findIndex(c => c.codigoInterno === cli.codigoInterno);
+
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td class="td-country">${bandeira}</td>
@@ -269,10 +300,10 @@
                     <td>${cli.email || '-'}</td>
                     <td>+${cli.codPais} ${cli.telefone} ${iconWhats}</td>
                     <td>${cli.idioma}</td>
-                    <td>${cli.dataCadastro ? formatarData(cli.dataCadastro) : '-'}</td>
+                    <td>${formatarData(cli.dataCadastro)}</td>
                     <td>
-                        <button class="action-btn" onclick="editarCliente(${index})" title="Editar">✏️</button>
-                        <button class="action-btn" onclick="excluirCliente(${index})" title="Excluir">🗑️</button>
+                        <button class="action-btn" onclick="editarCliente(${originalIndex})" title="Editar">✏️</button>
+                        <button class="action-btn" onclick="excluirCliente(${originalIndex})" title="Excluir">🗑️</button>
                     </td>`;
                 tabela.appendChild(row);
             });
@@ -381,8 +412,8 @@
         form.addEventListener('submit', salvarCliente);
         btnToggleForm.addEventListener('click', toggleFormVisibility);
         btnCancelarCadastro.addEventListener('click', toggleFormVisibility);
-        filtroNomeInput.addEventListener('input', carregarClientes);
-        filtroTelefoneInput.addEventListener('input', carregarClientes);
+        filtroBuscaInput.addEventListener('input', carregarClientes);
+        ordenacaoClientesSelect.addEventListener('change', carregarClientes);
         window.addEventListener('DOMContentLoaded', carregarClientes);
     </script>
 </body>
