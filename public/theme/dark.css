@@ -7,6 +7,11 @@
     --accent: #00BFA6; 
     --hover: #2A2A2A; 
     --hover-accent: #14D3B0; 
+
+    /* Kanban Card Colors (Dark Theme) */
+    --kanban-card-bg: #2A2A2A;
+    --kanban-card-border: #444444;
+    --kanban-card-text: #F0F0F0;
 } 
 
 /* Estilos para select no tema escuro */

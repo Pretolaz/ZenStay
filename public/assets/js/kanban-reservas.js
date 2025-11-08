@@ -2,15 +2,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const hospedesList = document.getElementById('hospedes-list');
     const imoveisList = document.getElementById('imoveis-list');
     const salvarReservasBtn = document.getElementById('salvar-reservas-btn');
+    const hospedeSearchInput = document.getElementById('hospede-search-input'); // Novo: campo de pesquisa
 
-    let clientesDisponiveis = []; // Hóspedes que ainda não foram "arrastados"
+    let allClientes = []; // Todos os hóspedes carregados inicialmente
+    let clientesDisponiveis = []; // Hóspedes que ainda não foram "arrastados" (subconjunto de allClientes)
     let imoveisComReservasTemporarias = []; // Imóveis com hóspedes temporariamente associados
 
     // Função para carregar e renderizar hóspedes
-    function carregarHospedes() {
-        clientesDisponiveis = Cliente.listarTodos();
+    // Recebe uma lista opcional de clientes para renderizar (para a pesquisa)
+    function carregarHospedes(clientesToRender = clientesDisponiveis) {
         hospedesList.innerHTML = '';
-        clientesDisponiveis.forEach(hospede => {
+        clientesToRender.forEach(hospede => {
             const hospedeCard = document.createElement('div');
             hospedeCard.classList.add('kanban-item', 'hospede-card');
             hospedeCard.setAttribute('draggable', true);
@@ -31,18 +33,30 @@ document.addEventListener('DOMContentLoaded', () => {
         addDragListeners();
     }
 
+    // Função de filtro para hóspedes
+    function filterHospedes() {
+        const searchTerm = hospedeSearchInput.value.toLowerCase();
+        const filteredHospedes = clientesDisponiveis.filter(hospede => 
+            hospede.nome.toLowerCase().includes(searchTerm) || 
+            String(hospede.codigoInterno).includes(searchTerm)
+        );
+        carregarHospedes(filteredHospedes);
+    }
+
+    // Event listener para o campo de pesquisa
+    hospedeSearchInput.addEventListener('input', filterHospedes);
+
     // Função para carregar e renderizar imóveis
     function carregarImoveis() {
         const todosImoveis = Imovel.listarTodos();
         
-        // Carrega reservas existentes para mostrar hóspedes já associados na inicialização
         let reservasSalvas = JSON.parse(localStorage.getItem('reservas')) || [];
 
         imoveisComReservasTemporarias = todosImoveis.map(imovel => {
             const hospedesJaReservados = reservasSalvas
                 .filter(reserva => String(reserva.imovelId) === String(imovel.codigo))
-                .map(reserva => clientesDisponiveis.find(cli => String(cli.codigoInterno) === String(reserva.hospedeId)))
-                .filter(Boolean); // Remove nulls if hospede not found
+                .map(reserva => allClientes.find(cli => String(cli.codigoInterno) === String(reserva.hospedeId)))
+                .filter(Boolean); 
 
             return {
                 ...imovel,
@@ -107,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const hospedesContainer = imovelCard.querySelector('.hospedes-container');
 
             imovelCard.addEventListener('dragover', (e) => {
-                e.preventDefault(); // Necessário para permitir o drop
+                e.preventDefault(); 
                 hospedesContainer.classList.add('drag-over');
             });
 
@@ -122,7 +136,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const hospedeId = e.dataTransfer.getData('text/plain');
                 const imovelId = imovelCard.dataset.imovelId;
 
-                const hospedeArrastado = Cliente.listarTodos().find(h => String(h.codigoInterno) === hospedeId); // Busca sempre do source original
+                // Busca o hóspede na lista completa (allClientes)
+                const hospedeArrastado = allClientes.find(h => String(h.codigoInterno) === hospedeId);
 
                 if (hospedeArrastado) {
                     const targetImovel = imoveisComReservasTemporarias.find(i => String(i.codigo) === imovelId);
@@ -130,13 +145,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         targetImovel.hospedesAssociados.push(hospedeArrastado);
                         renderizarHospedesNoImovel(imovelId);
 
-                        // Remove o hóspede da lista de disponíveis (visualmente)
-                        const draggedHospedeElement = document.querySelector(`.hospede-card[data-hospede-id="${hospedeId}"]`);
-                        if (draggedHospedeElement) {
-                            draggedHospedeElement.remove();
-                            // Atualiza clientesDisponiveis para refletir a remoção
-                            clientesDisponiveis = clientesDisponiveis.filter(h => String(h.codigoInterno) !== hospedeId);
-                        }
+                        // Remove o hóspede da lista de disponíveis (visualmente e do array)
+                        clientesDisponiveis = clientesDisponiveis.filter(h => String(h.codigoInterno) !== hospedeId);
+                        filterHospedes(); // Re-renderiza a lista de hóspedes disponíveis com o filtro atual
                     }
                 }
             });
@@ -170,15 +181,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     targetImovel.hospedesAssociados = targetImovel.hospedesAssociados.filter(h => String(h.codigoInterno) !== hospedeId);
                     renderizarHospedesNoImovel(imovelId);
 
-                    // Devolve o hóspede para a lista de disponíveis (se ele veio de lá e não está mais em nenhum imóvel)
-                    const hospedeRetornado = Cliente.listarTodos().find(h => String(h.codigoInterno) === hospedeId);
-                    const isHospedeInAnyImovel = imoveisComReservasTemporarias.some(imovel => 
+                    // Devolve o hóspede para a lista de disponíveis se ele não estiver em nenhum outro imóvel e ainda não estiver em clientesDisponiveis
+                    const hospedeRetornado = allClientes.find(h => String(h.codigoInterno) === hospedeId);
+                    const isHospedeInAnyOtherImovel = imoveisComReservasTemporarias.some(imovel => 
+                        imovel.codigo !== targetImovel.codigo && // Verifica em outros imóveis
                         imovel.hospedesAssociados.some(h => String(h.codigoInterno) === hospedeId)
                     );
 
-                    if (hospedeRetornado && !clientesDisponiveis.some(h => String(h.codigoInterno) === hospedeId) && !isHospedeInAnyImovel) {
+                    if (hospedeRetornado && !clientesDisponiveis.some(h => String(h.codigoInterno) === hospedeId) && !isHospedeInAnyOtherImovel) {
                         clientesDisponiveis.push(hospedeRetornado);
-                        carregarHospedes(); // Recarrega a lista para mostrar o hóspede novamente
+                        filterHospedes(); // Re-renderiza com o hóspede de volta e mantém o filtro
                     }
                 }
             });
@@ -192,15 +204,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         imoveisComReservasTemporarias.forEach(imovel => {
             imovel.hospedesAssociados.forEach(hospede => {
-                // Verifica se já existe uma reserva para este hóspede e imóvel específicos para evitar duplicatas
                 const reservaExistenteIndex = reservasAtuais.findIndex(res => 
                     String(res.hospedeId) === String(hospede.codigoInterno) && 
                     String(res.imovelId) === String(imovel.codigo)
                 );
 
-                if (reservaExistenteIndex === -1) { // Só adiciona se não existir
+                if (reservaExistenteIndex === -1) { 
                     const novaReserva = {
-                        codigoInterno: null, // Será preenchido pela lógica abaixo
+                        codigoInterno: null, 
                         hospede: hospede.nome,
                         hospedeId: hospede.codigoInterno,
                         imovel: imovel.nome,
@@ -217,7 +228,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Adiciona novas reservas, gerando códigos internos se necessário
         novasReservasKanban.forEach(novaReserva => {
             if (!novaReserva.codigoInterno) {
                 const lastCode = reservasAtuais.length ? Math.max(...reservasAtuais.map(r => Number(r.codigoInterno) || 0)) : 6000;
@@ -230,11 +240,27 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Reservas salvas com sucesso!');
 
         // Recarrega o Kanban para refletir as reservas salvas e hóspedes disponíveis corretamente
-        carregarHospedes();
-        carregarImoveis();
+        initializeKanban(); // Nova função de inicialização
     });
 
-    // Inicialização
-    carregarHospedes();
-    carregarImoveis();
+    // Nova função para inicializar ou resetar o estado do Kanban
+    function initializeKanban() {
+        allClientes = Cliente.listarTodos();
+        
+        // Filtra os clientes que já estão associados a imóveis em reservas salvas ou temporárias
+        const reservasSalvas = JSON.parse(localStorage.getItem('reservas')) || [];
+        const hospedesJaAssociadosIds = new Set();
+
+        reservasSalvas.forEach(reserva => hospedesJaAssociadosIds.add(String(reserva.hospedeId)));
+        
+        // Popula clientesDisponiveis com base em allClientes, excluindo os já associados
+        clientesDisponiveis = allClientes.filter(hospede => !hospedesJaAssociadosIds.has(String(hospede.codigoInterno)));
+
+        carregarHospedes(); // Carrega inicialmente sem filtro
+        carregarImoveis();
+        hospedeSearchInput.value = ''; // Limpa o campo de pesquisa na inicialização/recarregamento
+    }
+
+    // Inicialização do Kanban
+    initializeKanban();
 });

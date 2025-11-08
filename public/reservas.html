@@ -18,14 +18,15 @@
 
     <main class="content">
         <header class="header">
-            <button class="menu-toggle" id="menu-toggle">☰</button> <!-- Botão de hambúrguer -->
-            <h1>🗓️ Gerenciar Reservas - Kanban</h1>
+            <button class="menu-toggle" id="header-menu-toggle">☰</button> <!-- Botão de hambúrguer -->
+            <h1>🗓️ Reservas</h1>
             <button id="toggle-theme">🌓</button>
         </header>
 
         <section class="kanban-board">
             <div class="kanban-column" id="hospedes-column">
                 <h3>👥 Hóspedes Disponíveis</h3>
+                <input type="text" id="hospede-search-input" placeholder="Pesquisar hóspedes..." class="search-input">
                 <div class="kanban-items" id="hospedes-list">
                     <!-- Cards de hóspedes serão carregados aqui -->
                 </div>
@@ -54,17 +55,50 @@
     <!-- Sidebar dinâmica -->
     <script>
         const sidebar = document.getElementById("sidebar");
-        const menuToggle = document.getElementById("menu-toggle");
+        const menuToggle = document.getElementById("header-menu-toggle"); // Usar o botão do cabeçalho
         const body = document.body;
         const content = document.querySelector('.content');
 
         fetch("assets/components/sidebar.html")
             .then(res => res.text())
             .then(html => {
-                sidebar.innerHTML = html;
+                document.getElementById("sidebar").innerHTML = html;
                 
                 const currentPage = window.location.pathname.split('/').pop();
+                const sidebarMenuToggle = document.getElementById('menu-toggle'); // Botão da sidebar
 
+                function toggleSidebar() {
+                    body.classList.toggle('sidebar-open-mobile');
+                }
+
+                // Adiciona listener para o botão de menu hambúrguer na sidebar (se existir)
+                if (sidebarMenuToggle) {
+                    sidebarMenuToggle.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        toggleSidebar();
+                    });
+                }
+
+                // Adiciona listener para o botão de menu hambúrguer no header
+                if (menuToggle) {
+                    menuToggle.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        toggleSidebar();
+                    });
+                }
+
+                // Fecha a sidebar se clicar fora dela (apenas em mobile)
+                document.addEventListener('click', function(e) {
+                    const sidebarElement = document.querySelector('.sidebar');
+                    if (body.classList.contains('sidebar-open-mobile') && 
+                        !sidebarElement.contains(e.target) && 
+                        (menuToggle && !menuToggle.contains(e.target)) &&
+                        (sidebarMenuToggle && !sidebarMenuToggle.contains(e.target))) {
+                        toggleSidebar();
+                    }
+                });
+
+                // Lógica para expandir/recolher submenus e ativar links
                 document.querySelectorAll('.sidebar a').forEach(link => {
                     const href = link.getAttribute('href');
                     const parentLi = link.closest('li');
@@ -88,6 +122,13 @@
                     } else {
                         link.classList.remove('active');
                     }
+
+                    // Fecha a sidebar em mobile quando um link é clicado (a menos que seja um submenu-toggle)
+                    link.addEventListener('click', function() {
+                        if (window.innerWidth <= 768 && !this.classList.contains('submenu-toggle')) {
+                            body.classList.remove('sidebar-open-mobile');
+                        }
+                    });
                 });
 
                 document.querySelectorAll('.submenu-toggle').forEach(item => {
@@ -101,22 +142,9 @@
                         }
                     });
                 });
-
-                // Adicionar evento para fechar a sidebar ao clicar fora dela no mobile
-                content.addEventListener('click', (e) => {
-                    if (body.classList.contains('sidebar-open-mobile') && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-                        body.classList.remove('sidebar-open-mobile');
-                    }
-                });
-
             })
             .catch(err => console.error("Erro ao carregar sidebar: ", err));
         
-        // Lógica para o menu toggle (hambúrguer)
-        menuToggle.addEventListener('click', () => {
-            body.classList.toggle('sidebar-open-mobile');
-        });
-
         // Fechar a sidebar se redimensionar para desktop enquanto aberta
         window.addEventListener('resize', () => {
             if (window.innerWidth > 768 && body.classList.contains('sidebar-open-mobile')) {

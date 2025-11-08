@@ -9,26 +9,26 @@
 }
 
 .kanban-column {
-    background-color: var(--card-background);
+    background-color: var(--card);
     border-radius: 12px; /* Bordas mais arredondadas */
     padding: 25px; /* Aumentei o padding */
     flex: 1;
     min-width: 320px; /* Largura mínima para melhor visualização */
     max-width: 450px; /* Largura máxima para controle visual */
-    box-shadow: var(--shadow-medium); /* Sombra mais pronunciada */
-    border: 2px solid var(--border-color-light); /* Contorno suave */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Sombra mais pronunciada */
+    border: 1px solid var(--border); /* Contorno suave */
     transition: all 0.3s ease; /* Transição suave para interações */
 }
 
 .kanban-column:hover {
-    box-shadow: var(--shadow-large); /* Sombra maior ao passar o mouse */
-    border-color: var(--accent-color); /* Contorno de destaque */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); /* Sombra maior ao passar o mouse */
+    border-color: var(--accent); /* Contorno de destaque */
 }
 
 .kanban-column h3 {
     text-align: center;
     margin-bottom: 25px; /* Aumentei a margem */
-    color: var(--primary-color); /* Cor de destaque para títulos */
+    color: var(--accent); /* Cor de destaque para títulos */
     font-size: 1.6em; /* Título maior */
     font-weight: 600;
     letter-spacing: 0.5px;
@@ -36,7 +36,7 @@
 
 .kanban-items {
     min-height: 200px; /* Altura mínima maior para as áreas de drop */
-    border: 3px dashed var(--border-color-medium); /* Contorno mais visível */
+    border: 2px dashed var(--border); /* Contorno mais visível */
     border-radius: 10px;
     padding: 15px;
     display: flex;
@@ -46,86 +46,88 @@
 }
 
 .kanban-items.drag-over {
-    background-color: rgba(var(--accent-rgb), 0.15); /* Fundo mais vibrante */
-    border-color: var(--accent-color);
+    background-color: rgba(0, 191, 166, 0.15); /* Fundo mais vibrante */
+    border-color: var(--accent);
     transform: scale(1.01); /* Pequeno efeito de escala */
 }
 
 /* Base para os Cards */
 .kanban-item {
-    background-color: var(--background-color);
-    border: 1px solid var(--border-color);
+    background-color: var(--kanban-card-bg);
+    border: 1px solid var(--kanban-card-border);
     border-radius: 8px;
     padding: 15px 20px;
     cursor: grab;
-    box-shadow: var(--shadow-extra-small);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.2s ease;
     display: flex;
     flex-direction: column; /* Padrão flex-direction para organização */
     gap: 8px;
+    color: var(--kanban-card-text);
 }
 
 .kanban-item:hover {
     transform: translateY(-4px); /* Efeito de elevação maior */
-    box-shadow: var(--shadow-medium);
-    border-color: var(--secondary-color); /* Contorno sutil ao hover */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border-color: var(--accent); /* Contorno sutil ao hover */
 }
 
 .kanban-item.dragging {
     opacity: 0.7; /* Mais transparente ao arrastar */
     border-style: solid;
-    border-color: var(--accent-color);
+    border-color: var(--accent);
 }
 
 /* Estilos para cards de hóspedes */
 .kanban-item.hospede-card {
-    background-color: var(--light-blue);
-    border-left: 6px solid var(--blue); /* Borda lateral mais espessa */
-    color: var(--dark-text); /* Cor de texto contrastante */
-    font-weight: 500;
+    border-left: 6px solid var(--accent); /* Borda lateral mais espessa e com cor de destaque */
 }
 
 .hospede-card .hospede-info {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto 1fr;
     align-items: center;
-    gap: 10px;
+    gap: 5px 10px; /* Espaçamento entre icones e texto, e entre linhas */
     font-size: 1.1em;
+    margin-bottom: 5px;
 }
 
 .hospede-card .hospede-info .icon {
-    font-size: 1.4em;
-    color: var(--blue-dark); /* Ícone com cor do tema */
+    font-size: 1.2em;
+    color: var(--accent); /* Ícone com cor do tema */
 }
 
 .hospede-card .hospede-name {
     font-weight: 600;
-    color: var(--primary-color);
+    color: var(--text); /* Usar a cor de texto geral do tema */
 }
 
 .hospede-card .hospede-code {
+    grid-column: 2; /* Alinha o código abaixo do nome */
     font-size: 0.9em;
-    color: var(--secondary-text);
+    color: var(--text); /* Usar a cor de texto geral do tema */
 }
 
 .hospede-card .hospede-contact {
+    grid-column: 1 / -1; /* Ocupa todas as colunas */
     font-size: 0.9em;
-    color: var(--dark-text);
+    color: var(--text);
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 5px;
+    gap: 5px 10px; /* Espaçamento entre os contatos */
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--kanban-card-border); /* Linha divisória sutil */
 }
 
 .hospede-card .hospede-contact .icon {
-    color: var(--blue-dark);
+    color: var(--accent);
 }
 
 
 /* Estilos para cards de imóveis */
 .kanban-item.imovel-card {
-    background-color: var(--light-green);
-    border-left: 6px solid var(--green); /* Borda lateral mais espessa */
-    color: var(--dark-text); /* Cor de texto contrastante */
+    border-left: 6px solid var(--accent); /* Borda lateral mais espessa e com cor de destaque */
     align-items: flex-start; /* Alinha o conteúdo à esquerda */
 }
 
@@ -135,6 +137,8 @@
     gap: 15px;
     width: 100%;
     margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--kanban-card-border); /* Linha divisória */
 }
 
 .imovel-card .imovel-thumbnail {
@@ -142,13 +146,13 @@
     height: 60px;
     border-radius: 8px; /* Bordas arredondadas para a imagem */
     object-fit: cover;
-    border: 2px solid var(--green-dark);
-    box-shadow: var(--shadow-extra-small);
+    border: 2px solid var(--accent);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 .imovel-card .imovel-header .icon {
     font-size: 2em;
-    color: var(--green-dark);
+    color: var(--accent);
 }
 
 .imovel-card .imovel-title-group {
@@ -158,13 +162,13 @@
 .imovel-card h4 {
     font-size: 1.3em;
     font-weight: 600;
-    color: var(--primary-color);
+    color: var(--text);
     margin-bottom: 3px;
 }
 
 .imovel-card .imovel-address {
     font-size: 0.9em;
-    color: var(--secondary-text);
+    color: var(--text);
 }
 
 .imovel-card .imovel-details {
@@ -178,26 +182,26 @@
     border-radius: 5px;
     font-size: 0.85em;
     font-weight: 500;
-    color: var(--background-color); /* Texto claro no status */
+    color: #FFFFFF; /* Texto claro no status */
 }
 
 /* Cores para a situação do imóvel */
-.situacao-disponivel { background-color: var(--green); }
-.situacao-ocupado { background-color: var(--red); }
-.situacao-manutencao { background-color: var(--orange); }
-.situacao-reservado { background-color: var(--blue); } /* Adicionei um status reservado */
+.situacao-disponivel { background-color: #28a745; } /* Verde */
+.situacao-ocupado { background-color: #dc3545; } /* Vermelho */
+.situacao-manutencao { background-color: #ffc107; } /* Amarelo/Laranja */
+.situacao-reservado { background-color: #007bff; } /* Azul */
 
 
 .imovel-card .hospedes-no-imovel {
     margin-top: 15px;
     padding-top: 15px;
-    border-top: 1px dashed var(--border-color-medium);
+    border-top: 1px dashed var(--kanban-card-border);
     width: 100%;
 }
 
 .hospedes-no-imovel h5 {
     font-size: 1em;
-    color: var(--primary-color);
+    color: var(--text);
     margin-bottom: 10px;
     font-weight: 500;
 }
@@ -207,22 +211,22 @@
     flex-direction: column;
     gap: 8px;
     min-height: 40px; /* Garante que a área de drop interna seja visível */
-    border: 1px dashed var(--border-color-light); /* Borda suave para a área de drop de hóspedes */
+    border: 1px dashed var(--kanban-card-border); /* Borda suave para a área de drop de hóspedes */
     padding: 8px;
     border-radius: 6px;
 }
 
 .imovel-card .hospede-item-mini {
-    background-color: var(--background-color);
-    border: 1px solid var(--border-color);
+    background-color: var(--background);
+    border: 1px solid var(--border);
     border-radius: 4px;
     padding: 8px 12px;
     font-size: 0.9em;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: var(--primary-text);
-    box-shadow: var(--shadow-extra-small);
+    color: var(--text);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .imovel-card .hospede-item-mini span {
@@ -234,7 +238,7 @@
     border: none;
     cursor: pointer;
     font-size: 1.1em;
-    color: var(--red); /* Ícone de remover em vermelho */
+    color: #dc3545; /* Ícone de remover em vermelho */
     padding: 0;
     margin-left: 10px;
     transition: transform 0.2s ease;
@@ -254,16 +258,16 @@
     font-size: 1.2em;
     font-weight: 600;
     border-radius: 8px;
-    background-color: var(--accent-color);
+    background-color: var(--accent);
     color: white;
-    box-shadow: var(--shadow-medium);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .kanban-actions .btn:hover {
-    background-color: var(--accent-color-dark);
+    background-color: var(--hover-accent);
     transform: translateY(-2px);
-    box-shadow: var(--shadow-large);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 /* Responsividade Aprimorada */
@@ -340,11 +344,15 @@
     }
 
     .hospede-card .hospede-info {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
+        grid-template-columns: auto 1fr; /* Volta para duas colunas em telas muito pequenas */
+        align-items: center;
+        gap: 5px 10px;
+    }
+    .hospede-card .hospede-code {
+        grid-column: 2; /* Mantém o código alinhado */
     }
     .hospede-card .hospede-contact {
+        grid-column: 1 / -1;
         flex-direction: column;
         gap: 5px;
         align-items: flex-start;
