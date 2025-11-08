@@ -32,11 +32,20 @@
                 </div>
             </div>
 
-            <div class="kanban-column" id="imoveis-column">
-                <h3>🏡 Imóveis para Reserva</h3>
-                <div class="kanban-items" id="imoveis-list">
-                    <!-- Cards de imóveis e hóspedes arrastados serão carregados aqui -->
+            <div class="kanban-column" id="imovel-selection-column">
+                <h3>🏠 Selecionar Imóvel</h3>
+                <input type="text" id="imovel-search-input" placeholder="Pesquisar imóvel..." class="search-input">
+                <div class="kanban-items" id="imoveis-selection-list">
+                    <!-- Cards de imóveis para seleção serão carregados aqui -->
                 </div>
+            </div>
+
+            <div class="kanban-column" id="selected-imovel-column">
+                <h3>📝 Imóvel Selecionado para Reserva</h3>
+                <div id="selected-imovel-details" class="kanban-item imovel-card" style="display: none;">
+                    <!-- Detalhes do imóvel selecionado e hóspedes associados serão carregados aqui -->
+                </div>
+                <p id="no-imovel-selected-message" style="text-align: center; margin-top: 20px; color: var(--text);">Selecione um imóvel ao lado para iniciar uma reserva.</p>
             </div>
         </section>
 
@@ -55,7 +64,7 @@
     <!-- Sidebar dinâmica -->
     <script>
         const sidebar = document.getElementById("sidebar");
-        const menuToggle = document.getElementById("header-menu-toggle"); // Usar o botão do cabeçalho
+        const menuToggle = document.getElementById("header-menu-toggle"); 
         const body = document.body;
         const content = document.querySelector('.content');
 
@@ -65,13 +74,12 @@
                 document.getElementById("sidebar").innerHTML = html;
                 
                 const currentPage = window.location.pathname.split('/').pop();
-                const sidebarMenuToggle = document.getElementById('menu-toggle'); // Botão da sidebar
+                const sidebarMenuToggle = document.getElementById('menu-toggle'); 
 
                 function toggleSidebar() {
                     body.classList.toggle('sidebar-open-mobile');
                 }
 
-                // Adiciona listener para o botão de menu hambúrguer na sidebar (se existir)
                 if (sidebarMenuToggle) {
                     sidebarMenuToggle.addEventListener('click', function(e) {
                         e.stopPropagation();
@@ -79,7 +87,6 @@
                     });
                 }
 
-                // Adiciona listener para o botão de menu hambúrguer no header
                 if (menuToggle) {
                     menuToggle.addEventListener('click', function(e) {
                         e.stopPropagation();
@@ -87,7 +94,6 @@
                     });
                 }
 
-                // Fecha a sidebar se clicar fora dela (apenas em mobile)
                 document.addEventListener('click', function(e) {
                     const sidebarElement = document.querySelector('.sidebar');
                     if (body.classList.contains('sidebar-open-mobile') && 
@@ -98,7 +104,6 @@
                     }
                 });
 
-                // Lógica para expandir/recolher submenus e ativar links
                 document.querySelectorAll('.sidebar a').forEach(link => {
                     const href = link.getAttribute('href');
                     const parentLi = link.closest('li');
@@ -123,7 +128,6 @@
                         link.classList.remove('active');
                     }
 
-                    // Fecha a sidebar em mobile quando um link é clicado (a menos que seja um submenu-toggle)
                     link.addEventListener('click', function() {
                         if (window.innerWidth <= 768 && !this.classList.contains('submenu-toggle')) {
                             body.classList.remove('sidebar-open-mobile');
@@ -145,7 +149,6 @@
             })
             .catch(err => console.error("Erro ao carregar sidebar: ", err));
         
-        // Fechar a sidebar se redimensionar para desktop enquanto aberta
         window.addEventListener('resize', () => {
             if (window.innerWidth > 768 && body.classList.contains('sidebar-open-mobile')) {
                 body.classList.remove('sidebar-open-mobile');

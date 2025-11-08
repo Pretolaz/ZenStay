@@ -1,15 +1,22 @@
 document.addEventListener('DOMContentLoaded', () => {
     const hospedesList = document.getElementById('hospedes-list');
-    const imoveisList = document.getElementById('imoveis-list');
+    const hospedeSearchInput = document.getElementById('hospede-search-input');
+    
+    const imoveisSelectionList = document.getElementById('imoveis-selection-list'); // Novo: Lista de seleção de imóveis
+    const imovelSearchInput = document.getElementById('imovel-search-input'); // Novo: campo de pesquisa de imóveis
+    
+    const selectedImovelColumn = document.getElementById('selected-imovel-column');
+    const selectedImovelDetails = document.getElementById('selected-imovel-details'); // Novo: Card de imóvel selecionado
+    const noImovelSelectedMessage = document.getElementById('no-imovel-selected-message'); // Nova mensagem
+    
     const salvarReservasBtn = document.getElementById('salvar-reservas-btn');
-    const hospedeSearchInput = document.getElementById('hospede-search-input'); // Novo: campo de pesquisa
 
-    let allClientes = []; // Todos os hóspedes carregados inicialmente
-    let clientesDisponiveis = []; // Hóspedes que ainda não foram "arrastados" (subconjunto de allClientes)
-    let imoveisComReservasTemporarias = []; // Imóveis com hóspedes temporariamente associados
+    let allClientes = []; 
+    let clientesDisponiveis = []; 
+    let allImoveis = []; // Todos os imóveis carregados inicialmente
+    let selectedImovel = null; // Imóvel atualmente selecionado para reserva
 
     // Função para carregar e renderizar hóspedes
-    // Recebe uma lista opcional de clientes para renderizar (para a pesquisa)
     function carregarHospedes(clientesToRender = clientesDisponiveis) {
         hospedesList.innerHTML = '';
         clientesToRender.forEach(hospede => {
@@ -27,10 +34,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${hospede.telefone ? `<span class="icon">📞</span> ${hospede.telefone}` : ''}
                     ${hospede.email ? `<span class="icon">📧</span> ${hospede.email}` : ''}
                 </div>
+                <button type="button" class="add-hospede-to-imovel-btn" data-hospede-id="${hospede.codigoInterno}" title="Adicionar ao imóvel selecionado">➡️</button>
             `;
             hospedesList.appendChild(hospedeCard);
         });
         addDragListeners();
+        addAddHospedeButtonListeners();
     }
 
     // Função de filtro para hóspedes
@@ -43,35 +52,15 @@ document.addEventListener('DOMContentLoaded', () => {
         carregarHospedes(filteredHospedes);
     }
 
-    // Event listener para o campo de pesquisa
     hospedeSearchInput.addEventListener('input', filterHospedes);
 
-    // Função para carregar e renderizar imóveis
-    function carregarImoveis() {
-        const todosImoveis = Imovel.listarTodos();
-        
-        let reservasSalvas = JSON.parse(localStorage.getItem('reservas')) || [];
-
-        imoveisComReservasTemporarias = todosImoveis.map(imovel => {
-            const hospedesJaReservados = reservasSalvas
-                .filter(reserva => String(reserva.imovelId) === String(imovel.codigo))
-                .map(reserva => allClientes.find(cli => String(cli.codigoInterno) === String(reserva.hospedeId)))
-                .filter(Boolean); 
-
-            return {
-                ...imovel,
-                hospedesAssociados: hospedesJaReservados
-            };
-        });
-
-        imoveisList.innerHTML = '';
-        imoveisComReservasTemporarias.forEach(imovel => {
+    // Função para carregar e renderizar imóveis na coluna de seleção
+    function carregarImoveisSelection(imoveisToRender = allImoveis) {
+        imoveisSelectionList.innerHTML = '';
+        imoveisToRender.forEach(imovel => {
             const imovelCard = document.createElement('div');
-            imovelCard.classList.add('kanban-item', 'imovel-card');
+            imovelCard.classList.add('kanban-item', 'imovel-card', 'imovel-selectable');
             imovelCard.dataset.imovelId = imovel.codigo;
-
-            const situacaoClass = `situacao-${imovel.situacao.toLowerCase().replace(/ /g, '-')}`;
-
             imovelCard.innerHTML = `
                 <div class="imovel-header">
                     ${imovel.foto ? `<img src="${imovel.foto}" alt="${imovel.apelido || imovel.nome}" class="imovel-thumbnail">` : '<span class="icon">🏠</span>'}
@@ -81,24 +70,108 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
                 <div class="imovel-details">
-                    <span class="imovel-situacao ${situacaoClass}">Situação: ${imovel.situacao}</span>
-                </div>
-                <div class="hospedes-no-imovel">
-                    <h5>Hóspedes para este imóvel:</h5>
-                    <div id="hospedes-imovel-${imovel.codigo}" class="hospedes-container">
-                        ${imovel.hospedesAssociados.map(h => `
-                            <div class="hospede-item-mini" data-hospede-id="${h.codigoInterno}">
-                                <span>${h.nome}</span>
-                                <button type="button" class="remove-hospede-btn" data-hospede-id="${h.codigoInterno}" data-imovel-id="${imovel.codigo}">❌</button>
-                            </div>
-                        `).join('')}
-                    </div>
+                    <span class="imovel-situacao situacao-${imovel.situacao.toLowerCase().replace(/ /g, '-')}">Situação: ${imovel.situacao}</span>
                 </div>
             `;
-            imoveisList.appendChild(imovelCard);
+            imovelCard.addEventListener('click', () => selectImovel(imovel.codigo));
+            imoveisSelectionList.appendChild(imovelCard);
         });
-        addDropListeners();
+        updateSelectedImovelHighlight();
+    }
+
+    // Função de filtro para imóveis
+    function filterImoveis() {
+        const searchTerm = imovelSearchInput.value.toLowerCase();
+        const filteredImoveis = allImoveis.filter(imovel => 
+            (imovel.apelido && imovel.apelido.toLowerCase().includes(searchTerm)) ||
+            imovel.nome.toLowerCase().includes(searchTerm) || 
+            imovel.endereco.toLowerCase().includes(searchTerm)
+        );
+        carregarImoveisSelection(filteredImoveis);
+    }
+
+    imovelSearchInput.addEventListener('input', filterImoveis);
+
+    // Função para selecionar um imóvel
+    function selectImovel(imovelId) {
+        selectedImovel = allImoveis.find(i => String(i.codigo) === String(imovelId));
+        if (selectedImovel) {
+            // Carrega reservas existentes para este imóvel
+            const reservasSalvas = JSON.parse(localStorage.getItem('reservas')) || [];
+            selectedImovel.hospedesAssociados = reservasSalvas
+                .filter(reserva => String(reserva.imovelId) === String(selectedImovel.codigo))
+                .map(reserva => allClientes.find(cli => String(cli.codigoInterno) === String(reserva.hospedeId)))
+                .filter(Boolean); // Remove nulls se hóspede não for encontrado
+            
+            renderizarSelectedImovelDetails();
+            noImovelSelectedMessage.style.display = 'none';
+            selectedImovelDetails.style.display = 'flex'; // Mostra o card do imóvel selecionado
+        } else {
+            selectedImovelDetails.style.display = 'none';
+            noImovelSelectedMessage.style.display = 'block';
+        }
+        updateSelectedImovelHighlight();
+    }
+
+    // Função para destacar o imóvel selecionado na lista de seleção
+    function updateSelectedImovelHighlight() {
+        document.querySelectorAll('.imovel-selectable').forEach(card => {
+            card.classList.remove('selected');
+            if (selectedImovel && String(card.dataset.imovelId) === String(selectedImovel.codigo)) {
+                card.classList.add('selected');
+            }
+        });
+    }
+
+    // Função para renderizar os detalhes do imóvel selecionado e seus hóspedes
+    function renderizarSelectedImovelDetails() {
+        if (!selectedImovel) return;
+
+        const situacaoClass = `situacao-${selectedImovel.situacao.toLowerCase().replace(/ /g, '-')}`;
+
+        selectedImovelDetails.innerHTML = `
+            <div class="imovel-header">
+                ${selectedImovel.foto ? `<img src="${selectedImovel.foto}" alt="${selectedImovel.apelido || selectedImovel.nome}" class="imovel-thumbnail">` : '<span class="icon">🏠</span>'}
+                <div class="imovel-title-group">
+                    <h4>${selectedImovel.apelido || selectedImovel.nome}</h4>
+                    <p class="imovel-address">${selectedImovel.endereco}</p>
+                </div>
+            </div>
+            <div class="imovel-details">
+                <span class="imovel-situacao ${situacaoClass}">Situação: ${selectedImovel.situacao}</span>
+            </div>
+            <div class="hospedes-no-imovel">
+                <h5>Hóspedes para este imóvel:</h5>
+                <div id="hospedes-imovel-${selectedImovel.codigo}" class="hospedes-container">
+                    ${selectedImovel.hospedesAssociados.map(h => `
+                        <div class="hospede-item-mini" data-hospede-id="${h.codigoInterno}">
+                            <span>${h.nome}</span>
+                            <button type="button" class="remove-hospede-btn" data-hospede-id="${h.codigoInterno}" data-imovel-id="${selectedImovel.codigo}">❌</button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        addDropListenersToSelectedImovel();
         addRemoveHospedeListeners();
+    }
+
+    // Adiciona um hóspede ao imóvel selecionado (usado por drag e botão)
+    function addHospedeToSelectedImovel(hospedeId) {
+        if (!selectedImovel) {
+            alert("Por favor, selecione um imóvel primeiro.");
+            return;
+        }
+
+        const hospedeToAdd = allClientes.find(h => String(h.codigoInterno) === hospedeId);
+
+        if (hospedeToAdd && !selectedImovel.hospedesAssociados.some(h => String(h.codigoInterno) === hospedeId)) {
+            selectedImovel.hospedesAssociados.push(hospedeToAdd);
+            renderizarSelectedImovelDetails();
+
+            clientesDisponiveis = clientesDisponiveis.filter(h => String(h.codigoInterno) !== hospedeId);
+            filterHospedes(); // Re-renderiza a lista de hóspedes disponíveis com o filtro atual
+        }
     }
 
     // Função para adicionar listeners de drag a todos os cards de hóspedes
@@ -115,80 +188,52 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Função para adicionar listeners de drop aos cards de imóveis
-    function addDropListeners() {
-        document.querySelectorAll('.imovel-card').forEach(imovelCard => {
-            const hospedesContainer = imovelCard.querySelector('.hospedes-container');
-
-            imovelCard.addEventListener('dragover', (e) => {
-                e.preventDefault(); 
-                hospedesContainer.classList.add('drag-over');
-            });
-
-            imovelCard.addEventListener('dragleave', (e) => {
-                hospedesContainer.classList.remove('drag-over');
-            });
-
-            imovelCard.addEventListener('drop', (e) => {
-                e.preventDefault();
-                hospedesContainer.classList.remove('drag-over');
-
-                const hospedeId = e.dataTransfer.getData('text/plain');
-                const imovelId = imovelCard.dataset.imovelId;
-
-                // Busca o hóspede na lista completa (allClientes)
-                const hospedeArrastado = allClientes.find(h => String(h.codigoInterno) === hospedeId);
-
-                if (hospedeArrastado) {
-                    const targetImovel = imoveisComReservasTemporarias.find(i => String(i.codigo) === imovelId);
-                    if (targetImovel && !targetImovel.hospedesAssociados.some(h => String(h.codigoInterno) === hospedeId)) {
-                        targetImovel.hospedesAssociados.push(hospedeArrastado);
-                        renderizarHospedesNoImovel(imovelId);
-
-                        // Remove o hóspede da lista de disponíveis (visualmente e do array)
-                        clientesDisponiveis = clientesDisponiveis.filter(h => String(h.codigoInterno) !== hospedeId);
-                        filterHospedes(); // Re-renderiza a lista de hóspedes disponíveis com o filtro atual
-                    }
-                }
+    // Função para adicionar listeners ao botão de adicionar hóspede (seta)
+    function addAddHospedeButtonListeners() {
+        document.querySelectorAll('.add-hospede-to-imovel-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const hospedeId = e.target.dataset.hospedeId;
+                addHospedeToSelectedImovel(hospedeId);
             });
         });
     }
 
-    // Função para renderizar hóspedes dentro de um card de imóvel específico
-    function renderizarHospedesNoImovel(imovelId) {
-        const targetImovel = imoveisComReservasTemporarias.find(i => String(i.codigo) === imovelId);
-        if (targetImovel) {
-            const hospedesContainer = document.getElementById(`hospedes-imovel-${imovelId}`);
-            hospedesContainer.innerHTML = targetImovel.hospedesAssociados.map(h => `
-                <div class="hospede-item-mini" data-hospede-id="${h.codigoInterno}">
-                    <span>${h.nome}</span>
-                    <button type="button" class="remove-hospede-btn" data-hospede-id="${h.codigoInterno}" data-imovel-id="${imovelId}">❌</button>
-                </div>
-            `).join('');
-            addRemoveHospedeListeners();
-        }
+    // Função para adicionar listeners de drop APENAS ao imóvel selecionado
+    function addDropListenersToSelectedImovel() {
+        const hospedesContainer = document.getElementById(`hospedes-imovel-${selectedImovel.codigo}`);
+        if (!hospedesContainer) return;
+
+        hospedesContainer.addEventListener('dragover', (e) => {
+            e.preventDefault(); 
+            hospedesContainer.classList.add('drag-over');
+        });
+
+        hospedesContainer.addEventListener('dragleave', (e) => {
+            hospedesContainer.classList.remove('drag-over');
+        });
+
+        hospedesContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            hospedesContainer.classList.remove('drag-over');
+
+            const hospedeId = e.dataTransfer.getData('text/plain');
+            addHospedeToSelectedImovel(hospedeId);
+        });
     }
 
-    // Função para adicionar listeners aos botões de remover hóspede
+    // Função para adicionar listeners aos botões de remover hóspede do imóvel selecionado
     function addRemoveHospedeListeners() {
         document.querySelectorAll('.remove-hospede-btn').forEach(button => {
             button.addEventListener('click', (e) => {
                 const hospedeId = e.target.dataset.hospedeId;
                 const imovelId = e.target.dataset.imovelId;
 
-                const targetImovel = imoveisComReservasTemporarias.find(i => String(i.codigo) === imovelId);
-                if (targetImovel) {
-                    targetImovel.hospedesAssociados = targetImovel.hospedesAssociados.filter(h => String(h.codigoInterno) !== hospedeId);
-                    renderizarHospedesNoImovel(imovelId);
+                if (selectedImovel && String(selectedImovel.codigo) === String(imovelId)) {
+                    selectedImovel.hospedesAssociados = selectedImovel.hospedesAssociados.filter(h => String(h.codigoInterno) !== hospedeId);
+                    renderizarSelectedImovelDetails();
 
-                    // Devolve o hóspede para a lista de disponíveis se ele não estiver em nenhum outro imóvel e ainda não estiver em clientesDisponiveis
                     const hospedeRetornado = allClientes.find(h => String(h.codigoInterno) === hospedeId);
-                    const isHospedeInAnyOtherImovel = imoveisComReservasTemporarias.some(imovel => 
-                        imovel.codigo !== targetImovel.codigo && // Verifica em outros imóveis
-                        imovel.hospedesAssociados.some(h => String(h.codigoInterno) === hospedeId)
-                    );
-
-                    if (hospedeRetornado && !clientesDisponiveis.some(h => String(h.codigoInterno) === hospedeId) && !isHospedeInAnyOtherImovel) {
+                    if (hospedeRetornado && !clientesDisponiveis.some(h => String(h.codigoInterno) === hospedeId)) {
                         clientesDisponiveis.push(hospedeRetornado);
                         filterHospedes(); // Re-renderiza com o hóspede de volta e mantém o filtro
                     }
@@ -197,38 +242,40 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Função para salvar as reservas temporárias no localStorage
     salvarReservasBtn.addEventListener('click', () => {
+        if (!selectedImovel || selectedImovel.hospedesAssociados.length === 0) {
+            alert("Por favor, selecione um imóvel e adicione ao menos um hóspede para salvar a reserva.");
+            return;
+        }
+
         let reservasAtuais = JSON.parse(localStorage.getItem('reservas')) || [];
-        const novasReservasKanban = [];
+        const novasReservasParaImovel = [];
 
-        imoveisComReservasTemporarias.forEach(imovel => {
-            imovel.hospedesAssociados.forEach(hospede => {
-                const reservaExistenteIndex = reservasAtuais.findIndex(res => 
-                    String(res.hospedeId) === String(hospede.codigoInterno) && 
-                    String(res.imovelId) === String(imovel.codigo)
-                );
+        selectedImovel.hospedesAssociados.forEach(hospede => {
+            const reservaExistenteIndex = reservasAtuais.findIndex(res => 
+                String(res.hospedeId) === String(hospede.codigoInterno) && 
+                String(res.imovelId) === String(selectedImovel.codigo)
+            );
 
-                if (reservaExistenteIndex === -1) { 
-                    const novaReserva = {
-                        codigoInterno: null, 
-                        hospede: hospede.nome,
-                        hospedeId: hospede.codigoInterno,
-                        imovel: imovel.nome,
-                        imovelId: imovel.codigo,
-                        plataforma: 'Kanban', 
-                        checkin: new Date().toISOString().split('T')[0], 
-                        checkout: new Date(Date.now() + 86400000).toISOString().split('T')[0], 
-                        valor: 0,
-                        status: 'Pendente',
-                        observacao: 'Criado via Kanban'
-                    };
-                    novasReservasKanban.push(novaReserva);
-                }
-            });
+            if (reservaExistenteIndex === -1) { 
+                const novaReserva = {
+                    codigoInterno: null, 
+                    hospede: hospede.nome,
+                    hospedeId: hospede.codigoInterno,
+                    imovel: selectedImovel.nome,
+                    imovelId: selectedImovel.codigo,
+                    plataforma: 'Kanban', 
+                    checkin: new Date().toISOString().split('T')[0], 
+                    checkout: new Date(Date.now() + 86400000).toISOString().split('T')[0], 
+                    valor: 0,
+                    status: 'Pendente',
+                    observacao: 'Criado via Kanban'
+                };
+                novasReservasParaImovel.push(novaReserva);
+            }
         });
 
-        novasReservasKanban.forEach(novaReserva => {
+        novasReservasParaImovel.forEach(novaReserva => {
             if (!novaReserva.codigoInterno) {
                 const lastCode = reservasAtuais.length ? Math.max(...reservasAtuais.map(r => Number(r.codigoInterno) || 0)) : 6000;
                 novaReserva.codigoInterno = Number(lastCode) + 1;
@@ -236,29 +283,39 @@ document.addEventListener('DOMContentLoaded', () => {
             reservasAtuais.push(novaReserva);
         });
 
-        localStorage.setItem('reservas', JSON.stringify(reservasAtuais));
-        alert('Reservas salvas com sucesso!');
+        // Remove quaisquer reservas antigas para o imóvel selecionado que não estão mais lá
+        reservasAtuais = reservasAtuais.filter(reserva => {
+            if (String(reserva.imovelId) === String(selectedImovel.codigo)) {
+                return selectedImovel.hospedesAssociados.some(h => String(h.codigoInterno) === String(reserva.hospedeId));
+            }
+            return true;
+        });
 
-        // Recarrega o Kanban para refletir as reservas salvas e hóspedes disponíveis corretamente
-        initializeKanban(); // Nova função de inicialização
+        localStorage.setItem('reservas', JSON.stringify(reservasAtuais));
+        alert('Reservas salvas com sucesso para o imóvel selecionado!');
+
+        initializeKanban(); // Re-inicializa para limpar e recarregar tudo
     });
 
     // Nova função para inicializar ou resetar o estado do Kanban
     function initializeKanban() {
         allClientes = Cliente.listarTodos();
-        
-        // Filtra os clientes que já estão associados a imóveis em reservas salvas ou temporárias
-        const reservasSalvas = JSON.parse(localStorage.getItem('reservas')) || [];
-        const hospedesJaAssociadosIds = new Set();
+        allImoveis = Imovel.listarTodos();
+        selectedImovel = null; // Reseta o imóvel selecionado
 
-        reservasSalvas.forEach(reserva => hospedesJaAssociadosIds.add(String(reserva.hospedeId)));
+        const reservasSalvas = JSON.parse(localStorage.getItem('reservas')) || [];
+        const hospedesJaAssociadosIds = new Set(reservasSalvas.map(res => String(res.hospedeId)));
         
-        // Popula clientesDisponiveis com base em allClientes, excluindo os já associados
         clientesDisponiveis = allClientes.filter(hospede => !hospedesJaAssociadosIds.has(String(hospede.codigoInterno)));
 
-        carregarHospedes(); // Carrega inicialmente sem filtro
-        carregarImoveis();
-        hospedeSearchInput.value = ''; // Limpa o campo de pesquisa na inicialização/recarregamento
+        carregarHospedes(); 
+        carregarImoveisSelection();
+        
+        hospedeSearchInput.value = ''; 
+        imovelSearchInput.value = ''; // Limpa o campo de pesquisa de imóveis
+
+        selectedImovelDetails.style.display = 'none'; // Esconde os detalhes do imóvel
+        noImovelSelectedMessage.style.display = 'block'; // Mostra a mensagem
     }
 
     // Inicialização do Kanban
