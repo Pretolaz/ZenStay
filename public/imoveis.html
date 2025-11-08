@@ -17,6 +17,7 @@
 
     <main class="content">
         <header class="header">
+            <button class="menu-toggle" id="header-menu-toggle">☰</button> <!-- Botão de menu hambúrguer no cabeçalho -->
             <h1 id="main-title">🏡 Gerenciar Imóveis</h1>
             <button id="toggle-theme">🌓</button>
         </header>
@@ -166,7 +167,7 @@
                                 <option value="🍽️">🍽️ Cozinha</option>
                                 <option value="🧺">🧺 Lavanderia</option>
                                 <option value="🚪">🚪 Corredor</option>
-                                <option value=" балко"> балко Varanda</option>
+                                <option value=" balcon"> balcon Varanda</option>
                                 <option value="🏊">🏊 Piscina</option>
                                 <option value="🌳">🌳 Jardim</option>
                                 <option value="🚗">🚗 Garagem</option>
@@ -299,6 +300,7 @@
                 link.classList.remove("active");
                 const linkHref = link.getAttribute("href");
 
+                // Check for exact match including hash for sub-menu items
                 if (linkHref === path + hash) {
                     link.classList.add("active");
                     const parentSubmenu = link.closest('.has-submenu');
@@ -307,8 +309,20 @@
                         const arrowElement = parentSubmenu.querySelector('.arrow');
                         if (submenuElement) submenuElement.style.display = 'block';
                         if (arrowElement) arrowElement.textContent = '▼';
-                        const submenuToggleElement = parentSubmenu.querySelector('.submenu-toggle');
-                        if (submenuToggleElement) submenuToggleElement.classList.add('active');
+                        parentSubmenu.classList.add('expanded'); // Add expanded class to parent
+                    }
+                } else if (linkHref.startsWith(path) && linkHref.includes('#') && path === 'imoveis.html' && hash === '') {
+                    // If on imoveis.html with no hash, activate the 'Gerenciar Imóveis' link within the submenu
+                    if (linkHref === 'imoveis.html#gerenciar') {
+                        link.classList.add('active');
+                        const parentSubmenu = link.closest('.has-submenu');
+                        if (parentSubmenu) {
+                            const submenuElement = parentSubmenu.querySelector('.submenu');
+                            const arrowElement = parentSubmenu.querySelector('.arrow');
+                            if (submenuElement) submenuElement.style.display = 'block';
+                            if (arrowElement) arrowElement.textContent = '▼';
+                            parentSubmenu.classList.add('expanded');
+                        }
                     }
                 }
             });
@@ -320,8 +334,43 @@
                 const sidebarElement = document.getElementById("sidebar");
                 sidebarElement.innerHTML = html;
                 
+                const body = document.body;
+                const loadedSidebarElement = document.querySelector('.sidebar'); // The dynamically loaded sidebar
+                const menuToggleBtnInSidebar = document.getElementById('menu-toggle'); // Menu toggle inside sidebar
+                const headerMenuToggleButton = document.getElementById('header-menu-toggle'); // Menu toggle in header
+
+                function toggleSidebar() {
+                    body.classList.toggle('sidebar-open-mobile');
+                }
+
+                // Add listener for the hamburger menu button in the sidebar (if it exists)
+                if (menuToggleBtnInSidebar) {
+                    menuToggleBtnInSidebar.addEventListener('click', function(e) {
+                        e.stopPropagation(); 
+                        toggleSidebar();
+                    });
+                }
+
+                // Add listener for the hamburger menu button in the header (for mobile)
+                if (headerMenuToggleButton) {
+                    headerMenuToggleButton.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        toggleSidebar();
+                    });
+                }
+
+                // Close sidebar if clicking outside of it (mobile only)
+                document.addEventListener('click', function(e) {
+                    if (body.classList.contains('sidebar-open-mobile') && 
+                        !loadedSidebarElement.contains(e.target) && 
+                        (menuToggleBtnInSidebar && !menuToggleBtnInSidebar.contains(e.target)) && 
+                        (headerMenuToggleButton && !headerMenuToggleButton.contains(e.target))) {
+                        toggleSidebar();
+                    }
+                });
+
                 // Lógica de expansão do submenu e marcação de ativo (com delegação de eventos)
-                sidebarElement.addEventListener('click', (e) => {
+                loadedSidebarElement.addEventListener('click', (e) => {
                     const submenuToggle = e.target.closest('.submenu-toggle');
                     if (submenuToggle) {
                         e.preventDefault();
@@ -333,9 +382,11 @@
                             if (submenu.style.display === 'block') {
                                 submenu.style.display = 'none';
                                 arrow.textContent = '▶'; 
+                                parentLi.classList.remove('expanded');
                             } else {
                                 submenu.style.display = 'block';
                                 arrow.textContent = '▼'; 
+                                parentLi.classList.add('expanded');
                             }
                         }
                     }
@@ -344,15 +395,25 @@
                     let clickedLink = e.target.closest("a");
                     if (clickedLink) {
                         // Prevent default navigation if clicking the currently active link
-                        if (clickedLink.classList.contains("active")) {
+                        if (clickedLink.classList.contains("active") && !clickedLink.classList.contains('submenu-toggle')) {
                             e.preventDefault();
                         }
 
+                        // Remove active class from all sidebar links
+                        document.querySelectorAll(".sidebar a").forEach(link => {
+                            link.classList.remove("active");
+                        });
                         clickedLink.classList.add("active");
+                        
                         const parentSubmenuItem = clickedLink.closest('.has-submenu');
                         if (parentSubmenuItem) {
                             const parentToggle = parentSubmenuItem.querySelector('.submenu-toggle');
                             if (parentToggle) parentToggle.classList.add('active');
+                        }
+
+                        // Fecha a sidebar no mobile ao clicar em um link (a menos que seja um submenu-toggle)
+                        if (window.innerWidth <= 768 && !clickedLink.classList.contains('submenu-toggle')) {
+                            document.body.classList.remove('sidebar-open-mobile');
                         }
                     }
                 });
@@ -441,6 +502,12 @@
 
         window.addEventListener('hashchange', showSectionFromHash);
         window.addEventListener('DOMContentLoaded', showSectionFromHash);
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768 && document.body.classList.contains('sidebar-open-mobile')) {
+                document.body.classList.remove('sidebar-open-mobile');
+            }
+        });
     </script>
 
     <!-- Script específico para a página de Imóveis -->

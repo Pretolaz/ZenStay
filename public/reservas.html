@@ -63,71 +63,73 @@
 
     <!-- Sidebar dinâmica -->
     <script>
-        const sidebar = document.getElementById("sidebar");
-        const menuToggle = document.getElementById("header-menu-toggle"); 
-        const body = document.body;
-        const content = document.querySelector('.content');
+        // Lógica para marcar o link ativo ao carregar a página e expandir o submenu se necessário
+        const setActiveSidebarLink = () => {
+            const path = window.location.pathname.split("/").pop();
+            const hash = window.location.hash;
+
+            document.querySelectorAll(".sidebar a").forEach(link => {
+                link.classList.remove("active");
+                const linkHref = link.getAttribute("href");
+
+                if (linkHref === path + hash) {
+                    link.classList.add("active");
+                    const parentSubmenu = link.closest('.has-submenu');
+                    if (parentSubmenu) {
+                        const submenuElement = parentSubmenu.querySelector('.submenu');
+                        const arrowElement = parentSubmenu.querySelector('.arrow');
+                        if (submenuElement) submenuElement.style.display = 'block';
+                        if (arrowElement) arrowElement.textContent = '▼';
+                        const submenuToggleElement = parentSubmenu.querySelector('.submenu-toggle');
+                        if (submenuToggleElement) submenuToggleElement.classList.add('active');
+                    }
+                }
+            });
+        };
 
         fetch("assets/components/sidebar.html")
             .then(res => res.text())
             .then(html => {
                 document.getElementById("sidebar").innerHTML = html;
                 
-                const currentPage = window.location.pathname.split('/').pop();
-                const sidebarMenuToggle = document.getElementById('menu-toggle'); 
+                const body = document.body;
+                const sidebarElement = document.querySelector('.sidebar');
+                const menuToggleButton = document.getElementById('menu-toggle'); // Menu toggle inside sidebar
+                const headerMenuToggleButton = document.getElementById('header-menu-toggle'); // Menu toggle in header
 
                 function toggleSidebar() {
                     body.classList.toggle('sidebar-open-mobile');
                 }
 
-                if (sidebarMenuToggle) {
-                    sidebarMenuToggle.addEventListener('click', function(e) {
+                // Add listener for the hamburger menu button in the sidebar (if it exists)
+                if (menuToggleButton) {
+                    menuToggleButton.addEventListener('click', function(e) {
+                        e.stopPropagation(); 
+                        toggleSidebar();
+                    });
+                }
+
+                // Add listener for the hamburger menu button in the header (for mobile)
+                if (headerMenuToggleButton) {
+                    headerMenuToggleButton.addEventListener('click', function(e) {
                         e.stopPropagation();
                         toggleSidebar();
                     });
                 }
 
-                if (menuToggle) {
-                    menuToggle.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        toggleSidebar();
-                    });
-                }
-
+                // Close sidebar if clicking outside of it (mobile only)
                 document.addEventListener('click', function(e) {
-                    const sidebarElement = document.querySelector('.sidebar');
                     if (body.classList.contains('sidebar-open-mobile') && 
                         !sidebarElement.contains(e.target) && 
-                        (menuToggle && !menuToggle.contains(e.target)) &&
-                        (sidebarMenuToggle && !sidebarMenuToggle.contains(e.target))) {
+                        (menuToggleButton && !menuToggleButton.contains(e.target)) && 
+                        (headerMenuToggleButton && !headerMenuToggleButton.contains(e.target))) {
                         toggleSidebar();
                     }
                 });
 
+                // Lógica para expandir/recolher submenus e ativar links
                 document.querySelectorAll('.sidebar a').forEach(link => {
-                    const href = link.getAttribute('href');
-                    const parentLi = link.closest('li');
-
-                    if (href === currentPage) {
-                        link.classList.add('active');
-                        const parentSubmenu = link.closest('.submenu');
-                        if (parentSubmenu) {
-                            parentSubmenu.style.display = 'block';
-                            const parentHasSubmenu = parentSubmenu.closest('.has-submenu');
-                            if (parentHasSubmenu) {
-                                parentHasSubmenu.classList.add('expanded');
-                            }
-                        }
-                        
-                        if (parentLi && !parentLi.classList.contains('has-submenu')) {
-                            link.addEventListener('click', function(e) {
-                                e.preventDefault();
-                            });
-                        }
-                    } else {
-                        link.classList.remove('active');
-                    }
-
+                    // Fecha a sidebar em mobile quando um link é clicado (a menos que seja um submenu-toggle)
                     link.addEventListener('click', function() {
                         if (window.innerWidth <= 768 && !this.classList.contains('submenu-toggle')) {
                             body.classList.remove('sidebar-open-mobile');
@@ -135,6 +137,7 @@
                     });
                 });
 
+                // Lógica para expandir/recolher submenus
                 document.querySelectorAll('.submenu-toggle').forEach(item => {
                     item.addEventListener('click', function(e) {
                         e.preventDefault();
@@ -146,6 +149,8 @@
                         }
                     });
                 });
+
+                setActiveSidebarLink(); // Chama ao carregar a sidebar
             })
             .catch(err => console.error("Erro ao carregar sidebar: ", err));
         
@@ -154,7 +159,6 @@
                 body.classList.remove('sidebar-open-mobile');
             }
         });
-
     </script>
 </body>
 </html>
