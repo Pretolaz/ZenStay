@@ -199,7 +199,7 @@ body.sidebar-open-mobile {
     background: none;
     border: none;
     font-size: 1.8em;
-    color: var(--primary-color);
+    color: var(--text-color); /* Usar uma variável de cor existente ou definir uma nova */
     cursor: pointer;
     z-index: 1001; /* Acima de tudo para ser clicável */
     padding: 5px;
