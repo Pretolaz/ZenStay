@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Função para carregar e renderizar hóspedes
     function carregarHospedes(clientesToRender = clientesDisponiveis) {
+        if (!hospedesList) return; // Adicionado: Verificação de existência
+
         hospedesList.innerHTML = '';
         clientesToRender.forEach(hospede => {
             const hospedeCard = document.createElement('div');
@@ -44,6 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Função de filtro para hóspedes
     function filterHospedes() {
+        if (!hospedeSearchInput) return; // Adicionado: Verificação de existência
+
         const searchTerm = hospedeSearchInput.value.toLowerCase();
         const filteredHospedes = clientesDisponiveis.filter(hospede => 
             hospede.nome.toLowerCase().includes(searchTerm) || 
@@ -52,10 +56,14 @@ document.addEventListener('DOMContentLoaded', () => {
         carregarHospedes(filteredHospedes);
     }
 
-    hospedeSearchInput.addEventListener('input', filterHospedes);
+    if (hospedeSearchInput) { // Adicionado: Verificação de existência antes de adicionar listener
+        hospedeSearchInput.addEventListener('input', filterHospedes);
+    }
 
     // Função para carregar e renderizar imóveis na coluna de seleção
     function carregarImoveisSelection(imoveisToRender = allImoveis) {
+        if (!imoveisSelectionList) return; // Adicionado: Verificação de existência
+
         imoveisSelectionList.innerHTML = '';
         imoveisToRender.forEach(imovel => {
             const imovelCard = document.createElement('div');
@@ -81,6 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Função de filtro para imóveis
     function filterImoveis() {
+        if (!imovelSearchInput) return; // Adicionado: Verificação de existência
+
         const searchTerm = imovelSearchInput.value.toLowerCase();
         const filteredImoveis = allImoveis.filter(imovel => 
             (imovel.apelido && imovel.apelido.toLowerCase().includes(searchTerm)) ||
@@ -90,7 +100,9 @@ document.addEventListener('DOMContentLoaded', () => {
         carregarImoveisSelection(filteredImoveis);
     }
 
-    imovelSearchInput.addEventListener('input', filterImoveis);
+    if (imovelSearchInput) { // Adicionado: Verificação de existência antes de adicionar listener
+        imovelSearchInput.addEventListener('input', filterImoveis);
+    }
 
     // Função para selecionar um imóvel
     function selectImovel(imovelId) {
@@ -104,11 +116,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 .filter(Boolean); // Remove nulls se hóspede não for encontrado
             
             renderizarSelectedImovelDetails();
-            noImovelSelectedMessage.style.display = 'none';
-            selectedImovelDetails.style.display = 'flex'; // Mostra o card do imóvel selecionado
+            if (noImovelSelectedMessage) noImovelSelectedMessage.style.display = 'none'; // Adicionado: Verificação de existência
+            if (selectedImovelDetails) selectedImovelDetails.style.display = 'flex'; // Mostra o card do imóvel selecionado (Adicionado: Verificação de existência)
         } else {
-            selectedImovelDetails.style.display = 'none';
-            noImovelSelectedMessage.style.display = 'block';
+            if (selectedImovelDetails) selectedImovelDetails.style.display = 'none'; // Adicionado: Verificação de existência
+            if (noImovelSelectedMessage) noImovelSelectedMessage.style.display = 'block'; // Adicionado: Verificação de existência
         }
         updateSelectedImovelHighlight();
     }
@@ -125,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Função para renderizar os detalhes do imóvel selecionado e seus hóspedes
     function renderizarSelectedImovelDetails() {
-        if (!selectedImovel) return;
+        if (!selectedImovel || !selectedImovelDetails) return; // Adicionado: Verificação de existência
 
         const situacaoClass = `situacao-${selectedImovel.situacao.toLowerCase().replace(/ /g, '-')}`;
 
@@ -242,60 +254,63 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    salvarReservasBtn.addEventListener('click', () => {
-        if (!selectedImovel || selectedImovel.hospedesAssociados.length === 0) {
-            alert("Por favor, selecione um imóvel e adicione ao menos um hóspede para salvar a reserva.");
-            return;
-        }
-
-        let reservasAtuais = JSON.parse(localStorage.getItem('reservas')) || [];
-        const novasReservasParaImovel = [];
-
-        selectedImovel.hospedesAssociados.forEach(hospede => {
-            const reservaExistenteIndex = reservasAtuais.findIndex(res => 
-                String(res.hospedeId) === String(hospede.codigoInterno) && 
-                String(res.imovelId) === String(selectedImovel.codigo)
-            );
-
-            if (reservaExistenteIndex === -1) { 
-                const novaReserva = {
-                    codigoInterno: null, 
-                    hospede: hospede.nome,
-                    hospedeId: hospede.codigoInterno,
-                    imovel: selectedImovel.nome,
-                    imovelId: selectedImovel.codigo,
-                    plataforma: 'Kanban', 
-                    checkin: new Date().toISOString().split('T')[0], 
-                    checkout: new Date(Date.now() + 86400000).toISOString().split('T')[0], 
-                    valor: 0,
-                    status: 'Pendente',
-                    observacao: 'Criado via Kanban'
-                };
-                novasReservasParaImovel.push(novaReserva);
+    // Adicionado: Verificação de existência antes de adicionar listener
+    if (salvarReservasBtn) {
+        salvarReservasBtn.addEventListener('click', () => {
+            if (!selectedImovel || selectedImovel.hospedesAssociados.length === 0) {
+                alert("Por favor, selecione um imóvel e adicione ao menos um hóspede para salvar a reserva.");
+                return;
             }
+
+            let reservasAtuais = JSON.parse(localStorage.getItem('reservas')) || [];
+            const novasReservasParaImovel = [];
+
+            selectedImovel.hospedesAssociados.forEach(hospede => {
+                const reservaExistenteIndex = reservasAtuais.findIndex(res => 
+                    String(res.hospedeId) === String(hospede.codigoInterno) && 
+                    String(res.imovelId) === String(selectedImovel.codigo)
+                );
+
+                if (reservaExistenteIndex === -1) { 
+                    const novaReserva = {
+                        codigoInterno: null, 
+                        hospede: hospede.nome,
+                        hospedeId: hospede.codigoInterno,
+                        imovel: selectedImovel.nome,
+                        imovelId: selectedImovel.codigo,
+                        plataforma: 'Kanban', 
+                        checkin: new Date().toISOString().split('T')[0], 
+                        checkout: new Date(Date.now() + 86400000).toISOString().split('T')[0], 
+                        valor: 0,
+                        status: 'Pendente',
+                        observacao: 'Criado via Kanban'
+                    };
+                    novasReservasParaImovel.push(novaReserva);
+                }
+            });
+
+            novasReservasParaImovel.forEach(novaReserva => {
+                if (!novaReserva.codigoInterno) {
+                    const lastCode = reservasAtuais.length ? Math.max(...reservasAtuais.map(r => Number(r.codigoInterno) || 0)) : 6000;
+                    novaReserva.codigoInterno = Number(lastCode) + 1;
+                }
+                reservasAtuais.push(novaReserva);
+            });
+
+            // Remove quaisquer reservas antigas para o imóvel selecionado que não estão mais lá
+            reservasAtuais = reservasAtuais.filter(reserva => {
+                if (String(reserva.imovelId) === String(selectedImovel.codigo)) {
+                    return selectedImovel.hospedesAssociados.some(h => String(h.codigoInterno) === String(reserva.hospedeId));
+                }
+                return true;
+            });
+
+            localStorage.setItem('reservas', JSON.stringify(reservasAtuais));
+            alert('Reservas salvas com sucesso para o imóvel selecionado!');
+
+            initializeKanban(); // Re-inicializa para limpar e recarregar tudo
         });
-
-        novasReservasParaImovel.forEach(novaReserva => {
-            if (!novaReserva.codigoInterno) {
-                const lastCode = reservasAtuais.length ? Math.max(...reservasAtuais.map(r => Number(r.codigoInterno) || 0)) : 6000;
-                novaReserva.codigoInterno = Number(lastCode) + 1;
-            }
-            reservasAtuais.push(novaReserva);
-        });
-
-        // Remove quaisquer reservas antigas para o imóvel selecionado que não estão mais lá
-        reservasAtuais = reservasAtuais.filter(reserva => {
-            if (String(reserva.imovelId) === String(selectedImovel.codigo)) {
-                return selectedImovel.hospedesAssociados.some(h => String(h.codigoInterno) === String(reserva.hospedeId));
-            }
-            return true;
-        });
-
-        localStorage.setItem('reservas', JSON.stringify(reservasAtuais));
-        alert('Reservas salvas com sucesso para o imóvel selecionado!');
-
-        initializeKanban(); // Re-inicializa para limpar e recarregar tudo
-    });
+    }
 
     // Nova função para inicializar ou resetar o estado do Kanban
     function initializeKanban() {
@@ -311,11 +326,11 @@ document.addEventListener('DOMContentLoaded', () => {
         carregarHospedes(); 
         carregarImoveisSelection();
         
-        hospedeSearchInput.value = ''; 
-        imovelSearchInput.value = ''; // Limpa o campo de pesquisa de imóveis
+        if (hospedeSearchInput) hospedeSearchInput.value = ''; // Adicionado: Verificação de existência
+        if (imovelSearchInput) imovelSearchInput.value = ''; // Limpa o campo de pesquisa de imóveis (Adicionado: Verificação de existência)
 
-        selectedImovelDetails.style.display = 'none'; // Esconde os detalhes do imóvel
-        noImovelSelectedMessage.style.display = 'block'; // Mostra a mensagem
+        if (selectedImovelDetails) selectedImovelDetails.style.display = 'none'; // Esconde os detalhes do imóvel (Adicionado: Verificação de existência)
+        if (noImovelSelectedMessage) noImovelSelectedMessage.style.display = 'block'; // Mostra a mensagem (Adicionado: Verificação de existência)
     }
 
     // Inicialização do Kanban

@@ -7,7 +7,8 @@
 
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/components.css">
-    <link rel="stylesheet" href="assets/css/kanban-reservas.css">
+    <link rel="stylesheet" href="assets/css/kanban-reservas.css"> <!-- Manter por enquanto, caso precise de outros estilos -->
+    <link rel="stylesheet" href="assets/css/wizard-reservas.css"> <!-- Novo CSS para o wizard -->
     <link rel="stylesheet" href="theme/dark.css" id="theme-style">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -23,7 +24,12 @@
             <button id="toggle-theme">🌓</button>
         </header>
 
-        <section class="kanban-board">
+        <section class="kanban-actions" style="margin-bottom: 20px; text-align: center;">
+            <button id="start-reservation-wizard-btn" class="btn">✨ Nova Reserva (Assistente)</button>
+        </section>
+
+        <!-- O conteúdo do Kanban original será ocultado ou removido e o wizard será mostrado -->
+        <section class="kanban-board" id="original-kanban-board" style="display: none;">
             <div class="kanban-column" id="hospedes-column">
                 <h3>👥 Hóspedes Disponíveis</h3>
                 <input type="text" id="hospede-search-input" placeholder="Pesquisar hóspedes..." class="search-input">
@@ -49,9 +55,101 @@
             </div>
         </section>
 
-        <section class="kanban-actions">
-            <button id="salvar-reservas-btn" class="btn">💾 Salvar Reservas</button>
-        </section>
+        <!-- Wizard de Criação de Reserva (Modal Container) -->
+        <div id="reservation-wizard-modal" class="reservation-wizard-modal" style="display: none;">
+            <section class="reservation-wizard" id="reservation-wizard">
+                <div class="wizard-column wizard-summary">
+                    <h2 class="wizard-header wizard-title">Resumo da Reserva</h2>
+                    <div id="wizard-summary-content">
+                        <div class="summary-item">
+                            <label>Imóvel:</label>
+                            <span id="summary-imovel">- Nenhum selecionado -</span>
+                        </div>
+                        <div class="summary-item">
+                            <label>Hóspedes:</label>
+                            <ul id="summary-hospedes">
+                                <li>- Nenhum selecionado -</li>
+                            </ul>
+                        </div>
+                        <div class="summary-item">
+                            <label>Pets:</label>
+                            <span id="summary-pets">- Não informado -</span>
+                        </div>
+                        <div class="summary-item">
+                            <label>Período:</label>
+                            <span id="summary-periodo">- Não informado -</span>
+                        </div>
+                        <div class="summary-item">
+                            <label>Diárias:</label>
+                            <span id="summary-diarias">- 0 -</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wizard-column wizard-action">
+                    <h2 class="wizard-header wizard-title" id="wizard-step-title">Etapa 1: Seleção do Imóvel</h2>
+                    <div class="wizard-step-content" id="wizard-step-content">
+                        <!-- Conteúdo da Etapa 1: Seleção do Imóvel -->
+                        <div id="step-1" class="wizard-step">
+                            <div id="property-list-alert-container"></div>
+                            <div class="property-card-list" id="wizard-property-list">
+                                <!-- Cards de imóveis serão carregados aqui via JS -->
+                            </div>
+                        </div>
+
+                        <!-- Conteúdo da Etapa 2: Seleção de Hóspedes e Pets -->
+                        <div id="step-2" class="wizard-step" style="display: none;">
+                            <div id="guest-selection-alert-container"></div>
+                            <div class="guest-selection">
+                                <h3>Selecione os Hóspedes</h3>
+                                <div class="guest-search-container">
+                                    <input type="text" id="wizard-hospede-search-input" placeholder="Pesquisar hóspedes por nome ou telefone...">
+                                    <button id="add-new-guest-btn" class="btn">➕ Novo Hóspede</button>
+                                </div>
+                                <div class="guest-list" id="wizard-hospedes-list">
+                                    <!-- Hóspedes serão carregados aqui -->
+                                </div>
+                            </div>
+                            <div class="pet-selection">
+                                <h3>Haverá Pets?</h3>
+                                <div class="pet-slider-container">
+                                    <label for="has-pets-slider">Sim/Não:</label>
+                                    <label class="switch">
+                                        <input type="checkbox" id="has-pets-slider">
+                                        <span class="slider round"></span>
+                                    </label>
+                                    <span id="has-pets-status">Não</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conteúdo da Etapa 3: Seleção de Período (Datas) -->
+                        <div id="step-3" class="wizard-step" style="display: none;">
+                            <div id="date-selection-alert-container"></div>
+                            <h3>Selecione o Período da Reserva</h3>
+                            <div class="date-selection-container">
+                                <div class="date-input-group">
+                                    <label for="checkin-date">Data de Entrada:</label>
+                                    <input type="date" id="checkin-date">
+                                </div>
+                                <div class="date-input-group">
+                                    <label for="checkout-date">Data de Saída:</label>
+                                    <input type="date" id="checkout-date">
+                                </div>
+                                <div class="date-calculation">
+                                    Diárias Calculadas: <strong id="calculated-nights">0</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wizard-navigation">
+                        <button class="btn prev" id="wizard-prev-btn" style="display: none;">Anterior</button>
+                        <button class="btn next" id="wizard-next-btn">Próximo</button>
+                    </div>
+                </div>
+            </section>
+        </div>
     </main>
 
     <!-- Scripts -->
@@ -59,7 +157,9 @@
     <script src="assets/js/main.js"></script>
     <script src="assets/js/entities/cliente.js"></script>
     <script src="assets/js/entities/imovel.js"></script>
-    <script src="assets/js/kanban-reservas.js"></script>
+    <script src="assets/js/entities/reserva.js"></script> <!-- Adicionar entidade Reserva, se não existir -->
+    <script src="assets/js/kanban-reservas.js"></script> <!-- Manter, mas sua execução será controlada -->
+    <script src="assets/js/wizard-reservas.js"></script> <!-- Novo JS para o wizard -->
 
     <!-- Sidebar dinâmica -->
     <script>
