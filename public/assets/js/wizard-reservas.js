@@ -307,7 +307,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             // Finalizar Reserva logic
-            alert('Reserva finalizada! Dados: ' + JSON.stringify(reservationData, null, 2));
+            const reservationSummary = `
+Reserva finalizada com sucesso!
+
+Imóvel: ${reservationData.imovel.apelido}
+Hóspedes: ${reservationData.hospedes.map(h => h.nome).join(', ')}
+Check-in: ${new Date(reservationData.checkinDate).toLocaleDateString()}
+Check-out: ${new Date(reservationData.checkoutDate).toLocaleDateString()}
+Noites: ${reservationData.noites}
+Aceita Pets: ${reservationData.hasPets ? 'Sim' : 'Não'}
+`;
+            alert(reservationSummary);
             // TODO: Save reservation, redirect, or close wizard
             closeWizard();
         }
