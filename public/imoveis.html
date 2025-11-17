@@ -144,7 +144,6 @@
 
                 <form id="formComodo">
                     <input type="hidden" id="comodoId">
-                    <input type="hidden" id="comodoImovelId">
 
                     <div class="form-row">
                         <div class="input-group">
@@ -188,6 +187,7 @@
                     <thead>
                         <tr>
                             <th>Cód.</th>
+                            <th>Imóvel</th>
                             <th>Ícone</th>
                             <th>Nome</th>
                             <th>Ações</th>
@@ -220,7 +220,6 @@
 
                 <form id="formObjeto">
                     <input type="hidden" id="objetoId">
-                    <input type="hidden" id="objetoComodoId">
 
                     <div class="form-row">
                         <div class="input-group">
@@ -299,15 +298,20 @@
 
     </main>
 
-    <!-- Scripts -->
+    <!-- Scripts Essenciais -->
     <script src="assets/js/storage.js"></script>
     <script src="assets/js/main.js"></script>
     <script src="assets/js/entities/comodo.js"></script>
     <script src="assets/js/entities/imovel.js"></script>
 
-    <!-- Sidebar dinâmica e lógica de navegação por hash -->
+    <!-- Scripts de Lógica de Página -->
+    <script src="assets/js/imoveis.js"></script>
+    <script src="assets/js/comodos-imovel.js"></script>
+    <script src="assets/js/objetos-comodo.js"></script>
+
+    <!-- Script de Inicialização e Navegação -->
     <script>
-        // Lógica para marcar o link ativo ao carregar a página e expandir o submenu se necessário
+        // Lógica para marcar o link ativo na sidebar
         const setActiveSidebarLink = () => {
             const path = window.location.pathname.split("/").pop();
             const hash = window.location.hash;
@@ -316,7 +320,6 @@
                 link.classList.remove("active");
                 const linkHref = link.getAttribute("href");
 
-                // Check for exact match including hash for sub-menu items
                 if (linkHref === path + hash) {
                     link.classList.add("active");
                     const parentSubmenu = link.closest('.has-submenu');
@@ -325,10 +328,9 @@
                         const arrowElement = parentSubmenu.querySelector('.arrow');
                         if (submenuElement) submenuElement.style.display = 'block';
                         if (arrowElement) arrowElement.textContent = '▼';
-                        parentSubmenu.classList.add('expanded'); // Add expanded class to parent
+                        parentSubmenu.classList.add('expanded');
                     }
                 } else if (linkHref.startsWith(path) && linkHref.includes('#') && path === 'imoveis.html' && hash === '') {
-                    // If on imoveis.html with no hash, activate the 'Gerenciar Imóveis' link within the submenu
                     if (linkHref === 'imoveis.html#gerenciar') {
                         link.classList.add("active");
                         const parentSubmenu = link.closest('.has-submenu');
@@ -344,180 +346,113 @@
             });
         };
 
+        // Carrega a sidebar e depois inicializa a lógica da página
         fetch("assets/components/sidebar.html")
             .then(res => res.text())
             .then(html => {
-                const sidebarElement = document.getElementById("sidebar");
-                sidebarElement.innerHTML = html;
+                document.getElementById("sidebar").innerHTML = html;
                 
-                const body = document.body;
-                const loadedSidebarElement = document.querySelector('.sidebar'); // The dynamically loaded sidebar
-                const menuToggleBtnInSidebar = document.getElementById('menu-toggle'); // Menu toggle inside sidebar
-                const headerMenuToggleButton = document.getElementById('header-menu-toggle'); // Menu toggle in header
+                // Configura os toggles da sidebar e o comportamento responsivo
+                setupSidebarToggles();
 
-                function toggleSidebar() {
-                    body.classList.toggle('sidebar-open-mobile');
-                }
+                // Adiciona listeners para os links da sidebar
+                document.querySelector('.sidebar').addEventListener('click', handleSidebarClick);
 
-                // Add listener for the hamburger menu button in the sidebar (if it exists)
-                if (menuToggleBtnInSidebar) {
-                    menuToggleBtnInSidebar.addEventListener('click', function(e) {
-                        e.stopPropagation(); 
-                        toggleSidebar();
-                    });
-                }
+                // Define o link ativo inicial na sidebar
+                setActiveSidebarLink();
 
-                // Add listener for the hamburger menu button in the header (for mobile)
-                if (headerMenuToggleButton) {
-                    headerMenuToggleButton.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        toggleSidebar();
-                    });
-                }
-
-                // Close sidebar if clicking outside of it (mobile only)
-                document.addEventListener('click', function(e) {
-                    if (body.classList.contains('sidebar-open-mobile') && 
-                        !loadedSidebarElement.contains(e.target) && 
-                        (menuToggleBtnInSidebar && !menuToggleBtnInSidebar.contains(e.target)) && 
-                        (headerMenuToggleButton && !headerMenuToggleButton.contains(e.target))) {
-                        toggleSidebar();
-                    }
-                });
-
-                // Lógica de expansão do submenu e marcação de ativo (com delegação de eventos)
-                loadedSidebarElement.addEventListener('click', (e) => {
-                    const submenuToggle = e.target.closest('.submenu-toggle');
-                    if (submenuToggle) {
-                        e.preventDefault();
-                        const parentLi = submenuToggle.closest('.has-submenu');
-                        const submenu = parentLi ? parentLi.querySelector('.submenu') : null;
-                        const arrow = submenuToggle.querySelector('.arrow');
-
-                        if (submenu && arrow) {
-                            if (submenu.style.display === 'block') {
-                                submenu.style.display = 'none';
-                                arrow.textContent = '▶'; 
-                                parentLi.classList.remove('expanded');
-                            } else {
-                                submenu.style.display = 'block';
-                                arrow.textContent = '▼'; 
-                                parentLi.classList.add('expanded');
-                            }
-                        }
-                    }
-
-                    // Lógica para marcar link ativo ao clicar em qualquer item do sidebar
-                    let clickedLink = e.target.closest("a");
-                    if (clickedLink) {
-                        // Prevent default navigation if clicking the currently active link
-                        if (clickedLink.classList.contains("active") && !clickedLink.classList.contains('submenu-toggle')) {
-                            e.preventDefault();
-                        }
-
-                        // Remove active class from all sidebar links
-                        document.querySelectorAll(".sidebar a").forEach(link => {
-                            link.classList.remove("active");
-                        });
-                        clickedLink.classList.add("active");
-                        
-                        const parentSubmenuItem = clickedLink.closest('.has-submenu');
-                        if (parentSubmenuItem) {
-                            const parentToggle = parentSubmenuItem.querySelector('.submenu-toggle');
-                            if (parentToggle) parentToggle.classList.add('active');
-                        }
-
-                        // Fecha a sidebar no mobile ao clicar em um link (a menos que seja um submenu-toggle)
-                        if (window.innerWidth <= 768 && !clickedLink.classList.contains('submenu-toggle')) {
-                            document.body.classList.remove('sidebar-open-mobile');
-                        }
-                    }
-                });
-
-                setActiveSidebarLink(); // Chama ao carregar a sidebar
-
-                // Após carregar o sidebar, dispare a lógica de exibição de seção com base no hash
+                // Dispara o evento de hashchange para carregar a seção correta
                 window.dispatchEvent(new Event('hashchange'));
-            })
-            .catch(err => {
-                /* console.error("Erro ao carregar sidebar:", err) */
-            }); // Console log removido
+            });
 
-        // Lógica de manipulação do hash da URL para exibir a seção correta
-        const gerenciarImoveisSection = document.getElementById('gerenciar-imoveis-section');
-        const comodosImovelSection = document.getElementById('comodos-imovel-section');
-        const inventarioObjetosSection = document.getElementById('inventario-objetos-section');
-        const selectImovelComodos = document.getElementById('selectImovelComodos');
-        const imovelApelidoComodosSpan = document.getElementById('imovel-apelido-comodos');
+        function setupSidebarToggles() {
+            const body = document.body;
+            const loadedSidebarElement = document.querySelector('.sidebar');
+            const menuToggleBtnInSidebar = document.getElementById('menu-toggle');
+            const headerMenuToggleButton = document.getElementById('header-menu-toggle');
 
-        function popularSelectImoveisComodos() {
-            const todosImoveis = Imovel.listarTodos();
-            selectImovelComodos.innerHTML = '<option value="">Selecione um Imóvel</option>';
-            todosImoveis.forEach(imovel => {
-                const option = document.createElement('option');
-                option.value = imovel.codigo;
-                option.textContent = imovel.apelido;
-                selectImovelComodos.appendChild(option);
+            function toggleSidebar() {
+                body.classList.toggle('sidebar-open-mobile');
+            }
+
+            if (menuToggleBtnInSidebar) menuToggleBtnInSidebar.addEventListener('click', (e) => { e.stopPropagation(); toggleSidebar(); });
+            if (headerMenuToggleButton) headerMenuToggleButton.addEventListener('click', (e) => { e.stopPropagation(); toggleSidebar(); });
+
+            document.addEventListener('click', (e) => {
+                if (body.classList.contains('sidebar-open-mobile') && !loadedSidebarElement.contains(e.target) && !headerMenuToggleButton.contains(e.target)) {
+                    toggleSidebar();
+                }
             });
         }
 
-        selectImovelComodos.addEventListener('change', (event) => {
-            const codigoImovelSelecionado = event.target.value;
-            if (codigoImovelSelecionado) {
-                window.gerenciarComodos(codigoImovelSelecionado); // Chama a função global
-                const imovelSelecionado = Imovel.listarTodos().find(i => i.codigo == codigoImovelSelecionado);
-                imovelApelidoComodosSpan.textContent = imovelSelecionado ? imovelSelecionado.apelido : 'N/A';
-            } else {
-                // Limpar a lista de cômodos se "Selecione um Imóvel" for escolhido
-                document.getElementById('tabelaComodos').querySelector('tbody').innerHTML = '';
-                imovelApelidoComodosSpan.textContent = '';
-            }
-        });
+        function handleSidebarClick(e) {
+            const submenuToggle = e.target.closest('.submenu-toggle');
+            if (submenuToggle) {
+                e.preventDefault();
+                const parentLi = submenuToggle.closest('.has-submenu');
+                const submenu = parentLi.querySelector('.submenu');
+                const arrow = submenuToggle.querySelector('.arrow');
 
+                if (submenu && arrow) {
+                    const isExpanded = submenu.style.display === 'block';
+                    submenu.style.display = isExpanded ? 'none' : 'block';
+                    arrow.textContent = isExpanded ? '▶' : '▼';
+                    parentLi.classList.toggle('expanded', !isExpanded);
+                }
+            }
+
+            let clickedLink = e.target.closest("a");
+            if (clickedLink) {
+                document.querySelectorAll(".sidebar a").forEach(link => link.classList.remove("active"));
+                clickedLink.classList.add("active");
+                const parentSubmenuItem = clickedLink.closest('.has-submenu');
+                if (parentSubmenuItem) {
+                    parentSubmenuItem.querySelector('.submenu-toggle')?.classList.add('active');
+                }
+                if (window.innerWidth <= 768 && !clickedLink.classList.contains('submenu-toggle')) {
+                    document.body.classList.remove('sidebar-open-mobile');
+                }
+            }
+        }
+
+        // Lógica de manipulação do hash da URL para exibir a seção correta
         function showSectionFromHash() {
+            const gerenciarImoveisSection = document.getElementById('gerenciar-imoveis-section');
+            const comodosImovelSection = document.getElementById('comodos-imovel-section');
+            const inventarioObjetosSection = document.getElementById('inventario-objetos-section');
+            
             const hash = window.location.hash;
+            
+            // Esconde todas as seções
             gerenciarImoveisSection.style.display = 'none';
             comodosImovelSection.style.display = 'none';
             inventarioObjetosSection.style.display = 'none';
 
-            let currentSectionTitle = ''
+            let currentSectionTitle = '🏡 Gerenciar Imóveis';
 
             if (hash === '#comodos') {
                 comodosImovelSection.style.display = 'flex';
                 currentSectionTitle = '🚪 Gerenciar Cômodos';
-                popularSelectImoveisComodos(); // Popula o select ao entrar na seção de cômodos
-                const todosImoveis = Imovel.listarTodos();
-
-                if (window.currentImovelComodos && window.currentImovelComodos.codigo) {
-                    selectImovelComodos.value = window.currentImovelComodos.codigo;
-                    window.gerenciarComodos(window.currentImovelComodos.codigo); 
-                    imovelApelidoComodosSpan.textContent = window.currentImovelComodos.apelido;
-                } else if (todosImoveis.length > 0) {
-                    selectImovelComodos.value = todosImoveis[0].codigo;
-                    window.gerenciarComodos(todosImoveis[0].codigo); 
-                    imovelApelidoComodosSpan.textContent = todosImoveis[0].apelido;
-                } else {
-                    imovelApelidoComodosSpan.textContent = 'Nenhum imóvel cadastrado';
-                }
+                if (window.inicializarComodos) window.inicializarComodos();
 
             } else if (hash === '#inventario') {
                 inventarioObjetosSection.style.display = 'flex';
                 currentSectionTitle = '📦 Inventário de Objetos';
-                if (window.inicializarInventario) {
-                    window.inicializarInventario();
-                }
+                if (window.inicializarInventario) window.inicializarInventario();
+
             } else { 
                 gerenciarImoveisSection.style.display = 'flex';
-                currentSectionTitle = '🏡 Gerenciar Imóveis';
+                 if (window.carregarCardsDeImoveis) window.carregarCardsDeImoveis();
             }
+            
             document.getElementById('main-title').textContent = currentSectionTitle;
-
-            // Re-aplicar a classe ativa na sidebar após a mudança de hash e carregamento da seção
             setActiveSidebarLink();
         }
 
         window.addEventListener('hashchange', showSectionFromHash);
-        window.addEventListener('DOMContentLoaded', showSectionFromHash);
+        window.addEventListener('DOMContentLoaded', () => {
+            // A chamada inicial para showSectionFromHash será feita após a sidebar carregar
+        });
 
         window.addEventListener('resize', () => {
             if (window.innerWidth > 768 && document.body.classList.contains('sidebar-open-mobile')) {
@@ -526,11 +461,5 @@
         });
     </script>
 
-    <!-- Script específico para a página de Imóveis -->
-    <script src="assets/js/imoveis.js"></script>
-    <!-- CRUD de Cômodos para o Imóvel -->
-    <script src="assets/js/comodos-imovel.js"></script>
-    <!-- CRUD de Objetos para o Cômodo -->
-    <script src="assets/js/objetos-comodo.js"></script>
 </body>
 </html>
