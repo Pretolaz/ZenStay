@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const startWizardBtn = document.getElementById('start-reservation-wizard-btn');
     const reservationWizardModal = document.getElementById('reservation-wizard-modal'); // Get the modal container
-    const originalKanbanBoard = document.getElementById('original-kanban-board');
     const wizardCancelBtn = document.createElement('button'); // Create a cancel button dynamically
     wizardCancelBtn.classList.add('btn', 'cancel');
     wizardCancelBtn.textContent = 'Cancelar';
@@ -336,13 +335,10 @@ Aceita Pets: ${reservationData.hasPets ? 'Sim' : 'Não'}
 
     const closeWizard = () => {
         reservationWizardModal.style.display = 'none';
-        originalKanbanBoard.style.display = 'flex'; // Show original kanban board
-        // Optionally, reset wizard state here if needed when closing via cancel
     };
 
     // Start Wizard Button
     startWizardBtn.addEventListener('click', () => {
-        originalKanbanBoard.style.display = 'none';
         reservationWizardModal.style.display = 'flex'; // Show the modal container
         currentStep = 1; // Reset to first step
         // Reset reservation data for a new reservation

@@ -7,8 +7,7 @@
 
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/components.css">
-    <link rel="stylesheet" href="assets/css/kanban-reservas.css"> <!-- Manter por enquanto, caso precise de outros estilos -->
-    <link rel="stylesheet" href="assets/css/wizard-reservas.css"> <!-- Novo CSS para o wizard -->
+    <link rel="stylesheet" href="assets/css/wizard-reservas.css">
     <link rel="stylesheet" href="theme/dark.css" id="theme-style">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -26,33 +25,6 @@
 
         <section class="kanban-actions" style="margin-bottom: 20px; text-align: center;">
             <button id="start-reservation-wizard-btn" class="btn">✨ Nova Reserva (Assistente)</button>
-        </section>
-
-        <!-- O conteúdo do Kanban original será ocultado ou removido e o wizard será mostrado -->
-        <section class="kanban-board" id="original-kanban-board" style="display: none;">
-            <div class="kanban-column" id="hospedes-column">
-                <h3>👥 Hóspedes Disponíveis</h3>
-                <input type="text" id="hospede-search-input" placeholder="Pesquisar hóspedes..." class="search-input">
-                <div class="kanban-items" id="hospedes-list">
-                    <!-- Cards de hóspedes serão carregados aqui -->
-                </div>
-            </div>
-
-            <div class="kanban-column" id="imovel-selection-column">
-                <h3>🏠 Selecionar Imóvel</h3>
-                <input type="text" id="imovel-search-input" placeholder="Pesquisar imóvel..." class="search-input">
-                <div class="kanban-items" id="imoveis-selection-list">
-                    <!-- Cards de imóveis para seleção serão carregados aqui -->
-                </div>
-            </div>
-
-            <div class="kanban-column" id="selected-imovel-column">
-                <h3>📝 Imóvel Selecionado para Reserva</h3>
-                <div id="selected-imovel-details" class="kanban-item imovel-card" style="display: none;">
-                    <!-- Detalhes do imóvel selecionado e hóspedes associados serão carregados aqui -->
-                </div>
-                <p id="no-imovel-selected-message" style="text-align: center; margin-top: 20px; color: var(--text);">Selecione um imóvel ao lado para iniciar uma reserva.</p>
-            </div>
         </section>
 
         <!-- Wizard de Criação de Reserva (Modal Container) -->
@@ -158,9 +130,8 @@
     <script src="assets/js/entities/cliente.js"></script>
     <script src="assets/js/entities/comodo.js"></script>
     <script src="assets/js/entities/imovel.js"></script>
-    <script src="assets/js/entities/reserva.js"></script> <!-- Adicionar entidade Reserva, se não existir -->
-    <script src="assets/js/kanban-reservas.js"></script> <!-- Manter, mas sua execução será controlada -->
-    <script src="assets/js/wizard-reservas.js"></script> <!-- Novo JS para o wizard -->
+    <script src="assets/js/entities/reserva.js"></script>
+    <script src="assets/js/wizard-reservas.js"></script>
 
     <!-- Sidebar dinâmica -->
     <script>
