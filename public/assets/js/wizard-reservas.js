@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const startWizardBtn = document.getElementById('start-reservation-wizard-btn');
-    const reservationWizardModal = document.getElementById('reservation-wizard-modal'); // Get the modal container
-    const wizardCancelBtn = document.createElement('button'); // Create a cancel button dynamically
+    const reservationWizardModal = document.getElementById('reservation-wizard-modal');
+    const wizardCancelBtn = document.createElement('button');
     wizardCancelBtn.classList.add('btn', 'cancel');
     wizardCancelBtn.textContent = 'Cancelar';
 
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Step 1 Elements
     const wizardPropertyList = document.getElementById('wizard-property-list');
     const propertyListAlertContainer = document.getElementById('property-list-alert-container');
-    let allProperties = []; // To store all properties
+    let allProperties = [];
 
     // Step 2 Elements
     const wizardHospedeSearchInput = document.getElementById('wizard-hospede-search-input');
@@ -47,13 +47,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const hasPetsSlider = document.getElementById('has-pets-slider');
     const hasPetsStatus = document.getElementById('has-pets-status');
     const guestSelectionAlertContainer = document.getElementById('guest-selection-alert-container');
-    let allGuests = []; // To store all guests
+    let allGuests = [];
 
     // Step 3 Elements
     const checkinDateInput = document.getElementById('checkin-date');
     const checkoutDateInput = document.getElementById('checkout-date');
     const calculatedNights = document.getElementById('calculated-nights');
     const dateSelectionAlertContainer = document.getElementById('date-selection-alert-container');
+
+    // Table Elements
+    const reservasTableBody = document.getElementById('reservas-table-body');
 
     const showAlert = (container, message, type = 'error') => {
         container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
@@ -66,35 +69,29 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const updateWizardUI = () => {
-        // Update step title
         wizardStepTitle.textContent = wizardStepTitles[currentStep];
 
-        // Hide all step content and show current
         document.querySelectorAll('.wizard-step').forEach(step => {
             step.style.display = 'none';
         });
         document.getElementById(`step-${currentStep}`).style.display = 'block';
 
-        // Update navigation buttons
         wizardPrevBtn.style.display = currentStep > 1 ? 'inline-block' : 'none';
         wizardNextBtn.textContent = currentStep < totalSteps ? 'Próximo' : 'Finalizar Reserva';
-        
-        // Append cancel button to navigation on first step
+
         if (currentStep === 1 && !document.querySelector('.wizard-navigation .cancel')) {
-            wizardPrevBtn.parentNode.insertBefore(wizardCancelBtn, wizardPrevBtn); // Insert before prev button
+            wizardPrevBtn.parentNode.insertBefore(wizardCancelBtn, wizardPrevBtn);
         } else if (currentStep !== 1) {
             if (document.querySelector('.wizard-navigation .cancel')) {
-                wizardCancelBtn.remove(); // Remove if not on first step
+                wizardCancelBtn.remove();
             }
         }
 
-        // Disable next button based on step validation
         validateCurrentStep();
         updateSummary();
     };
 
     const updateSummary = () => {
-        // Corrected: Use imovel.situacao for status
         summaryImovel.textContent = reservationData.imovel ? `${reservationData.imovel.apelido} (${reservationData.imovel.situacao})` : '- Nenhum selecionado -';
 
         summaryHospedes.innerHTML = '';
@@ -132,13 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!reservationData.imovel) {
                 isValid = false;
             }
-            // Temporary change: Allow progression even if status is not 'Livre' for testing.
-            // The alert will still show, but the button will enable.
-            // To revert to strict validation, uncomment the original line below and remove this one.
-            // else if (reservationData.imovel.situacao !== 'Livre') {
-            //     showAlert(propertyListAlertContainer, `O imóvel \'${reservationData.imovel.apelido}\' não está disponível (Status: ${reservationData.imovel.situacao}).`, 'warning');
-            //     isValid = false; 
-            // }
         } else if (currentStep === 2) {
             if (reservationData.hospedes.length === 0) {
                 showAlert(guestSelectionAlertContainer, 'Selecione pelo menos um hóspede.', 'warning');
@@ -160,10 +150,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return isValid;
     };
 
-    // Step 1: Property Selection Functions
     const loadPropertiesForWizard = () => {
-        const imoveis = Imovel.listarTodos(); 
-        allProperties = imoveis; 
+        const imoveis = Imovel.listarTodos();
+        allProperties = imoveis;
         wizardPropertyList.innerHTML = '';
         if (imoveis.length === 0) {
             wizardPropertyList.innerHTML = '<p style="text-align: center; color: var(--color-text-secondary);">Nenhum imóvel cadastrado.</p>';
@@ -180,35 +169,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 <img src="${imovel.foto || 'https://via.placeholder.com/100x80?text=Imovel'}" alt="${imovel.apelido}" class="property-card-thumbnail">
                 <div class="property-card-info">
                     <div class="property-card-name">${imovel.apelido}</div>
-                    <div class="property-card-status ${imovel.situacao}">${imovel.situacao}</div> <!-- Corrected: Use imovel.situacao -->
+                    <div class="property-card-status ${imovel.situacao}">${imovel.situacao}</div>
                 </div>
             `;
             card.addEventListener('click', () => {
                 document.querySelectorAll('.property-card').forEach(c => c.classList.remove('selected'));
                 card.classList.add('selected');
                 reservationData.imovel = imovel;
-                validateCurrentStep(); // Re-validate after selection
+                validateCurrentStep();
                 updateSummary();
             });
             wizardPropertyList.appendChild(card);
         });
     };
 
-    // Step 2: Guest and Pet Selection Functions
     const loadGuestsForWizard = () => {
-        const clientes = Cliente.listarTodos(); 
+        const clientes = Cliente.listarTodos();
         allGuests = clientes;
         renderFilteredGuests();
 
-        // Set pet slider initial state
         hasPetsSlider.checked = reservationData.hasPets;
         hasPetsStatus.textContent = reservationData.hasPets ? 'Sim' : 'Não';
     };
 
     const renderFilteredGuests = (searchTerm = '') => {
         wizardHospedesList.innerHTML = '';
-        const filteredGuests = allGuests.filter(guest => 
-            guest.nome.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        const filteredGuests = allGuests.filter(guest =>
+            guest.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
             guest.telefone.includes(searchTerm)
         );
 
@@ -245,7 +232,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     addNewGuestBtn.addEventListener('click', () => {
         alert('Funcionalidade para adicionar novo hóspede será implementada em breve.');
-        // TODO: Redirect to client creation page or open a modal
     });
 
     hasPetsSlider.addEventListener('change', (e) => {
@@ -254,7 +240,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSummary();
     });
 
-    // Step 3: Date Selection Functions
     const calculateNights = () => {
         const checkin = checkinDateInput.value;
         const checkout = checkoutDateInput.value;
@@ -290,7 +275,6 @@ document.addEventListener('DOMContentLoaded', () => {
         calculateNights();
     });
 
-    // Wizard Navigation
     wizardNextBtn.addEventListener('click', () => {
         if (!validateCurrentStep()) {
             return;
@@ -301,23 +285,18 @@ document.addEventListener('DOMContentLoaded', () => {
             updateWizardUI();
             if (currentStep === 2) {
                 loadGuestsForWizard();
-            } else if (currentStep === 3) {
-                // Any specific logic for step 3 load
             }
         } else {
-            // Finalizar Reserva logic
-            const reservationSummary = `
-Reserva finalizada com sucesso!
-
-Imóvel: ${reservationData.imovel.apelido}
-Hóspedes: ${reservationData.hospedes.map(h => h.nome).join(', ')}
-Check-in: ${new Date(reservationData.checkinDate).toLocaleDateString()}
-Check-out: ${new Date(reservationData.checkoutDate).toLocaleDateString()}
-Noites: ${reservationData.noites}
-Aceita Pets: ${reservationData.hasPets ? 'Sim' : 'Não'}
-`;
-            alert(reservationSummary);
-            // TODO: Save reservation, redirect, or close wizard
+            const newReserva = new Reserva(
+                null, // id
+                reservationData.imovel.id,
+                reservationData.hospedes.map(h => h.id),
+                reservationData.checkinDate,
+                reservationData.checkoutDate,
+                'Confirmada' // status
+            );
+            newReserva.salvar();
+            loadReservasTable();
             closeWizard();
         }
     });
@@ -337,11 +316,9 @@ Aceita Pets: ${reservationData.hasPets ? 'Sim' : 'Não'}
         reservationWizardModal.style.display = 'none';
     };
 
-    // Start Wizard Button
     startWizardBtn.addEventListener('click', () => {
-        reservationWizardModal.style.display = 'flex'; // Show the modal container
-        currentStep = 1; // Reset to first step
-        // Reset reservation data for a new reservation
+        reservationWizardModal.style.display = 'flex';
+        currentStep = 1;
         reservationData = {
             imovel: null,
             hospedes: [],
@@ -354,6 +331,35 @@ Aceita Pets: ${reservationData.hasPets ? 'Sim' : 'Não'}
         updateWizardUI();
     });
 
-    // Initially hide wizard modal, the kanban board will be hidden by default in HTML.
+    function loadReservasTable() {
+        const reservas = Reserva.listarTodas();
+        reservasTableBody.innerHTML = '';
+
+        if (reservas.length === 0) {
+            reservasTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhuma reserva encontrada.</td></tr>';
+            return;
+        }
+
+        reservas.forEach(reserva => {
+            const imovel = Imovel.buscarPorId(reserva.idImovel);
+            const hospedes = reserva.idsHospedes.map(idCliente => Cliente.buscarPorId(idCliente));
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${imovel ? imovel.apelido : 'Imóvel não encontrado'}</td>
+                <td>${new Date(reserva.dataCheckin).toLocaleDateString()}</td>
+                <td>${new Date(reserva.dataCheckout).toLocaleDateString()}</td>
+                <td>${hospedes.map(h => h ? h.nome : 'Hóspede não encontrado').join(', ')}</td>
+                <td><span class="status ${reserva.status.toLowerCase()}">${reserva.status}</span></td>
+                <td>
+                    <button class="btn-action" onclick="alert('Editar reserva ${reserva.id}')">✏️</button>
+                    <button class="btn-action" onclick="alert('Excluir reserva ${reserva.id}')">🗑️</button>
+                </td>
+            `;
+            reservasTableBody.appendChild(row);
+        });
+    }
+
     reservationWizardModal.style.display = 'none';
+    loadReservasTable();
 });
