@@ -1,3 +1,4 @@
+
 // assets/js/objetos-comodo.js
 
 const imovelComodoNomeObjetos = document.getElementById('imovel-comodo-nome-objetos');
@@ -11,28 +12,98 @@ const quantidadeObjetoInput = document.getElementById('quantidadeObjeto');
 const tabelaObjetosBody = document.querySelector('#tabelaObjetos tbody');
 const cancelarObjetoBtn = document.getElementById('cancelarObjeto');
 
-// currentComodoObjetos será setado em imoveis.html ou via gerenciarObjetosDoComodo
-let currentComodoObjetos = null; 
+const selectImovelObjetos = document.getElementById('selectImovelObjetos');
+const selectComodoObjetos = document.getElementById('selectComodoObjetos');
 
-// Função chamada ao clicar em "Gerenciar Objetos" em um cômodo
-function gerenciarObjetosDoComodo(codigoComodo) {
-    const imovelAtual = window.currentImovelComodos();
-    if (imovelAtual) {
-        const comodo = imovelAtual.comodos.find(c => c.codigo === codigoComodo);
-        if (comodo) {
-            currentComodoObjetos = comodo;
-            imovelComodoNomeObjetos.textContent = `${imovelAtual.apelido} > ${comodo.nome}`;
-            objetoComodoIdInput.value = comodo.codigo; // Guarda o ID do cômodo no campo oculto
-            carregarObjetosDoComodo();
-        } else {
-            console.error('Cômodo não encontrado para gerenciar objetos.');
+let currentComodoObjetos = null;
+
+function inicializarInventario() {
+    popularSelectImoveisObjetos();
+    selectImovelObjetos.addEventListener('change', handleImovelSelectionChange);
+    selectComodoObjetos.addEventListener('change', handleComodoSelectionChange);
+    
+    // Limpar seleções e tabela ao inicializar
+    selectImovelObjetos.value = '';
+    selectComodoObjetos.innerHTML = '<option value="">Selecione um Cômodo</option>';
+    tabelaObjetosBody.innerHTML = '';
+    imovelComodoNomeObjetos.textContent = '';
+}
+
+function popularSelectImoveisObjetos() {
+    const todosImoveis = Imovel.listarTodos();
+    selectImovelObjetos.innerHTML = '<option value="">Selecione um Imóvel</option>';
+    todosImoveis.forEach(imovelData => {
+        // Certifique-se de que está trabalhando com uma instância de Imovel
+        const imovel = new Imovel(
+            imovelData.codigo, imovelData.apelido, imovelData.nome, imovelData.endereco, 
+            imovelData.googleMapsLink, imovelData.capacidadeAdulto, imovelData.capacidadeCrianca,
+            imovelData.aceitaPet, imovelData.descricao, imovelData.instrucoesGerais, 
+            imovelData.instrucoesChegada, imovelData.foto, imovelData.situacao, imovelData.comodos,
+            imovelData.objetos
+        );
+        const option = document.createElement('option');
+        option.value = imovel.codigo;
+        option.textContent = imovel.apelido;
+        selectImovelObjetos.appendChild(option);
+    });
+}
+
+function handleImovelSelectionChange() {
+    const codigoImovel = selectImovelObjetos.value;
+    popularSelectComodosObjetos(codigoImovel);
+    tabelaObjetosBody.innerHTML = '';
+    imovelComodoNomeObjetos.textContent = '';
+    currentComodoObjetos = null;
+    objetoComodoIdInput.value = '';
+    selectComodoObjetos.value = '';
+}
+
+function popularSelectComodosObjetos(codigoImovel) {
+    selectComodoObjetos.innerHTML = '<option value="">Selecione um Cômodo</option>';
+    if (codigoImovel) {
+        const imovel = Imovel.listarTodos().find(i => i.codigo == codigoImovel);
+        if (imovel && imovel.comodos) {
+            imovel.comodos.forEach(comodo => {
+                const option = document.createElement('option');
+                option.value = comodo.codigo;
+                option.textContent = comodo.nome;
+                selectComodoObjetos.appendChild(option);
+            });
         }
-    } else {
-        console.error('Nenhum imóvel selecionado para gerenciar objetos.');
     }
 }
 
-// Carrega e exibe os objetos do cômodo atual na tabela
+function handleComodoSelectionChange() {
+    const codigoComodo = selectComodoObjetos.value;
+    const codigoImovel = selectImovelObjetos.value;
+
+    if (codigoComodo && codigoImovel) {
+        const imovelData = Imovel.listarTodos().find(i => i.codigo == codigoImovel);
+        if (imovelData) {
+            // Recriar a instância do Imovel para garantir acesso aos métodos
+            const imovel = new Imovel(
+                imovelData.codigo, imovelData.apelido, imovelData.nome, imovelData.endereco, 
+                imovelData.googleMapsLink, imovelData.capacidadeAdulto, imovelData.capacidadeCrianca,
+                imovelData.aceitaPet, imovelData.descricao, imovelData.instrucoesGerais, 
+                imovelData.instrucoesChegada, imovelData.foto, imovelData.situacao, imovelData.comodos,
+                imovelData.objetos
+            );
+            const comodo = imovel.comodos.find(c => c.codigo == codigoComodo);
+            if (comodo) {
+                currentComodoObjetos = comodo;
+                imovelComodoNomeObjetos.textContent = `${imovel.apelido} > ${comodo.nome}`;
+                objetoComodoIdInput.value = comodo.codigo;
+                carregarObjetosDoComodo();
+            }
+        }
+    } else {
+        tabelaObjetosBody.innerHTML = '';
+        imovelComodoNomeObjetos.textContent = '';
+        currentComodoObjetos = null;
+        objetoComodoIdInput.value = '';
+    }
+}
+
 function carregarObjetosDoComodo() {
     tabelaObjetosBody.innerHTML = '';
     if (currentComodoObjetos && currentComodoObjetos.objetos) {
@@ -53,14 +124,40 @@ function carregarObjetosDoComodo() {
     }
 }
 
-// Salva um novo objeto ou atualiza um existente
 function salvarObjeto(e) {
     e.preventDefault();
 
-    if (!currentComodoObjetos) {
-        alert('Nenhum cômodo selecionado para adicionar objetos.');
+    const codigoImovel = selectImovelObjetos.value;
+    const codigoComodo = selectComodoObjetos.value;
+
+    if (!codigoImovel || !codigoComodo) {
+        alert('Por favor, selecione um imóvel e um cômodo para adicionar objetos.');
         return;
     }
+
+    const todosImoveis = Imovel.listarTodos();
+    const imovelData = todosImoveis.find(i => i.codigo == codigoImovel);
+    
+    if (!imovelData) {
+        alert('Imóvel não encontrado!');
+        return;
+    }
+    
+    const imovel = new Imovel(
+        imovelData.codigo, imovelData.apelido, imovelData.nome, imovelData.endereco, 
+        imovelData.googleMapsLink, imovelData.capacidadeAdulto, imovelData.capacidadeCrianca,
+        imovelData.aceitaPet, imovelData.descricao, imovelData.instrucoesGerais, 
+        imovelData.instrucoesChegada, imovelData.foto, imovelData.situacao, imovelData.comodos,
+        imovelData.objetos
+    );
+
+    const comodo = imovel.comodos.find(c => c.codigo == codigoComodo);
+    if (!comodo) {
+        alert('Cômodo não encontrado!');
+        return;
+    }
+    
+    currentComodoObjetos = comodo;
 
     const codigoObjeto = objetoIdInput.value ? parseInt(objetoIdInput.value) : null;
     const tipo = tipoObjetoInput.value;
@@ -68,19 +165,24 @@ function salvarObjeto(e) {
     const quantidade = parseInt(quantidadeObjetoInput.value);
 
     if (codigoObjeto) {
-        currentComodoObjetos.editarObjeto(codigoObjeto, tipo, nome, quantidade);
+        comodo.editarObjeto(codigoObjeto, tipo, nome, quantidade);
     } else {
-        currentComodoObjetos.adicionarObjeto(tipo, nome, quantidade);
+        comodo.adicionarObjeto(tipo, nome, quantidade);
     }
+    
+    imovel.salvar();
 
     formObjeto.reset();
-    objetoIdInput.value = ''; 
+    objetoIdInput.value = '';
     codigoObjetoInput.value = '';
     document.querySelector('#formObjeto button[type="submit"]').textContent = '➕ Adicionar Objeto';
-    carregarObjetosDoComodo(); 
+    
+    // Sincroniza o estado atual do cômodo e recarrega a tabela
+    currentComodoObjetos = comodo;
+    carregarObjetosDoComodo();
 }
 
-// Preenche o formulário para edição de um objeto
+
 function editarObjeto(codigoObjeto) {
     if (currentComodoObjetos) {
         const objeto = currentComodoObjetos.objetos.find(obj => obj.codigo === codigoObjeto);
@@ -95,21 +197,33 @@ function editarObjeto(codigoObjeto) {
     }
 }
 
-// Exclui um objeto
 function excluirObjeto(codigoObjeto) {
     if (confirm('Tem certeza que deseja excluir este objeto?')) {
-        if (currentComodoObjetos) {
-            currentComodoObjetos.removerObjeto(codigoObjeto);
-            carregarObjetosDoComodo();
-            formObjeto.reset();
-            objetoIdInput.value = '';
-            codigoObjetoInput.value = '';
-            document.querySelector('#formObjeto button[type="submit"]').textContent = '➕ Adicionar Objeto';
+        const codigoImovel = selectImovelObjetos.value;
+        const imovelData = Imovel.listarTodos().find(i => i.codigo == codigoImovel);
+        if (imovelData) {
+            const imovel = new Imovel(
+                imovelData.codigo, imovelData.apelido, imovelData.nome, imovelData.endereco, 
+                imovelData.googleMapsLink, imovelData.capacidadeAdulto, imovelData.capacidadeCrianca,
+                imovelData.aceitaPet, imovelData.descricao, imovelData.instrucoesGerais, 
+                imovelData.instrucoesChegada, imovelData.foto, imovelData.situacao, imovelData.comodos,
+                imovelData.objetos
+            );
+            const comodo = imovel.comodos.find(c => c.codigo == currentComodoObjetos.codigo);
+            if (comodo) {
+                comodo.removerObjeto(codigoObjeto);
+                imovel.salvar();
+                currentComodoObjetos = comodo;
+                carregarObjetosDoComodo();
+            }
         }
+        formObjeto.reset();
+        objetoIdInput.value = '';
+        codigoObjetoInput.value = '';
+        document.querySelector('#formObjeto button[type="submit"]').textContent = '➕ Adicionar Objeto';
     }
 }
 
-// Event Listeners
 formObjeto.addEventListener('submit', salvarObjeto);
 cancelarObjetoBtn.addEventListener('click', () => {
     formObjeto.reset();
@@ -119,7 +233,7 @@ cancelarObjetoBtn.addEventListener('click', () => {
 });
 
 // Expor funções globalmente
-window.gerenciarObjetosDoComodo = gerenciarObjetosDoComodo;
+window.inicializarInventario = inicializarInventario;
 window.editarObjeto = editarObjeto;
 window.excluirObjeto = excluirObjeto;
-window.currentComodoObjetos = currentComodoObjetos; // Expor o cômodo atual para o main script se necessário
+

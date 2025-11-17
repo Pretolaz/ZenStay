@@ -503,8 +503,8 @@
             } else if (hash === '#inventario') {
                 inventarioObjetosSection.style.display = 'flex';
                 currentSectionTitle = '📦 Inventário de Objetos';
-                if (window.currentComodoObjetos && window.currentComodoObjetos.codigo) {
-                    window.gerenciarObjetosDoComodo(window.currentComodoObjetos.codigo); 
+                if (window.inicializarInventario) {
+                    window.inicializarInventario();
                 }
             } else { 
                 gerenciarImoveisSection.style.display = 'flex';
