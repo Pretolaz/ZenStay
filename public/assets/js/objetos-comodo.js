@@ -1,49 +1,55 @@
 
 // assets/js/objetos-comodo.js
 
-const imovelComodoNomeObjetos = document.getElementById('imovel-comodo-nome-objetos');
-const formObjeto = document.getElementById('formObjeto');
-const objetoIdInput = document.getElementById('objetoId');
-const objetoComodoIdInput = document.getElementById('objetoComodoId');
-const codigoObjetoInput = document.getElementById('codigoObjeto');
-const tipoObjetoInput = document.getElementById('tipoObjeto');
-const nomeObjetoInput = document.getElementById('nomeObjeto');
-const quantidadeObjetoInput = document.getElementById('quantidadeObjeto');
-const tabelaObjetosBody = document.querySelector('#tabelaObjetos tbody');
-const cancelarObjetoBtn = document.getElementById('cancelarObjeto');
-
-const selectImovelObjetos = document.getElementById('selectImovelObjetos');
-const selectComodoObjetos = document.getElementById('selectComodoObjetos');
+// Declarar variáveis no escopo do módulo
+let imovelComodoNomeObjetos, formObjeto, objetoIdInput, objetoComodoIdInput, codigoObjetoInput, 
+    tipoObjetoInput, nomeObjetoInput, quantidadeObjetoInput, tabelaObjetosBody, 
+    cancelarObjetoBtn, selectImovelObjetos, selectComodoObjetos;
 
 let currentComodoObjetos = null;
 
+// Função de inicialização para a seção de inventário
 function inicializarInventario() {
-    popularSelectImoveisObjetos();
+    // Atribuir elementos do DOM somente quando a função é chamada
+    imovelComodoNomeObjetos = document.getElementById('imovel-comodo-nome-objetos');
+    formObjeto = document.getElementById('formObjeto');
+    objetoIdInput = document.getElementById('objetoId');
+    objetoComodoIdInput = document.getElementById('objetoComodoId');
+    codigoObjetoInput = document.getElementById('codigoObjeto');
+    tipoObjetoInput = document.getElementById('tipoObjeto');
+    nomeObjetoInput = document.getElementById('nomeObjeto');
+    quantidadeObjetoInput = document.getElementById('quantidadeObjeto');
+    tabelaObjetosBody = document.querySelector('#tabelaObjetos tbody');
+    cancelarObjetoBtn = document.getElementById('cancelarObjeto');
+    selectImovelObjetos = document.getElementById('selectImovelObjetos');
+    selectComodoObjetos = document.getElementById('selectComodoObjetos');
+
+    // Configurar listeners de eventos
     selectImovelObjetos.addEventListener('change', handleImovelSelectionChange);
     selectComodoObjetos.addEventListener('change', handleComodoSelectionChange);
-    
-    // Limpar seleções e tabela ao inicializar
-    selectImovelObjetos.value = '';
-    selectComodoObjetos.innerHTML = '<option value="">Selecione um Cômodo</option>';
-    tabelaObjetosBody.innerHTML = '';
-    imovelComodoNomeObjetos.textContent = '';
+    formObjeto.addEventListener('submit', salvarObjeto);
+    cancelarObjetoBtn.addEventListener('click', resetFormObjeto);
+
+    // Lógica de inicialização
+    popularSelectImoveisObjetos();
+    resetInventario();
+}
+
+function resetInventario() {
+    if (selectImovelObjetos) selectImovelObjetos.value = '';
+    if (selectComodoObjetos) selectComodoObjetos.innerHTML = '<option value="">Selecione um Cômodo</option>';
+    if (tabelaObjetosBody) tabelaObjetosBody.innerHTML = '';
+    if (imovelComodoNomeObjetos) imovelComodoNomeObjetos.textContent = '';
+    resetFormObjeto();
 }
 
 function popularSelectImoveisObjetos() {
     const todosImoveis = Imovel.listarTodos();
     selectImovelObjetos.innerHTML = '<option value="">Selecione um Imóvel</option>';
     todosImoveis.forEach(imovelData => {
-        // Certifique-se de que está trabalhando com uma instância de Imovel
-        const imovel = new Imovel(
-            imovelData.codigo, imovelData.apelido, imovelData.nome, imovelData.endereco, 
-            imovelData.googleMapsLink, imovelData.capacidadeAdulto, imovelData.capacidadeCrianca,
-            imovelData.aceitaPet, imovelData.descricao, imovelData.instrucoesGerais, 
-            imovelData.instrucoesChegada, imovelData.foto, imovelData.situacao, imovelData.comodos,
-            imovelData.objetos
-        );
         const option = document.createElement('option');
-        option.value = imovel.codigo;
-        option.textContent = imovel.apelido;
+        option.value = imovelData.codigo;
+        option.textContent = imovelData.apelido;
         selectImovelObjetos.appendChild(option);
     });
 }
@@ -54,8 +60,8 @@ function handleImovelSelectionChange() {
     tabelaObjetosBody.innerHTML = '';
     imovelComodoNomeObjetos.textContent = '';
     currentComodoObjetos = null;
-    objetoComodoIdInput.value = '';
-    selectComodoObjetos.value = '';
+    if(objetoComodoIdInput) objetoComodoIdInput.value = '';
+    if(selectComodoObjetos) selectComodoObjetos.value = '';
 }
 
 function popularSelectComodosObjetos(codigoImovel) {
@@ -80,19 +86,11 @@ function handleComodoSelectionChange() {
     if (codigoComodo && codigoImovel) {
         const imovelData = Imovel.listarTodos().find(i => i.codigo == codigoImovel);
         if (imovelData) {
-            // Recriar a instância do Imovel para garantir acesso aos métodos
-            const imovel = new Imovel(
-                imovelData.codigo, imovelData.apelido, imovelData.nome, imovelData.endereco, 
-                imovelData.googleMapsLink, imovelData.capacidadeAdulto, imovelData.capacidadeCrianca,
-                imovelData.aceitaPet, imovelData.descricao, imovelData.instrucoesGerais, 
-                imovelData.instrucoesChegada, imovelData.foto, imovelData.situacao, imovelData.comodos,
-                imovelData.objetos
-            );
-            const comodo = imovel.comodos.find(c => c.codigo == codigoComodo);
-            if (comodo) {
-                currentComodoObjetos = comodo;
-                imovelComodoNomeObjetos.textContent = `${imovel.apelido} > ${comodo.nome}`;
-                objetoComodoIdInput.value = comodo.codigo;
+            const comodoData = imovelData.comodos.find(c => c.codigo == codigoComodo);
+            if (comodoData) {
+                currentComodoObjetos = new Comodo(comodoData.codigo, comodoData.nome, comodoData.icone, comodoData.objetos);
+                imovelComodoNomeObjetos.textContent = `${imovelData.apelido} > ${currentComodoObjetos.nome}`;
+                objetoComodoIdInput.value = currentComodoObjetos.codigo;
                 carregarObjetosDoComodo();
             }
         }
@@ -100,7 +98,7 @@ function handleComodoSelectionChange() {
         tabelaObjetosBody.innerHTML = '';
         imovelComodoNomeObjetos.textContent = '';
         currentComodoObjetos = null;
-        objetoComodoIdInput.value = '';
+        if(objetoComodoIdInput) objetoComodoIdInput.value = '';
     }
 }
 
@@ -135,21 +133,11 @@ function salvarObjeto(e) {
         return;
     }
 
-    const todosImoveis = Imovel.listarTodos();
-    const imovelData = todosImoveis.find(i => i.codigo == codigoImovel);
-    
-    if (!imovelData) {
+    const imovel = Imovel.listarTodos().find(i => i.codigo == codigoImovel);
+    if (!imovel) {
         alert('Imóvel não encontrado!');
         return;
     }
-    
-    const imovel = new Imovel(
-        imovelData.codigo, imovelData.apelido, imovelData.nome, imovelData.endereco, 
-        imovelData.googleMapsLink, imovelData.capacidadeAdulto, imovelData.capacidadeCrianca,
-        imovelData.aceitaPet, imovelData.descricao, imovelData.instrucoesGerais, 
-        imovelData.instrucoesChegada, imovelData.foto, imovelData.situacao, imovelData.comodos,
-        imovelData.objetos
-    );
 
     const comodo = imovel.comodos.find(c => c.codigo == codigoComodo);
     if (!comodo) {
@@ -157,31 +145,27 @@ function salvarObjeto(e) {
         return;
     }
     
-    currentComodoObjetos = comodo;
+    const imovelInstance = new Imovel(...Object.values(imovel));
 
     const codigoObjeto = objetoIdInput.value ? parseInt(objetoIdInput.value) : null;
     const tipo = tipoObjetoInput.value;
     const nome = nomeObjetoInput.value;
     const quantidade = parseInt(quantidadeObjetoInput.value);
 
+    const comodoInstance = imovelInstance.comodos.find(c => c.codigo == codigoComodo);
+
     if (codigoObjeto) {
-        comodo.editarObjeto(codigoObjeto, tipo, nome, quantidade);
+        comodoInstance.editarObjeto(codigoObjeto, tipo, nome, quantidade);
     } else {
-        comodo.adicionarObjeto(tipo, nome, quantidade);
+        comodoInstance.adicionarObjeto(tipo, nome, quantidade);
     }
     
-    imovel.salvar();
+    imovelInstance.salvar();
 
-    formObjeto.reset();
-    objetoIdInput.value = '';
-    codigoObjetoInput.value = '';
-    document.querySelector('#formObjeto button[type="submit"]').textContent = '➕ Adicionar Objeto';
-    
-    // Sincroniza o estado atual do cômodo e recarrega a tabela
-    currentComodoObjetos = comodo;
+    resetFormObjeto();
+    currentComodoObjetos = comodoInstance; 
     carregarObjetosDoComodo();
 }
-
 
 function editarObjeto(codigoObjeto) {
     if (currentComodoObjetos) {
@@ -202,13 +186,7 @@ function excluirObjeto(codigoObjeto) {
         const codigoImovel = selectImovelObjetos.value;
         const imovelData = Imovel.listarTodos().find(i => i.codigo == codigoImovel);
         if (imovelData) {
-            const imovel = new Imovel(
-                imovelData.codigo, imovelData.apelido, imovelData.nome, imovelData.endereco, 
-                imovelData.googleMapsLink, imovelData.capacidadeAdulto, imovelData.capacidadeCrianca,
-                imovelData.aceitaPet, imovelData.descricao, imovelData.instrucoesGerais, 
-                imovelData.instrucoesChegada, imovelData.foto, imovelData.situacao, imovelData.comodos,
-                imovelData.objetos
-            );
+            const imovel = new Imovel(...Object.values(imovelData));
             const comodo = imovel.comodos.find(c => c.codigo == currentComodoObjetos.codigo);
             if (comodo) {
                 comodo.removerObjeto(codigoObjeto);
@@ -217,23 +195,19 @@ function excluirObjeto(codigoObjeto) {
                 carregarObjetosDoComodo();
             }
         }
-        formObjeto.reset();
-        objetoIdInput.value = '';
-        codigoObjetoInput.value = '';
-        document.querySelector('#formObjeto button[type="submit"]').textContent = '➕ Adicionar Objeto';
+        resetFormObjeto();
     }
 }
 
-formObjeto.addEventListener('submit', salvarObjeto);
-cancelarObjetoBtn.addEventListener('click', () => {
+function resetFormObjeto() {
+    if (!formObjeto) return;
     formObjeto.reset();
     objetoIdInput.value = '';
     codigoObjetoInput.value = '';
     document.querySelector('#formObjeto button[type="submit"]').textContent = '➕ Adicionar Objeto';
-});
+}
 
 // Expor funções globalmente
 window.inicializarInventario = inicializarInventario;
 window.editarObjeto = editarObjeto;
 window.excluirObjeto = excluirObjeto;
-
