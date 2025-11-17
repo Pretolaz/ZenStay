@@ -1,378 +1,214 @@
+
 document.addEventListener('DOMContentLoaded', () => {
-    const startWizardBtn = document.getElementById('start-reservation-wizard-btn');
-    const reservationWizardModal = document.getElementById('reservation-wizard-modal');
-    const wizardCancelBtn = document.createElement('button');
-    wizardCancelBtn.classList.add('btn', 'cancel');
-    wizardCancelBtn.textContent = 'Cancelar';
+    // Mapeamento de IDs para seus respectivos objetos para fácil acesso
+    const anfitrioes = Anfitriao.listarTodos().reduce((acc, obj) => ({ ...acc, [obj.codigoInterno]: obj }), {});
+    const imoveis = Imovel.listarTodos().reduce((acc, obj) => ({ ...acc, [obj.codigoInterno]: obj }), {});
+    const plataformas = Plataforma.listarTodos().reduce((acc, obj) => ({ ...acc, [obj.codigoInterno]: obj }), {});
 
-    const wizardStepTitles = {
-        1: 'Etapa 1: Seleção do Imóvel',
-        2: 'Etapa 2: Seleção de Hóspedes e Pets',
-        3: 'Etapa 3: Seleção de Período (Datas)'
-    };
+    const step1 = document.getElementById('step-1');
+    const step2 = document.getElementById('step-2');
+    const step3 = document.getElementById('step-3');
+    const step4 = document.getElementById('step-4');
+    const step5 = document.getElementById('step-5');
 
-    let currentStep = 1;
-    const totalSteps = 3;
-    let reservationData = {
-        imovel: null,
-        hospedes: [],
-        hasPets: false,
-        checkinDate: null,
-        checkoutDate: null,
-        noites: 0
-    };
+    const nextToStep2 = document.getElementById('next-to-step-2');
+    const nextToStep3 = document.getElementById('next-to-step-3');
+    const nextToStep4 = document.getElementById('next-to-step-4');
+    const nextToStep5 = document.getElementById('next-to-step-5');
 
-    // Elements
-    const wizardStepTitle = document.getElementById('wizard-step-title');
-    const wizardStepContent = document.getElementById('wizard-step-content');
-    const wizardPrevBtn = document.getElementById('wizard-prev-btn');
-    const wizardNextBtn = document.getElementById('wizard-next-btn');
+    const backToStep1 = document.getElementById('back-to-step-1');
+    const backToStep2 = document.getElementById('back-to-step-2');
+    const backToStep3 = document.getElementById('back-to-step-3');
+    const backToStep4 = document.getElementById('back-to-step-4');
 
-    // Summary Elements
-    const summaryImovel = document.getElementById('summary-imovel');
-    const summaryHospedes = document.getElementById('summary-hospedes');
-    const summaryPets = document.getElementById('summary-pets');
-    const summaryPeriodo = document.getElementById('summary-periodo');
-    const summaryDiarias = document.getElementById('summary-diarias');
+    const saveReserva = document.getElementById('save-reserva');
 
-    // Step 1 Elements
-    const wizardPropertyList = document.getElementById('wizard-property-list');
-    const propertyListAlertContainer = document.getElementById('property-list-alert-container');
-    let allProperties = [];
+    const formSteps = [step1, step2, step3, step4, step5];
+    let currentStep = 0;
 
-    // Step 2 Elements
-    const wizardHospedeSearchInput = document.getElementById('wizard-hospede-search-input');
-    const wizardHospedesList = document.getElementById('wizard-hospedes-list');
-    const addNewGuestBtn = document.getElementById('add-new-guest-btn');
-    const hasPetsSlider = document.getElementById('has-pets-slider');
-    const hasPetsStatus = document.getElementById('has-pets-status');
-    const guestSelectionAlertContainer = document.getElementById('guest-selection-alert-container');
-    let allGuests = [];
-
-    // Step 3 Elements
-    const checkinDateInput = document.getElementById('checkin-date');
-    const checkoutDateInput = document.getElementById('checkout-date');
-    const calculatedNights = document.getElementById('calculated-nights');
-    const dateSelectionAlertContainer = document.getElementById('date-selection-alert-container');
-
-    // Table Elements
-    const reservasTableBody = document.getElementById('reservas-table-body');
-
-    const showAlert = (container, message, type = 'error') => {
-        container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-        container.style.display = 'block';
-    };
-
-    const hideAlert = (container) => {
-        container.innerHTML = '';
-        container.style.display = 'none';
-    };
-
-    const updateWizardUI = () => {
-        wizardStepTitle.textContent = wizardStepTitles[currentStep];
-
-        document.querySelectorAll('.wizard-step').forEach(step => {
-            step.style.display = 'none';
+    function showStep(stepIndex) {
+        formSteps.forEach((step, index) => {
+            step.style.display = index === stepIndex ? 'block' : 'none';
         });
-        document.getElementById(`step-${currentStep}`).style.display = 'block';
+        currentStep = stepIndex;
+    }
 
-        wizardPrevBtn.style.display = currentStep > 1 ? 'inline-block' : 'none';
-        wizardNextBtn.textContent = currentStep < totalSteps ? 'Próximo' : 'Finalizar Reserva';
+    // Navegação
+    nextToStep2.addEventListener('click', () => showStep(1));
+    nextToStep3.addEventListener('click', () => showStep(2));
+    nextToStep4.addEventListener('click', () => showStep(3));
+    nextToStep5.addEventListener('click', () => {
+        updateResumo();
+        showStep(4);
+    });
 
-        if (currentStep === 1 && !document.querySelector('.wizard-navigation .cancel')) {
-            wizardPrevBtn.parentNode.insertBefore(wizardCancelBtn, wizardPrevBtn);
-        } else if (currentStep !== 1) {
-            if (document.querySelector('.wizard-navigation .cancel')) {
-                wizardCancelBtn.remove();
-            }
-        }
+    backToStep1.addEventListener('click', () => showStep(0));
+    backToStep2.addEventListener('click', () => showStep(1));
+    backToStep3.addEventListener('click', () => showStep(2));
+    backToStep4.addEventListener('click', () => showStep(3));
 
-        validateCurrentStep();
-        updateSummary();
+    // ---- INICIALIZAÇÃO E MANIPULAÇÃO DOS DADOS ----
+
+    const reservaForm = {
+        anfitriao: document.getElementById('reserva-anfitriao'),
+        imovel: document.getElementById('reserva-imovel'),
+        plataforma: document.getElementById('reserva-plataforma'),
+        hospedes: document.getElementById('reserva-hospedes'),
+        checkin: document.getElementById('reserva-checkin'),
+        checkout: document.getElementById('reserva-checkout'),
+        numHospedes: document.getElementById('reserva-num-hospedes'),
+        valorTotal: document.getElementById('reserva-valor-total'),
+        status: document.getElementById('reserva-status'),
+        observacoes: document.getElementById('reserva-observacoes')
     };
 
-    const updateSummary = () => {
-        summaryImovel.textContent = reservationData.imovel ? `${reservationData.imovel.apelido} (${reservationData.imovel.situacao})` : '- Nenhum selecionado -';
-
-        summaryHospedes.innerHTML = '';
-        if (reservationData.hospedes.length > 0) {
-            reservationData.hospedes.forEach(hospede => {
-                const li = document.createElement('li');
-                li.textContent = hospede.nome;
-                summaryHospedes.appendChild(li);
-            });
-        } else {
-            const li = document.createElement('li');
-            li.textContent = '- Nenhum selecionado -';
-            summaryHospedes.appendChild(li);
-        }
-
-        summaryPets.textContent = reservationData.hasPets ? 'Sim' : 'Não';
-
-        if (reservationData.checkinDate && reservationData.checkoutDate) {
-            const checkin = new Date(reservationData.checkinDate).toLocaleDateString();
-            const checkout = new Date(reservationData.checkoutDate).toLocaleDateString();
-            summaryPeriodo.textContent = `${checkin} a ${checkout}`;
-        } else {
-            summaryPeriodo.textContent = '- Não informado -';
-        }
-        summaryDiarias.textContent = reservationData.noites > 0 ? reservationData.noites : '- 0 -';
-    };
-
-    const validateCurrentStep = () => {
-        let isValid = true;
-        hideAlert(propertyListAlertContainer);
-        hideAlert(guestSelectionAlertContainer);
-        hideAlert(dateSelectionAlertContainer);
-
-        if (currentStep === 1) {
-            if (!reservationData.imovel) {
-                isValid = false;
-            }
-        } else if (currentStep === 2) {
-            if (reservationData.hospedes.length === 0) {
-                showAlert(guestSelectionAlertContainer, 'Selecione pelo menos um hóspede.', 'warning');
-                isValid = false;
-            } else if (reservationData.imovel && reservationData.hospedes.length > reservationData.imovel.capacidadeMaxima) {
-                showAlert(guestSelectionAlertContainer, `O número de hóspedes (${reservationData.hospedes.length}) excede a capacidade máxima do imóvel (${reservationData.imovel.capacidadeMaxima}).`, 'error');
-                isValid = false;
-            }
-        } else if (currentStep === 3) {
-            if (!reservationData.checkinDate || !reservationData.checkoutDate) {
-                showAlert(dateSelectionAlertContainer, 'Por favor, selecione as datas de entrada e saída.', 'warning');
-                isValid = false;
-            } else if (new Date(reservationData.checkinDate) >= new Date(reservationData.checkoutDate)) {
-                showAlert(dateSelectionAlertContainer, 'A data de saída deve ser posterior à data de entrada.', 'error');
-                isValid = false;
-            }
-        }
-        wizardNextBtn.disabled = !isValid;
-        return isValid;
-    };
-
-    const loadPropertiesForWizard = () => {
-        const imoveis = Imovel.listarTodos();
-        allProperties = imoveis;
-        wizardPropertyList.innerHTML = '';
-        if (imoveis.length === 0) {
-            wizardPropertyList.innerHTML = '<p style="text-align: center; color: var(--color-text-secondary);">Nenhum imóvel cadastrado.</p>';
-            return;
-        }
-
-        imoveis.forEach(imovel => {
-            const card = document.createElement('div');
-            card.classList.add('property-card');
-            if (reservationData.imovel && reservationData.imovel.id === imovel.id) {
-                card.classList.add('selected');
-            }
-            card.innerHTML = `
-                <img src="${imovel.foto || 'https://via.placeholder.com/100x80?text=Imovel'}" alt="${imovel.apelido}" class="property-card-thumbnail">
-                <div class="property-card-info">
-                    <div class="property-card-name">${imovel.apelido}</div>
-                    <div class="property-card-status ${imovel.situacao}">${imovel.situacao}</div>
-                </div>
-            `;
-            card.addEventListener('click', () => {
-                document.querySelectorAll('.property-card').forEach(c => c.classList.remove('selected'));
-                card.classList.add('selected');
-                reservationData.imovel = imovel;
-                validateCurrentStep();
-                updateSummary();
-            });
-            wizardPropertyList.appendChild(card);
+    // Carregar selects
+    function loadSelectOptions(element, data, placeholder, keyField = 'codigoInterno', valueField = 'nome') {
+        element.innerHTML = `<option value="">${placeholder}</option>`;
+        data.forEach(item => {
+            element.innerHTML += `<option value="${item[keyField]}">${item[valueField]}</option>`;
         });
-    };
+    }
 
-    const loadGuestsForWizard = () => {
-        const clientes = Cliente.listarTodos();
-        allGuests = clientes;
-        renderFilteredGuests();
+    loadSelectOptions(reservaForm.anfitriao, Object.values(anfitrioes), 'Selecione um anfitrião');
+    loadSelectOptions(reservaForm.imovel, Object.values(imoveis), 'Selecione um imóvel', 'codigoInterno', 'titulo');
+    loadSelectOptions(reservaForm.plataforma, Object.values(plataformas), 'Selecione uma plataforma');
 
-        hasPetsSlider.checked = reservationData.hasPets;
-        hasPetsStatus.textContent = reservationData.hasPets ? 'Sim' : 'Não';
-    };
-
-    const renderFilteredGuests = (searchTerm = '') => {
-        wizardHospedesList.innerHTML = '';
-        const filteredGuests = allGuests.filter(guest =>
-            guest.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            guest.telefone.includes(searchTerm)
-        );
-
-        if (filteredGuests.length === 0) {
-            wizardHospedesList.innerHTML = '<p style="text-align: center; color: var(--color-text-secondary);">Nenhum hóspede encontrado.</p>';
-            return;
-        }
-
-        filteredGuests.forEach(guest => {
-            const guestItem = document.createElement('div');
-            guestItem.classList.add('guest-list-item');
-            const isSelected = reservationData.hospedes.some(h => h.id === guest.id);
-            guestItem.innerHTML = `
-                <input type="checkbox" id="guest-${guest.id}" value="${guest.id}" ${isSelected ? 'checked' : ''}>
-                <label for="guest-${guest.id}">${guest.nome} (${guest.telefone})</label>
-            `;
-            const checkbox = guestItem.querySelector('input[type="checkbox"]');
-            checkbox.addEventListener('change', () => {
-                if (checkbox.checked) {
-                    reservationData.hospedes.push(guest);
-                } else {
-                    reservationData.hospedes = reservationData.hospedes.filter(h => h.id !== guest.id);
-                }
-                validateCurrentStep();
-                updateSummary();
-            });
-            wizardHospedesList.appendChild(guestItem);
-        });
-    };
-
-    wizardHospedeSearchInput.addEventListener('input', (e) => {
-        renderFilteredGuests(e.target.value);
+    // Inicializar Select2 para hospedes
+    const hospedesSelect = $(reservaForm.hospedes).select2({
+        placeholder: 'Selecione ou adicione hóspedes',
+        width: '100%',
+        data: Cliente.listarTodos().map(c => ({ id: c.codigoInterno, text: c.nome }))
     });
 
-    addNewGuestBtn.addEventListener('click', () => {
-        alert('Funcionalidade para adicionar novo hóspede será implementada em breve.');
-    });
+    // Atualizar resumo
+    function updateResumo() {
+        const anfitriaoId = reservaForm.anfitriao.value;
+        const imovelId = reservaForm.imovel.value;
+        const plataformaId = reservaForm.plataforma.value;
+        const hospedesIds = $(reservaForm.hospedes).val() || [];
 
-    hasPetsSlider.addEventListener('change', (e) => {
-        reservationData.hasPets = e.target.checked;
-        hasPetsStatus.textContent = reservationData.hasPets ? 'Sim' : 'Não';
-        updateSummary();
-    });
+        const hospedesNomes = hospedesIds.map(id => Cliente.buscarPorId(id)?.nome || 'Hóspede desconhecido').join(', ');
 
-    const calculateNights = () => {
-        const checkin = checkinDateInput.value;
-        const checkout = checkoutDateInput.value;
+        document.getElementById('resumo-anfitriao').textContent = anfitrioes[anfitriaoId]?.nome || 'Não selecionado';
+        document.getElementById('resumo-imovel').textContent = imoveis[imovelId]?.titulo || 'Não selecionado';
+        document.getElementById('resumo-plataforma').textContent = plataformas[plataformaId]?.nome || 'Não selecionado';
+        document.getElementById('resumo-hospedes').textContent = hospedesNomes || 'Nenhum';
+        document.getElementById('resumo-checkin').textContent = reservaForm.checkin.value ? new Date(reservaForm.checkin.value + 'T00:00:00').toLocaleDateString() : 'Não definido';
+        document.getElementById('resumo-checkout').textContent = reservaForm.checkout.value ? new Date(reservaForm.checkout.value + 'T00:00:00').toLocaleDateString() : 'Não definido';
+        document.getElementById('resumo-num-hospedes').textContent = reservaForm.numHospedes.value || 'Não definido';
+        document.getElementById('resumo-valor').textContent = `R$ ${parseFloat(reservaForm.valorTotal.value || 0).toFixed(2)}`;
+        document.getElementById('resumo-status').textContent = reservaForm.status.options[reservaForm.status.selectedIndex]?.text || 'Não definido';
+        document.getElementById('resumo-observacoes').textContent = reservaForm.observacoes.value || 'Nenhuma';
+    }
 
-        if (checkin && checkout) {
-            const startDate = new Date(checkin);
-            const endDate = new Date(checkout);
-
-            if (endDate > startDate) {
-                const diffTime = Math.abs(endDate - startDate);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                reservationData.noites = diffDays;
-                calculatedNights.textContent = diffDays;
-            } else {
-                reservationData.noites = 0;
-                calculatedNights.textContent = '0';
-            }
-        } else {
-            reservationData.noites = 0;
-            calculatedNights.textContent = '0';
-        }
-        validateCurrentStep();
-        updateSummary();
-    };
-
-    checkinDateInput.addEventListener('change', (e) => {
-        reservationData.checkinDate = e.target.value;
-        calculateNights();
-    });
-
-    checkoutDateInput.addEventListener('change', (e) => {
-        reservationData.checkoutDate = e.target.value;
-        calculateNights();
-    });
-
-    wizardNextBtn.addEventListener('click', () => {
-        if (!validateCurrentStep()) {
-            return;
-        }
-
-        if (currentStep < totalSteps) {
-            currentStep++;
-            updateWizardUI();
-            if (currentStep === 2) {
-                loadGuestsForWizard();
-            }
-        } else {
-            const newReserva = new Reserva(
-                null, // id
-                reservationData.imovel.id,
-                reservationData.hospedes.map(h => h.id),
-                reservationData.checkinDate,
-                reservationData.checkoutDate,
-                'Confirmada' // status
-            );
-            newReserva.salvar();
-            loadReservasTable();
-            closeWizard();
-        }
-    });
-
-    wizardPrevBtn.addEventListener('click', () => {
-        if (currentStep > 1) {
-            currentStep--;
-            updateWizardUI();
-        }
-    });
-
-    wizardCancelBtn.addEventListener('click', () => {
-        closeWizard();
-    });
-
-    const closeWizard = () => {
-        reservationWizardModal.style.display = 'none';
-    };
-
-    startWizardBtn.addEventListener('click', () => {
-        reservationWizardModal.style.display = 'flex';
-        currentStep = 1;
-        reservationData = {
-            imovel: null,
-            hospedes: [],
-            hasPets: false,
-            checkinDate: null,
-            checkoutDate: null,
-            noites: 0
+    // Salvar reserva
+    saveReserva.addEventListener('click', () => {
+        const reservaData = {
+            anfitriaoId: reservaForm.anfitriao.value,
+            imovelId: reservaForm.imovel.value,
+            plataformaId: reservaForm.plataforma.value,
+            hospedes: $(reservaForm.hospedes).val() || [],
+            checkin: reservaForm.checkin.value,
+            checkout: reservaForm.checkout.value,
+            numHospedes: reservaForm.numHospedes.value,
+            valorTotal: reservaForm.valorTotal.value,
+            status: reservaForm.status.value,
+            observacoes: reservaForm.observacoes.value
         };
-        loadPropertiesForWizard();
-        updateWizardUI();
-    });
 
-    function loadReservasTable() {
-        const reservas = Reserva.listarTodas();
-        reservasTableBody.innerHTML = '';
-
-        if (reservas.length === 0) {
-            reservasTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhuma reserva encontrada.</td></tr>';
+        // Validação simples
+        if (!reservaData.imovelId || !reservaData.checkin || !reservaData.checkout || reservaData.hospedes.length === 0) {
+            alert('Por favor, preencha pelo menos Imóvel, Hóspedes, Check-in e Check-out.');
             return;
         }
 
-        reservas.forEach(reserva => {
-            const imovel = Imovel.buscarPorId(reserva.idImovel);
-            const hospedes = (reserva.idsHospedes || []).map(idCliente => Cliente.buscarPorId(idCliente));
-            
-            const checkinDate = new Date(reserva.dataCheckin + 'T00:00:00');
-            const checkoutDate = new Date(reserva.dataCheckout + 'T00:00:00');
+        Reserva.salvar(reservaData);
 
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${imovel ? imovel.apelido : 'Imóvel não encontrado'}</td>
-                <td>${checkinDate.toLocaleDateString()}</td>
-                <td>${checkoutDate.toLocaleDateString()}</td>
-                <td>${hospedes.map(h => h ? h.nome : 'Hóspede não encontrado').join(', ')}</td>
-                <td><span class="status ${reserva.status.toLowerCase()}">${reserva.status}</span></td>
-                <td>
-                    <button class="btn-action" onclick="alert('Editar reserva ${reserva.id}')">✏️</button>
-                    <button class="btn-action" onclick="window.excluirReserva(${reserva.id})">🗑️</button>
-                </td>
-            `;
-            reservasTableBody.appendChild(row);
-        });
-    }
+        // Resetar e fechar o modal/wizard
+        document.getElementById('form-reserva').reset();
+        hospedesSelect.val(null).trigger('change');
+        showStep(0);
+        document.getElementById('wizard-reserva-modal').style.display = 'none';
 
-    function excluirReserva(id) {
-        if (confirm('Tem certeza de que deseja excluir esta reserva?')) {
-            Reserva.excluir(id);
-            loadReservasTable();
-        }
-    }
+        loadReservasTable();
+    });
 
-    // Expõe a função para o escopo global
-    window.excluirReserva = excluirReserva;
 
-    reservationWizardModal.style.display = 'none';
-    loadReservasTable();
+    // Cancelar/Fechar Wizard
+    document.getElementById('close-wizard').addEventListener('click', () => {
+        document.getElementById('wizard-reserva-modal').style.display = 'none';
+    });
+    document.getElementById('cancel-reserva').addEventListener('click', () => {
+        document.getElementById('wizard-reserva-modal').style.display = 'none';
+    });
+
+
+    // Abrir o modal do wizard
+    document.getElementById('add-reserva-btn').addEventListener('click', () => {
+        document.getElementById('form-reserva').reset();
+        hospedesSelect.val(null).trigger('change');
+        showStep(0);
+        document.getElementById('wizard-reserva-modal').style.display = 'flex';
+    });
+
+    showStep(0); 
 });
+
+
+function formatarData(dataString) {
+    if (!dataString) return '-';
+    // Adiciona T00:00:00 para evitar problemas de fuso horário
+    return new Date(dataString + 'T00:00:00').toLocaleDateString('pt-BR');
+}
+
+// Carregar e popular a tabela de reservas
+function loadReservasTable() {
+    const tabelaReservas = document.querySelector('#tabelaReservas tbody');
+    const reservas = Reserva.listarTodas();
+    
+    const imoveis = Imovel.listarTodos().reduce((acc, obj) => ({ ...acc, [obj.codigoInterno]: obj }), {});
+
+    tabelaReservas.innerHTML = ''; 
+
+    reservas.forEach(reserva => {
+        const row = document.createElement('tr');
+
+        // Certifique-se de que reserva.hospedes é sempre um array
+        const hospedesIds = Array.isArray(reserva.hospedes) ? reserva.hospedes : [];
+        const nomesHospedes = hospedesIds.map(hospedeId => {
+            const hospede = Cliente.buscarPorId(hospedeId);
+            return hospede ? hospede.nome : 'Hóspede não encontrado';
+        }).join(', ');
+
+        const imovel = imoveis[reserva.imovelId];
+
+        row.innerHTML = `
+            <td>${reserva.codigoInterno}</td>
+            <td>${imovel ? imovel.titulo : 'Imóvel não encontrado'}</td>
+            <td>${nomesHospedes}</td>
+            <td>${formatarData(reserva.checkin)}</td>
+            <td>${formatarData(reserva.checkout)}</td>
+            <td>${reserva.numHospedes}</td>
+            <td>R$ ${parseFloat(reserva.valorTotal || 0).toFixed(2)}</td>
+            <td><span class="status status-${reserva.status.toLowerCase()}">${reserva.status}</span></td>
+            <td>
+                <button class="action-btn" title="Editar">✏️</button>
+                <button class="action-btn" title="Excluir" onclick="excluirReserva(${reserva.codigoInterno})">🗑️</button>
+            </td>
+        `;
+        tabelaReservas.appendChild(row);
+    });
+}
+
+function excluirReserva(codigoInterno) {
+    if (confirm(`Tem certeza que deseja excluir a reserva #${codigoInterno}?`)) {
+        Reserva.excluir(codigoInterno);
+        loadReservasTable();
+    }
+}
+
+// Carregar a tabela ao carregar a página
+document.addEventListener('DOMContentLoaded', loadReservasTable);
+
+
