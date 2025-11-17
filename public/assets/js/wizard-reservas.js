@@ -342,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         reservas.forEach(reserva => {
             const imovel = Imovel.buscarPorId(reserva.idImovel);
-            const hospedes = reserva.idsHospedes.map(idCliente => Cliente.buscarPorId(idCliente));
+            const hospedes = (reserva.idsHospedes || []).map(idCliente => Cliente.buscarPorId(idCliente));
 
             const row = document.createElement('tr');
             row.innerHTML = `
