@@ -202,6 +202,22 @@
         <section class="dashboard" id="inventario-objetos-section" style="display: none;">
             <div class="card" style="flex: 1 1 100%;">
                 <h3 id="objetos-title">Gerenciar Objetos para: <span id="imovel-comodo-nome-objetos"></span></h3>
+                
+                <div class="form-row" style="margin-bottom: 15px;">
+                    <div class="input-group" style="flex: 1;">
+                        <span>🏠</span>
+                        <select id="selectImovelObjetos" style="flex: 1; border: none; background: transparent; color: var(--text); padding: 10px 5px;">
+                            <option value="">Selecione um Imóvel</option>
+                        </select>
+                    </div>
+                    <div class="input-group" style="flex: 1; margin-left: 10px;">
+                        <span>🚪</span>
+                        <select id="selectComodoObjetos" style="flex: 1; border: none; background: transparent; color: var(--text); padding: 10px 5px;">
+                            <option value="">Selecione um Cômodo</option>
+                        </select>
+                    </div>
+                </div>
+
                 <form id="formObjeto">
                     <input type="hidden" id="objetoId">
                     <input type="hidden" id="objetoComodoId">
@@ -314,7 +330,7 @@
                 } else if (linkHref.startsWith(path) && linkHref.includes('#') && path === 'imoveis.html' && hash === '') {
                     // If on imoveis.html with no hash, activate the 'Gerenciar Imóveis' link within the submenu
                     if (linkHref === 'imoveis.html#gerenciar') {
-                        link.classList.add('active');
+                        link.classList.add("active");
                         const parentSubmenu = link.closest('.has-submenu');
                         if (parentSubmenu) {
                             const submenuElement = parentSubmenu.querySelector('.submenu');
