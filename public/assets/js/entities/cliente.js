@@ -1,6 +1,7 @@
 class Cliente {
-    constructor(id, nome, email, telefone, codPais = '+55', linkChat = '', idioma = 'Português-BR', observacao = '', dataCadastro = new Date().toISOString()) {
-        this.id = id;
+    constructor({ codigoInterno, nome, email, codPais, telefone, linkChat, idioma, observacao, dataCadastro, codigoPlataforma }) {
+        // Garante a compatibilidade com dados antigos que usavam 'id'
+        this.codigoInterno = codigoInterno;
         this.nome = nome;
         this.email = email;
         this.codPais = codPais;
@@ -8,62 +9,89 @@ class Cliente {
         this.linkChat = linkChat;
         this.idioma = idioma;
         this.observacao = observacao;
-        this.dataCadastro = dataCadastro;
+        this.dataCadastro = dataCadastro || new Date().toISOString();
+        this.codigoPlataforma = codigoPlataforma;
     }
 
-    // Salva o cliente no localStorage
-    salvar() {
-        const storage = new Storage('clientes');
-        let nextId = parseInt(localStorage.getItem('nextClienteId') || '1001');
+    static listarTodos() {
+        const clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+        // Mapeia para a classe, garantindo compatibilidade com dados antigos (id vs codigoInterno)
+        return clientes.map(c => new Cliente({ ...c, codigoInterno: c.codigoInterno || c.id }));
+    }
 
-        if (!this.id) {
-            this.id = nextId;
-            localStorage.setItem('nextClienteId', nextId + 1);
+    static salvar(clienteData) {
+        let clientes = this.listarTodos();
+        const isEditing = clienteData.index !== '' && clienteData.index !== undefined;
+
+        if (isEditing) {
+            const index = parseInt(clienteData.index, 10);
+            if (index >= 0 && index < clientes.length) {
+                const clienteExistente = clientes[index];
+                // Mantém o código interno original e a data de cadastro
+                const dadosAtualizados = { ...clienteExistente, ...clienteData };
+                clientes[index] = new Cliente(dadosAtualizados);
+            }
+        } else {
+            let nextId = parseInt(localStorage.getItem('nextClienteId') || '1001');
+            clienteData.codigoInterno = nextId;
+            clienteData.dataCadastro = new Date().toISOString();
+            clientes.push(new Cliente(clienteData));
+            localStorage.setItem('nextClienteId', String(nextId + 1));
         }
 
-        storage.save(this);
+        localStorage.setItem('clientes', JSON.stringify(clientes));
     }
 
-    // Lista todos os clientes
-    static listarTodos() {
-        const storage = new Storage('clientes');
-        const clientesData = storage.getAll();
-        return clientesData.map(data => new Cliente(
-            data.id,
-            data.nome,
-            data.email,
-            data.telefone,
-            data.codPais,
-            data.linkChat,
-            data.idioma,
-            data.observacao,
-            data.dataCadastro
-        ));
+    static excluir(index) {
+        let clientes = this.listarTodos();
+        if (index >= 0 && index < clientes.length) {
+            clientes.splice(index, 1);
+            localStorage.setItem('clientes', JSON.stringify(clientes));
+        }
     }
-
-    // Busca um cliente por ID
-    static buscarPorId(id) {
-        const storage = new Storage('clientes');
-        const data = storage.get(id);
-        if (data) {
-            return new Cliente(
-                data.id,
-                data.nome,
-                data.email,
-                data.telefone,
-                data.codPais,
-                data.linkChat,
-                data.idioma,
-                data.observacao,
-                data.dataCadastro
-            );
+    
+    static buscarPorIndex(index) {
+        const clientes = this.listarTodos();
+        if (index >= 0 && index < clientes.length) {
+            return clientes[index];
         }
         return null;
     }
 
-    // Exclui um cliente por ID
-    static excluir(id) {
-        const storage = new Storage('clientes');
-        storage.delete(id);
+    static filtrarEOrdenar(termoBusca, tipoOrdenacao) {
+        let clientes = this.listarTodos();
+
+        // 1. Filtrar
+        if (termoBusca) {
+            const termo = termoBusca.toLowerCase();
+            clientes = clientes.filter(cli =>
+                (cli.nome && cli.nome.toLowerCase().includes(termo)) ||
+                (cli.telefone && cli.telefone.includes(termo))
+            );
+        }
+
+        // 2. Ordenar
+        const [campo, direcao] = tipoOrdenacao.match(/([a-zA-Z]+)(Asc|Desc)/).slice(1);
+        const asc = direcao.toLowerCase() === 'asc';
+        
+        // Corrigir o nome do campo para ordenação (dataCadastro)
+        const campoOrdenacao = campo === 'data' ? 'dataCadastro' : campo;
+
+
+        clientes.sort((a, b) => {
+            let valA = a[campoOrdenacao];
+            let valB = b[campoOrdenacao];
+
+            if (typeof valA === 'string' && campoOrdenacao !== 'dataCadastro') {
+                valA = valA.toLowerCase();
+                valB = valB.toLowerCase();
+            }
+
+            if (valA < valB) return asc ? -1 : 1;
+            if (valA > valB) return asc ? 1 : -1;
+            return 0;
+        });
+
+        return clientes;
     }
 }
