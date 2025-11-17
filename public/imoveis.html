@@ -201,24 +201,24 @@
         <!-- Seção de Gerenciamento de Objetos (Inventário) -->
         <section class="dashboard" id="inventario-objetos-section" style="display: none;">
             <div class="card" style="flex: 1 1 100%;">
-                <h3 id="objetos-title">Gerenciar Objetos para: <span id="imovel-comodo-nome-objetos"></span></h3>
-                
-                <div class="form-row" style="margin-bottom: 15px;">
-                    <div class="input-group" style="flex: 1;">
-                        <span>🏠</span>
-                        <select id="selectImovelObjetos" style="flex: 1; border: none; background: transparent; color: var(--text); padding: 10px 5px;">
-                            <option value="">Selecione um Imóvel</option>
-                        </select>
-                    </div>
-                    <div class="input-group" style="flex: 1; margin-left: 10px;">
-                        <span>🚪</span>
-                        <select id="selectComodoObjetos" style="flex: 1; border: none; background: transparent; color: var(--text); padding: 10px 5px;">
-                            <option value="">Selecione um Cômodo</option>
-                        </select>
-                    </div>
-                </div>
+                <h3>➕ Adicionar/Editar Objeto</h3>
 
                 <form id="formObjeto">
+                     <div class="form-row" style="margin-bottom: 15px;">
+                        <div class="input-group" style="flex: 1;">
+                            <span>🏠</span>
+                            <select id="selectImovelObjetos" style="flex: 1; border: none; background: transparent; color: var(--text); padding: 10px 5px;" required>
+                                <option value="">Selecione um Imóvel</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="flex: 1; margin-left: 10px;">
+                            <span>🚪</span>
+                            <select id="selectComodoObjetos" style="flex: 1; border: none; background: transparent; color: var(--text); padding: 10px 5px;" required>
+                                <option value="">Selecione um Cômodo</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <input type="hidden" id="objetoId">
                     <input type="hidden" id="objetoComodoId">
 
@@ -252,14 +252,16 @@
             </div>
 
             <div class="card" style="flex: 1 1 100%;">
-                <h3>📋 Lista de Objetos</h3>
+                <h3>📋 Inventário Geral de Objetos</h3>
                 <table id="tabelaObjetos">
                     <thead>
                         <tr>
-                            <th>Cód.</th>
-                            <th>Tipo</th>
-                            <th>Nome</th>
-                            <th>Qtd.</th>
+                            <th data-sort-key="codigo">Cód. <span></span></th>
+                            <th data-sort-key="imovelApelido">Imóvel <span></span></th>
+                            <th data-sort-key="comodoNome">Cômodo <span></span></th>
+                            <th data-sort-key="tipo">Tipo <span></span></th>
+                            <th data-sort-key="nome">Nome <span></span></th>
+                            <th data-sort-key="quantidade">Qtd. <span></span></th>
                             <th>Ações</th>
                         </tr>
                     </thead>
