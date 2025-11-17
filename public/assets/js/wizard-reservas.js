@@ -343,12 +343,16 @@ document.addEventListener('DOMContentLoaded', () => {
         reservas.forEach(reserva => {
             const imovel = Imovel.buscarPorId(reserva.idImovel);
             const hospedes = (reserva.idsHospedes || []).map(idCliente => Cliente.buscarPorId(idCliente));
+            
+            // Corrige o problema de "Invalid Date" tratando a data como UTC.
+            const checkinDate = new Date(reserva.dataCheckin + 'T00:00:00');
+            const checkoutDate = new Date(reserva.dataCheckout + 'T00:00:00');
 
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${imovel ? imovel.apelido : 'Imóvel não encontrado'}</td>
-                <td>${new Date(reserva.dataCheckin).toLocaleDateString()}</td>
-                <td>${new Date(reserva.dataCheckout).toLocaleDateString()}</td>
+                <td>${checkinDate.toLocaleDateString()}</td>
+                <td>${checkoutDate.toLocaleDateString()}</td>
                 <td>${hospedes.map(h => h ? h.nome : 'Hóspede não encontrado').join(', ')}</td>
                 <td><span class="status ${reserva.status.toLowerCase()}">${reserva.status}</span></td>
                 <td>
