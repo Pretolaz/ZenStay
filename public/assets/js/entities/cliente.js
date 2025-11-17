@@ -49,13 +49,20 @@ class Cliente {
             localStorage.setItem('clientes', JSON.stringify(clientes));
         }
     }
-    
+
     static buscarPorIndex(index) {
         const clientes = this.listarTodos();
         if (index >= 0 && index < clientes.length) {
             return clientes[index];
         }
         return null;
+    }
+
+    // Adicionando de volta a função necessária para a página de reservas
+    static buscarPorId(id) {
+        const clientes = this.listarTodos();
+        // Usa '==' para coerção de tipo, já que o id pode ser string ou número
+        return clientes.find(c => c.codigoInterno == id) || null;
     }
 
     static filtrarEOrdenar(termoBusca, tipoOrdenacao) {
@@ -71,27 +78,32 @@ class Cliente {
         }
 
         // 2. Ordenar
-        const [campo, direcao] = tipoOrdenacao.match(/([a-zA-Z]+)(Asc|Desc)/).slice(1);
-        const asc = direcao.toLowerCase() === 'asc';
-        
-        // Corrigir o nome do campo para ordenação (dataCadastro)
-        const campoOrdenacao = campo === 'data' ? 'dataCadastro' : campo;
+        const match = tipoOrdenacao.match(/([a-zA-Z]+)(Asc|Desc)/);
+        if (match) {
+            const [_, campo, direcao] = match;
+            const asc = direcao.toLowerCase() === 'asc';
 
+            clientes.sort((a, b) => {
+                let valA = a[campo] || '';
+                let valB = b[campo] || '';
 
-        clientes.sort((a, b) => {
-            let valA = a[campoOrdenacao];
-            let valB = b[campoOrdenacao];
+                // Tratamento especial para datas e números para ordenação correta
+                if (campo === 'dataCadastro') {
+                    valA = new Date(valA);
+                    valB = new Date(valB);
+                } else if (campo === 'codigoInterno') {
+                    valA = parseInt(valA, 10);
+                    valB = parseInt(valB, 10);
+                } else if (typeof valA === 'string') {
+                    valA = valA.toLowerCase();
+                    valB = valB.toLowerCase();
+                }
 
-            if (typeof valA === 'string' && campoOrdenacao !== 'dataCadastro') {
-                valA = valA.toLowerCase();
-                valB = valB.toLowerCase();
-            }
-
-            if (valA < valB) return asc ? -1 : 1;
-            if (valA > valB) return asc ? 1 : -1;
-            return 0;
-        });
-
+                if (valA < valB) return asc ? -1 : 1;
+                if (valA > valB) return asc ? 1 : -1;
+                return 0;
+            });
+        }
         return clientes;
     }
 }
