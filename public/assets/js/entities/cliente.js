@@ -1,7 +1,6 @@
 class Cliente {
-    constructor(codigoInterno, codigoPlataforma, nome, email, codPais, telefone, linkChat, idioma, observacao, dataCadastro) {
-        this.codigoInterno = codigoInterno;
-        this.codigoPlataforma = codigoPlataforma;
+    constructor(id, nome, email, telefone, codPais = '+55', linkChat = '', idioma = 'Português-BR', observacao = '', dataCadastro = new Date().toISOString()) {
+        this.id = id;
         this.nome = nome;
         this.email = email;
         this.codPais = codPais;
@@ -12,80 +11,59 @@ class Cliente {
         this.dataCadastro = dataCadastro;
     }
 
+    // Salva o cliente no localStorage
+    salvar() {
+        const storage = new Storage('clientes');
+        let nextId = parseInt(localStorage.getItem('nextClienteId') || '1001');
+
+        if (!this.id) {
+            this.id = nextId;
+            localStorage.setItem('nextClienteId', nextId + 1);
+        }
+
+        storage.save(this);
+    }
+
+    // Lista todos os clientes
     static listarTodos() {
-        return JSON.parse(localStorage.getItem('clientes')) || [];
+        const storage = new Storage('clientes');
+        const clientesData = storage.getAll();
+        return clientesData.map(data => new Cliente(
+            data.id,
+            data.nome,
+            data.email,
+            data.telefone,
+            data.codPais,
+            data.linkChat,
+            data.idioma,
+            data.observacao,
+            data.dataCadastro
+        ));
     }
 
-    static salvar(cliente) {
-        let clientes = Cliente.listarTodos();
-        const isEditing = cliente.hasOwnProperty('index') && cliente.index !== ''; // Check if it's an existing client being edited
-        
-        let targetIndex = -1;
-        if (isEditing) {
-            targetIndex = parseInt(cliente.index); // Use the provided index for editing
-        } else if (cliente.codigoInterno) {
-            targetIndex = clientes.findIndex(c => c.codigoInterno === cliente.codigoInterno);
-        }
-
-        if (targetIndex !== -1) {
-            clientes[targetIndex] = cliente; // Update existing
-        } else {
-            if (!cliente.codigoInterno) {
-                const lastCode = clientes.length ? Math.max(...clientes.map(c => Number(c.codigoInterno) || 0)) : 1000;
-                cliente.codigoInterno = Number(lastCode) + 1;
-            }
-            cliente.dataCadastro = new Date().toISOString(); // Set date for new client
-            clientes.push(cliente); // Add new
-        }
-        localStorage.setItem('clientes', JSON.stringify(clientes));
-    }
-
-    static excluir(index) {
-        let clientes = Cliente.listarTodos();
-        clientes.splice(index, 1);
-        localStorage.setItem('clientes', JSON.stringify(clientes));
-    }
-
-    // Static method to find a client by its original index in the stored array
-    static buscarPorIndex(index) {
-        const clientes = Cliente.listarTodos();
-        if (index >= 0 && index < clientes.length) {
-            return clientes[index];
+    // Busca um cliente por ID
+    static buscarPorId(id) {
+        const storage = new Storage('clientes');
+        const data = storage.get(id);
+        if (data) {
+            return new Cliente(
+                data.id,
+                data.nome,
+                data.email,
+                data.telefone,
+                data.codPais,
+                data.linkChat,
+                data.idioma,
+                data.observacao,
+                data.dataCadastro
+            );
         }
         return null;
     }
 
-    // Static method for filtering and sorting
-    static filtrarEOrdenar(termoBusca, tipoOrdenacao) {
-        let clientes = Cliente.listarTodos();
-
-        // Filtering
-        const termo = termoBusca.toLowerCase();
-        let clientesFiltrados = clientes.filter(cli => {
-            const nomeCorresponde = cli.nome.toLowerCase().includes(termo);
-            const telefoneCorresponde = cli.telefone.toLowerCase().includes(termo) || (cli.codPais && cli.codPais.toLowerCase().includes(termo));
-            return nomeCorresponde || telefoneCorresponde;
-        });
-
-        // Sorting
-        clientesFiltrados.sort((a, b) => {
-            switch (tipoOrdenacao) {
-                case 'codigoInternoDesc':
-                    return (Number(b.codigoInterno) || 0) - (Number(a.codigoInterno) || 0);
-                case 'codigoInternoAsc':
-                    return (Number(a.codigoInterno) || 0) - (Number(b.codigoInterno) || 0);
-                case 'nomeAsc':
-                    return a.nome.localeCompare(b.nome);
-                case 'nomeDesc':
-                    return b.nome.localeCompare(a.nome);
-                case 'dataCadastroDesc':
-                    return new Date(b.dataCadastro || 0).getTime() - new Date(a.dataCadastro || 0).getTime();
-                case 'dataCadastroAsc':
-                    return new Date(a.dataCadastro || 0).getTime() - new Date(b.dataCadastro || 0).getTime();
-                default:
-                    return (Number(b.codigoInterno) || 0) - (Number(a.codigoInterno) || 0); // Default
-            }
-        });
-        return clientesFiltrados;
+    // Exclui um cliente por ID
+    static excluir(id) {
+        const storage = new Storage('clientes');
+        storage.delete(id);
     }
 }
