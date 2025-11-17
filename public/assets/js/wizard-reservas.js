@@ -344,7 +344,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const imovel = Imovel.buscarPorId(reserva.idImovel);
             const hospedes = (reserva.idsHospedes || []).map(idCliente => Cliente.buscarPorId(idCliente));
             
-            // Corrige o problema de "Invalid Date" tratando a data como UTC.
             const checkinDate = new Date(reserva.dataCheckin + 'T00:00:00');
             const checkoutDate = new Date(reserva.dataCheckout + 'T00:00:00');
 
@@ -357,12 +356,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td><span class="status ${reserva.status.toLowerCase()}">${reserva.status}</span></td>
                 <td>
                     <button class="btn-action" onclick="alert('Editar reserva ${reserva.id}')">✏️</button>
-                    <button class="btn-action" onclick="alert('Excluir reserva ${reserva.id}')">🗑️</button>
+                    <button class="btn-action" onclick="window.excluirReserva(${reserva.id})">🗑️</button>
                 </td>
             `;
             reservasTableBody.appendChild(row);
         });
     }
+
+    function excluirReserva(id) {
+        if (confirm('Tem certeza de que deseja excluir esta reserva?')) {
+            Reserva.excluir(id);
+            loadReservasTable();
+        }
+    }
+
+    // Expõe a função para o escopo global
+    window.excluirReserva = excluirReserva;
 
     reservationWizardModal.style.display = 'none';
     loadReservasTable();
