@@ -1,448 +1,186 @@
 /* Estilos gerais do modal */
-.reservation-wizard-modal {
+#wizard-reserva-modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6); /* Overlay escuro */
+    background-color: rgba(0, 0, 0, 0.7);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000; /* Para ficar acima de outros elementos */
-}
-
-/* Estilos do wizard principal (dentro do modal) */
-.reservation-wizard {
-    display: flex;
-    gap: 20px;
-    padding: 30px;
-    border-radius: 10px;
-    background-color: var(--color-background-primary); /* Fundo do modal */
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Sombra mais pronunciada */
-    max-width: 90%;
-    max-height: 90%;
+    z-index: 1050;
     overflow-y: auto;
 }
 
-.wizard-column {
-    flex: 1;
-    padding: 20px;
-    border-radius: 8px;
+.wizard-container {
     background-color: var(--color-background-card);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border: 1px solid var(--color-border); /* Linhas de moldura */
-}
-
-.wizard-summary {
-    flex: 0.7; /* Coluna de resumo um pouco menor */
-    min-width: 250px;
-    border-color: var(--color-border-light); /* Cor da moldura do resumo */
-}
-
-.wizard-action {
-    flex: 1.3; /* Coluna de ação maior */
-    border-color: var(--color-border-light); /* Cor da moldura da ação */
+    border-radius: 8px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .wizard-header {
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--color-border-dark);
-}
-
-.wizard-title {
-    font-size: 1.5em;
-    color: var(--color-text-primary);
-    margin: 0;
-}
-
-.wizard-step-content {
-    min-height: 300px; /* Altura mínima para o conteúdo da etapa */
-}
-
-.wizard-navigation {
+    padding: 15px 25px;
+    border-bottom: 1px solid var(--color-border);
     display: flex;
     justify-content: space-between;
-    margin-top: 20px;
+    align-items: center;
 }
 
-.wizard-navigation button {
-    padding: 10px 20px;
+.wizard-header h2 {
+    margin: 0;
+    font-size: 1.4em;
+    color: var(--color-text-primary);
+}
+
+.close-btn {
+    background: none;
     border: none;
-    border-radius: 5px;
+    font-size: 2em;
+    font-weight: bold;
     cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.3s ease;
+    color: var(--color-text-secondary);
+    padding: 0;
+    line-height: 1;
 }
 
-.wizard-navigation button.prev {
-    background-color: var(--color-button-secondary);
+.wizard-body {
+    padding: 25px;
+    overflow-y: auto;
+}
+
+.wizard-step {
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.wizard-footer {
+    padding: 15px 25px;
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background-color: var(--color-background-light);
+    border-radius: 0 0 8px 8px;
+}
+
+/* Estilos dos formulários dentro do wizard */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    font-size: 0.95em;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    background-color: var(--color-background-input);
+    color: var(--color-text-primary);
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2);
+}
+
+/* Estilos para o Select2 */
+.select2-container .select2-selection--single {
+    height: 48px;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-background-input);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 46px;
+    color: var(--color-text-primary);
+    padding-left: 12px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 46px;
+}
+
+.select2-container .select2-selection--multiple {
+    min-height: 48px;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-background-input);
+}
+
+.select2-dropdown {
+    background-color: var(--color-background-card);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+}
+
+.select2-results__option--highlighted[aria-selected] {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+
+/* Resumo */
+#resumo-container p {
+    margin: 0 0 12px 0;
+    font-size: 1.05em;
+}
+#resumo-container p strong {
+    color: var(--color-text-primary);
+    margin-right: 8px;
+}
+#resumo-container p span {
     color: var(--color-text-secondary);
 }
 
-.wizard-navigation button.prev:hover {
-    background-color: var(--color-button-secondary-hover);
+/* Botões */
+.btn {
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-weight: 500;
 }
 
-.wizard-navigation button.next {
-    background-color: var(--color-button-primary);
-    color: var(--color-text-inverted);
+.btn-primary {
+    background-color: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
 }
 
-.wizard-navigation button.next:hover {
+.btn-primary:hover {
     background-color: var(--color-button-primary-hover);
 }
 
-.wizard-navigation button:disabled {
-    background-color: var(--color-button-disabled);
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-/* Estilos para a Etapa 1: Seleção do Imóvel */
-.property-card-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Cards menores */
-    gap: 15px;
-}
-
-.property-card {
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    background-color: var(--color-background-light);
-}
-
-.property-card:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    transform: translateY(-2px);
-}
-
-.property-card.selected {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px var(--color-primary);
-}
-
-.property-card-thumbnail {
-    width: 100%;
-    height: 100px; /* Miniatura menor */
-    object-fit: cover;
-    display: block;
-}
-
-.property-card-info {
-    padding: 10px;
-}
-
-.property-card-name {
-    font-weight: bold;
+.btn-secondary {
+    background-color: var(--color-button-secondary);
     color: var(--color-text-primary);
-    margin-bottom: 5px;
-    font-size: 0.9em; /* Fonte menor */
+    border-color: var(--color-border);
 }
 
-.property-card-status {
-    font-size: 0.8em; /* Fonte menor */
-    color: var(--color-text-secondary);
+.btn-secondary:hover {
+    background-color: var(--color-button-secondary-hover);
 }
-
-.property-card-status.Livre {
-    color: var(--color-success);
-}
-
-.property-card-status.Ocupado, .property-card-status.Manutencao {
-    color: var(--color-warning);
-}
-
-/* Estilos para o resumo */
-.summary-item {
-    margin-bottom: 10px;
-    padding: 8px;
-    background-color: var(--color-background-light);
-    border-radius: 5px;
-}
-
-.summary-item label {
-    font-weight: bold;
-    color: var(--color-text-primary);
-    display: block;
-    margin-bottom: 3px; /* Espaçamento menor */
-    font-size: 0.85em; /* Fonte menor */
-}
-
-.summary-item span, .summary-item ul {
-    color: var(--color-text-secondary);
-    margin-left: 10px;
-    font-size: 0.8em; /* Fonte menor */
-}
-
-.summary-item ul {
-    list-style-type: none;
-    padding: 0;
-    margin-top: 5px;
-}
-
-.summary-item ul li {
-    margin-bottom: 3px;
-}
-
-/* Estilos para a Etapa 2: Seleção de Hóspedes e Pets */
-.guest-selection, .pet-selection {
-    margin-bottom: 20px;
-}
-
-.guest-search-container {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.guest-search-container input {
-    flex-grow: 1;
-    padding: 10px;
-    border: 1px solid var(--color-border);
-    border-radius: 5px;
-    background-color: var(--color-background-input);
-    color: var(--color-text-primary);
-}
-
-.guest-search-container button {
-    padding: 10px 15px;
-    background-color: var(--color-button-primary);
-    color: var(--color-text-inverted);
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.guest-list {
-    max-height: 200px;
-    overflow-y: auto;
-    border: 1px solid var(--color-border);
-    border-radius: 5px;
-    padding: 10px;
-    margin-bottom: 15px;
-    background-color: var(--color-background-input);
-}
-
-.guest-list-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-    padding: 5px;
-    border-bottom: 1px dashed var(--color-border-light);
-}
-
-.guest-list-item:last-child {
-    border-bottom: none;
-}
-
-.guest-list-item input[type="checkbox"] {
-    margin-right: 10px;
-}
-
-.guest-list-item label {
-    color: var(--color-text-primary);
-    font-size: 0.9em;
-}
-
-.pet-slider-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    background-color: var(--color-background-light);
-    padding: 10px;
-    border-radius: 5px;
-}
-
-.pet-slider-container label {
-    font-weight: bold;
-    color: var(--color-text-primary);
-}
-
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 60px;
-    height: 34px;
-}
-
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--color-background-input);
-    -webkit-transition: .4s;
-    transition: .4s;
-    border-radius: 34px;
-    border: 1px solid var(--color-border);
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
-    background-color: var(--color-background-primary); /* Cor do círculo do slider */
-    -webkit-transition: .4s;
-    transition: .4s;
-    border-radius: 50%;
-}
-
-input:checked + .slider {
-    background-color: var(--color-primary);
-}
-
-input:focus + .slider {
-    box-shadow: 0 0 1px var(--color-primary);
-}
-
-input:checked + .slider:before {
-    -webkit-transform: translateX(26px);
-    -ms-transform: translateX(26px);
-    transform: translateX(26px);
-}
-
-/* Estilos para a Etapa 3: Seleção de Período (Datas) */
-.date-selection-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.date-input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.date-input-group label {
-    font-weight: bold;
-    color: var(--color-text-primary);
-}
-
-.date-input-group input[type="date"] {
-    padding: 10px;
-    border: 1px solid var(--color-border);
-    border-radius: 5px;
-    background-color: var(--color-background-input);
-    color: var(--color-text-primary);
-    font-size: 1em;
-}
-
-.date-calculation {
-    margin-top: 10px;
-    padding: 10px;
-    background-color: var(--color-background-light);
-    border-radius: 5px;
-    color: var(--color-text-primary);
-    font-size: 0.9em; /* Fonte menor */
-}
-
-.date-calculation strong {
-    color: var(--color-primary);
-}
-
-/* Estilos para alertas */
-.alert {
-    padding: 10px;
-    margin-bottom: 15px;
-    border-radius: 5px;
-    font-weight: bold;
-    font-size: 0.9em;
-}
-
-.alert-warning {
-    background-color: var(--color-warning-background); /* Usar variáveis de tema */
-    color: var(--color-warning-text); /* Usar variáveis de tema */
-    border: 1px solid var(--color-warning-border);
-}
-
-.alert-error {
-    background-color: var(--color-error-background); /* Usar variáveis de tema */
-    color: var(--color-error-text); /* Usar variáveis de tema */
-    border: 1px solid var(--color-error-border);
-}
-
-/* Cores para o modo dark/light */
-/* Em um arquivo de tema, você definiria estas variáveis. 
-   Assumindo que `style.css` ou `theme/dark.css`/`theme/light.css` já as definem. */
-:root {
-    /* Geral */
-    --color-background-primary: #ffffff;
-    --color-background-card: #f8f8f8;
-    --color-background-light: #eeeeee;
-    --color-background-input: #ffffff;
-    --color-text-primary: #333333;
-    --color-text-secondary: #666666;
-    --color-text-inverted: #ffffff;
-    --color-border: #dddddd;
-    --color-border-light: #eeeeee;
-    --color-border-dark: #cccccc;
-    --color-primary: #007bff;
-    --color-success: #28a745;
-    --color-warning: #ffc107;
-    --color-error: #dc3545;
-
-    /* Botões */
-    --color-button-primary: #007bff;
-    --color-button-primary-hover: #0056b3;
-    --color-button-secondary: #6c757d;
-    --color-button-secondary-hover: #5a6268;
-    --color-button-disabled: #cccccc;
-
-    /* Alertas */
-    --color-warning-background: #fff3cd;
-    --color-warning-text: #856404;
-    --color-warning-border: #ffeeba;
-    --color-error-background: #f8d7da;
-    --color-error-text: #721c24;
-    --color-error-border: #f5c6cb;
-}
-
-[data-theme="dark"] {
-    --color-background-primary: #2e2e2e;
-    --color-background-card: #3a3a3a;
-    --color-background-light: #444444;
-    --color-background-input: #3a3a3a;
-    --color-text-primary: #e0e0e0;
-    --color-text-secondary: #b0b0b0;
-    --color-text-inverted: #ffffff;
-    --color-border: #555555;
-    --color-border-light: #4a4a4a;
-    --color-border-dark: #666666;
-    --color-primary: #6cace4;
-    --color-success: #4CAF50;
-    --color-warning: #FFEB3B;
-    --color-error: #F44336;
-
-    /* Botões */
-    --color-button-primary: #6cace4;
-    --color-button-primary-hover: #4a89dc;
-    --color-button-secondary: #8d99ae;
-    --color-button-secondary-hover: #7b889e;
-    --color-button-disabled: #666666;
-
-    /* Alertas */
-    --color-warning-background: #5c5c00; /* Darker yellow background */
-    --color-warning-text: #ffe082;     /* Lighter yellow text */
-    --color-warning-border: #999900;     /* Yellow border */
-    --color-error-background: #6a0000; /* Darker red background */
-    --color-error-text: #ff8a80;       /* Lighter red text */
-    --color-error-border: #cc0000;     /* Red border */
-}
-
