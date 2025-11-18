@@ -206,3 +206,6 @@ function resetFormObjeto() {
 window.inicializarInventario = inicializarInventario;
 window.editarObjeto = editarObjeto;
 window.excluirObjeto = excluirObjeto;
+
+// A LINHA QUE FALTAVA: Chama a inicialização quando o DOM está pronto.
+window.addEventListener('DOMContentLoaded', inicializarInventario);
