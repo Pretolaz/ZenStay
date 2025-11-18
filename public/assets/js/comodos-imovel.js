@@ -1,4 +1,3 @@
-
 // assets/js/comodos-imovel.js
 
 const imovelApelidoComodos = document.getElementById('imovel-apelido-comodos');
@@ -17,14 +16,15 @@ function inicializarComodos() {
     popularSelectImoveisComodos();
     selectImovelComodos.addEventListener('change', handleImovelSelectionChangeComodos);
     formComodo.addEventListener('submit', salvarComodo);
-    cancelarComodoBtn.addEventListener('click', resetFormComodo);
+    if (cancelarComodoBtn) {
+        cancelarComodoBtn.addEventListener('click', resetFormComodo);
+    }
     
-    // Tenta carregar o primeiro imóvel da lista, se houver
     const todosImoveis = Imovel.listarTodos();
     if (todosImoveis.length > 0) {
         const primeiroImovel = todosImoveis[0];
-        selectImovelComodos.value = primeiroImovel.codigo;
-        handleImovelSelectionChangeComodos(); // Dispara a lógica de seleção
+        selectImovelComodos.value = primeiroImovel.id;
+        handleImovelSelectionChangeComodos();
     }
 }
 
@@ -33,25 +33,20 @@ function popularSelectImoveisComodos() {
     selectImovelComodos.innerHTML = '<option value="">Selecione um Imóvel</option>';
     todosImoveis.forEach(imovel => {
         const option = document.createElement('option');
-        option.value = imovel.codigo;
-        option.textContent = imovel.apelido;
+        option.value = imovel.id; // CORREÇÃO: Usar id
+        option.textContent = imovel.titulo; // CORREÇÃO: Usar titulo
         selectImovelComodos.appendChild(option);
     });
 }
 
 function handleImovelSelectionChangeComodos() {
-    const codigoImovel = selectImovelComodos.value;
-    if (codigoImovel) {
-        const imovelData = Imovel.listarTodos().find(i => i.codigo == codigoImovel);
+    const imovelId = selectImovelComodos.value;
+    if (imovelId) {
+        const imovelData = Imovel.listarTodos().find(i => i.id == imovelId); // CORREÇÃO: Buscar por id
         if (imovelData) {
-            // Cria uma instância completa do Imovel para ter acesso aos seus métodos
-            currentImovel = new Imovel(
-                imovelData.codigo, imovelData.apelido, imovelData.nome, imovelData.endereco, 
-                imovelData.googleMapsLink, imovelData.capacidadeAdulto, imovelData.capacidadeCrianca, 
-                imovelData.aceitaPet, imovelData.descricao, imovelData.instrucoesGerais, 
-                imovelData.instrucoesChegada, imovelData.foto, imovelData.situacao, imovelData.comodos
-            );
-            imovelApelidoComodos.textContent = currentImovel.apelido;
+            // CORREÇÃO: Usar o construtor moderno que aceita um objeto
+            currentImovel = new Imovel(imovelData);
+            imovelApelidoComodos.textContent = currentImovel.titulo; // CORREÇÃO: Usar titulo
             carregarComodosDoImovel();
         }
     } else {
@@ -67,14 +62,15 @@ function carregarComodosDoImovel() {
     if (currentImovel && currentImovel.comodos) {
         currentImovel.comodos.forEach(comodo => {
             const row = document.createElement('tr');
+            // CORREÇÃO: Usar comodo.id e currentImovel.titulo
             row.innerHTML = `
-                <td>${comodo.codigo}</td>
-                <td>${currentImovel.apelido}</td>
+                <td>${comodo.id}</td>
+                <td>${currentImovel.titulo}</td>
                 <td>${comodo.icone}</td>
                 <td>${comodo.nome}</td>
                 <td>
-                    <button class="action-btn" onclick="editarComodo(${comodo.codigo})" title="Editar">✏️</button>
-                    <button class="action-btn" onclick="excluirComodo(${comodo.codigo})" title="Excluir">🗑️</button>
+                    <button class="action-btn" onclick="editarComodo(${comodo.id})" title="Editar">✏️</button>
+                    <button class="action-btn" onclick="excluirComodo(${comodo.id})" title="Excluir">🗑️</button>
                 </td>
             `;
             tabelaComodosBody.appendChild(row);
@@ -90,41 +86,41 @@ function salvarComodo(e) {
         return;
     }
 
-    const codigoComodo = comodoIdInput.value ? parseInt(comodoIdInput.value, 10) : null;
+    const comodoId = comodoIdInput.value ? parseInt(comodoIdInput.value, 10) : null;
     const nome = nomeComodoInput.value;
     const icone = iconeComodoInput.value;
 
-    if (codigoComodo) {
-        currentImovel.editarComodo(codigoComodo, nome, icone);
+    if (comodoId) {
+        currentImovel.editarComodo(comodoId, nome, icone);
     } else {
         currentImovel.adicionarComodo(nome, icone);
     }
     
-    // Após salvar, o `currentImovel` foi modificado e salvo no localStorage.
-    // Recarregamos a tabela para refletir as mudanças.
     carregarComodosDoImovel();
     resetFormComodo();
 }
 
-function editarComodo(codigoComodo) {
+function editarComodo(comodoId) {
     if (currentImovel) {
-        const comodo = currentImovel.comodos.find(c => c.codigo === codigoComodo);
+        // CORREÇÃO: Buscar comodo por id
+        const comodo = currentImovel.comodos.find(c => c.id === comodoId);
         if (comodo) {
-            comodoIdInput.value = comodo.codigo;
-            codigoComodoInput.value = comodo.codigo;
+            comodoIdInput.value = comodo.id;
+            if(codigoComodoInput) codigoComodoInput.value = comodo.id; // Atualiza campo de exibição do código
             nomeComodoInput.value = comodo.nome;
             iconeComodoInput.value = comodo.icone;
             document.querySelector('#formComodo button[type="submit"]').textContent = '💾 Salvar Cômodo';
-            window.scrollTo(0, 0); // Rola a página para o topo para focar no formulário
+            window.scrollTo(0, 0);
         }
     }
 }
 
-function excluirComodo(codigoComodo) {
+function excluirComodo(comodoId) {
     if (confirm('Tem certeza que deseja excluir este cômodo? Todos os objetos dentro dele também serão perdidos.')) {
         if (currentImovel) {
-            currentImovel.removerComodo(codigoComodo);
-            carregarComodosDoImovel(); // Recarrega a tabela
+            // CORREÇÃO: Chamar remoção por id
+            currentImovel.removerComodo(comodoId);
+            carregarComodosDoImovel();
         }
     }
 }
@@ -132,12 +128,12 @@ function excluirComodo(codigoComodo) {
 function resetFormComodo() {
     formComodo.reset();
     comodoIdInput.value = '';
-    codigoComodoInput.value = '';
+    if(codigoComodoInput) codigoComodoInput.value = '';
     document.querySelector('#formComodo button[type="submit"]').textContent = '➕ Adicionar Cômodo';
 }
 
 // Expõe as funções necessárias globalmente
-window.gerenciarComodos = handleImovelSelectionChangeComodos; // Reutiliza a lógica de seleção
+window.gerenciarComodos = handleImovelSelectionChangeComodos;
 window.inicializarComodos = inicializarComodos;
 window.editarComodo = editarComodo;
 window.excluirComodo = excluirComodo;
