@@ -122,7 +122,7 @@ function carregarImoveis() {
                 break;
         }
 
-        const fotoSrc = imovel.foto || 'https://via.placeholder.com/300x200?text=Sem+Foto';
+        const fotoSrc = (imovel.fotos && imovel.fotos.length > 0) ? imovel.fotos[0] : 'https://placehold.co/300x200?text=Sem+Foto';
 
         const { totalMoveis, totalUtensilios } = calcularInventario(imovel);
 
@@ -150,7 +150,7 @@ function carregarImoveis() {
 function abrirModal(imovel) {
     currentEditingImovel = imovel;
     modalImovelApelido.textContent = imovel.apelido;
-    modalImovelFoto.src = imovel.foto || 'https://via.placeholder.com/600x400?text=Sem+Foto'; 
+    modalImovelFoto.src = (imovel.fotos && imovel.fotos.length > 0) ? imovel.fotos[0] : 'https://placehold.co/600x400?text=Sem+Foto'; 
     modalImovelNome.textContent = `Nome: ${imovel.nome}`;
     modalImovelEndereco.textContent = `Endereço: ${imovel.endereco}`;
     modalImovelDescricao.textContent = `Descrição: ${imovel.descricao}`;
@@ -176,10 +176,10 @@ function editarImovelModal() {
         document.getElementById('endereco').value = imovel.endereco;
         document.getElementById('googleMapsLink').value = imovel.googleMapsLink;
         document.getElementById('instrucoesChegada').value = imovel.instrucoesChegada;
-        fotoImovelURL = imovel.foto;
+        fotoImovelURL = (imovel.fotos && imovel.fotos.length > 0) ? imovel.fotos[0] : '';
         if (previewFotoImovel) {
-            previewFotoImovel.src = imovel.foto || '';
-            previewFotoImovel.style.display = imovel.foto ? 'block' : 'none';
+            previewFotoImovel.src = fotoImovelURL;
+            previewFotoImovel.style.display = fotoImovelURL ? 'block' : 'none';
         }
         document.getElementById('formImovel').querySelector('button[type="submit"]').textContent = '💾 Salvar Alterações';
         fecharModal();
