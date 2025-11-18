@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZenStay | Reservas</title>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/components.css">
     <link rel="stylesheet" href="assets/css/wizard-reservas.css">
@@ -19,223 +18,241 @@
 
     <main class="content">
         <header class="header">
-            <button class="menu-toggle" id="header-menu-toggle">☰</button> <!-- Botão de hambúrguer -->
-            <h1>🗓️ Gerenciar Reservas</h1>
+            <button class="menu-toggle" id="header-menu-toggle">☰</button>
+            <h1>🗓️ Reservas</h1>
             <button id="toggle-theme">🌓</button>
         </header>
 
-        <section class="dashboard">
-            <div class="card" style="flex: 1 1 100%; text-align: center;">
-                <button id="add-reserva-btn" class="btn">✨ Criar Nova Reserva</button>
-            </div>
-
-            <!-- Tabela de Reservas -->
-            <div class="card" style="flex: 1 1 100%;">
-                <h3>📋 Reservas Atuais</h3>
-                <table id="tabelaReservas">
-                    <thead>
-                        <tr>
-                            <th>Cód.</th>
-                            <th>Imóvel</th>
-                            <th>Hóspedes</th>
-                            <th>Check-in</th>
-                            <th>Check-out</th>
-                            <th>Nº Hósp.</th>
-                            <th>Valor</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Linhas serão inseridas aqui -->
-                    </tbody>
-                </table>
-            </div>
+        <section class="kanban-actions" style="margin-bottom: 20px; text-align: center;">
+            <button id="start-reservation-wizard-btn" class="btn">✨ Nova Reserva (Assistente)</button>
         </section>
+
+        <!-- Tabela de Reservas -->
+        <section id="reservas-table-container">
+            <h2>Reservas Atuais</h2>
+            <table id="reservas-table">
+                <thead>
+                    <tr>
+                        <th>Imóvel</th>
+                        <th>Check-in</th>
+                        <th>Check-out</th>
+                        <th>Hóspedes</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="reservas-table-body">
+                    <!-- Linhas da tabela serão inseridas aqui via JS -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Wizard de Criação de Reserva (Modal Container) -->
+        <div id="reservation-wizard-modal" class="reservation-wizard-modal" style="display: none;">
+            <section class="reservation-wizard" id="reservation-wizard">
+                <div class="wizard-column wizard-summary">
+                    <h2 class="wizard-header wizard-title">Resumo da Reserva</h2>
+                    <div id="wizard-summary-content">
+                        <div class="summary-item">
+                            <label>Imóvel:</label>
+                            <span id="summary-imovel">- Nenhum selecionado -</span>
+                        </div>
+                        <div class="summary-item">
+                            <label>Hóspedes:</label>
+                            <ul id="summary-hospedes">
+                                <li>- Nenhum selecionado -</li>
+                            </ul>
+                        </div>
+                        <div class="summary-item">
+                            <label>Pets:</label>
+                            <span id="summary-pets">- Não informado -</span>
+                        </div>
+                        <div class="summary-item">
+                            <label>Período:</label>
+                            <span id="summary-periodo">- Não informado -</span>
+                        </div>
+                        <div class="summary-item">
+                            <label>Diárias:</label>
+                            <span id="summary-diarias">- 0 -</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wizard-column wizard-action">
+                    <h2 class="wizard-header wizard-title" id="wizard-step-title">Etapa 1: Seleção do Imóvel</h2>
+                    <div class="wizard-step-content" id="wizard-step-content">
+                        <!-- Conteúdo da Etapa 1: Seleção do Imóvel -->
+                        <div id="step-1" class="wizard-step">
+                            <div id="property-list-alert-container"></div>
+                            <div class="property-card-list" id="wizard-property-list">
+                                <!-- Cards de imóveis serão carregados aqui via JS -->
+                            </div>
+                        </div>
+
+                        <!-- Conteúdo da Etapa 2: Seleção de Hóspedes e Pets -->
+                        <div id="step-2" class="wizard-step" style="display: none;">
+                            <div id="guest-selection-alert-container"></div>
+                            <div class="guest-selection">
+                                <h3>Selecione os Hóspedes</h3>
+                                <div class="guest-search-container">
+                                    <input type="text" id="wizard-hospede-search-input" placeholder="Pesquisar hóspedes por nome ou telefone...">
+                                    <button id="add-new-guest-btn" class="btn">➕ Novo Hóspede</button>
+                                </div>
+                                <div class="guest-list" id="wizard-hospedes-list">
+                                    <!-- Hóspedes serão carregados aqui -->
+                                </div>
+                            </div>
+                            <div class="pet-selection">
+                                <h3>Haverá Pets?</h3>
+                                <div class="pet-slider-container">
+                                    <label for="has-pets-slider">Sim/Não:</label>
+                                    <label class="switch">
+                                        <input type="checkbox" id="has-pets-slider">
+                                        <span class="slider round"></span>
+                                    </label>
+                                    <span id="has-pets-status">Não</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conteúdo da Etapa 3: Seleção de Período (Datas) -->
+                        <div id="step-3" class="wizard-step" style="display: none;">
+                            <div id="date-selection-alert-container"></div>
+                            <h3>Selecione o Período da Reserva</h3>
+                            <div class="date-selection-container">
+                                <div class="date-input-group">
+                                    <label for="checkin-date">Data de Entrada:</label>
+                                    <input type="date" id="checkin-date">
+                                </div>
+                                <div class="date-input-group">
+                                    <label for="checkout-date">Data de Saída:</label>
+                                    <input type="date" id="checkout-date">
+                                </div>
+                                <div class="date-calculation">
+                                    Diárias Calculadas: <strong id="calculated-nights">0</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wizard-navigation">
+                        <button class="btn prev" id="wizard-prev-btn" style="display: none;">Anterior</button>
+                        <button class="btn next" id="wizard-next-btn">Próximo</button>
+                    </div>
+                </div>
+            </section>
+        </div>
     </main>
 
-    <!-- Modal/Wizard de Reserva -->
-    <div id="wizard-reserva-modal" style="display:none;">
-        <div class="wizard-container">
-            <div class="wizard-header">
-                <h2>Assistente de Nova Reserva</h2>
-                <button id="close-wizard" class="close-btn">&times;</button>
-            </div>
-            <div class="wizard-body">
-                <form id="form-reserva">
-                    <!-- Etapa 1: Anfitrião, Imóvel e Plataforma -->
-                    <div class="wizard-step" id="step-1">
-                        <h3>Passo 1: Detalhes Principais</h3>
-                        <div class="form-group">
-                            <label for="reserva-anfitriao">Anfitrião</label>
-                            <select id="reserva-anfitriao" required></select>
-                        </div>
-                        <div class="form-group">
-                            <label for="reserva-imovel">Imóvel</label>
-                            <select id="reserva-imovel" required></select>
-                        </div>
-                        <div class="form-group">
-                            <label for="reserva-plataforma">Plataforma de Origem</label>
-                            <select id="reserva-plataforma" required></select>
-                        </div>
-                    </div>
-
-                    <!-- Etapa 2: Hóspedes -->
-                    <div class="wizard-step" id="step-2" style="display:none;">
-                        <h3>Passo 2: Hóspedes</h3>
-                        <div class="form-group">
-                            <label for="reserva-hospedes">Selecione os Hóspedes</label>
-                            <select id="reserva-hospedes" multiple="multiple" style="width: 100%;"></select>
-                        </div>
-                        <div class="form-group">
-                            <label for="reserva-num-hospedes">Número Total de Hóspedes</label>
-                            <input type="number" id="reserva-num-hospedes" min="1" value="1">
-                        </div>
-                    </div>
-
-                    <!-- Etapa 3: Datas e Valores -->
-                    <div class="wizard-step" id="step-3" style="display:none;">
-                        <h3>Passo 3: Período e Valores</h3>
-                        <div class="form-group">
-                            <label for="reserva-checkin">Data de Check-in</label>
-                            <input type="date" id="reserva-checkin" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="reserva-checkout">Data de Check-out</label>
-                            <input type="date" id="reserva-checkout" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="reserva-valor-total">Valor Total da Reserva (R$)</label>
-                            <input type="number" id="reserva-valor-total" step="0.01" placeholder="250.00">
-                        </div>
-                    </div>
-
-                    <!-- Etapa 4: Status e Observações -->
-                    <div class="wizard-step" id="step-4" style="display:none;">
-                        <h3>Passo 4: Finalização</h3>
-                        <div class="form-group">
-                            <label for="reserva-status">Status da Reserva</label>
-                            <select id="reserva-status">
-                                <option value="Confirmada">Confirmada</option>
-                                <option value="Pendente">Pendente</option>
-                                <option value="Cancelada">Cancelada</option>
-                                <option value="Finalizada">Finalizada</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="reserva-observacoes">Observações</label>
-                            <textarea id="reserva-observacoes" rows="3"></textarea>
-                        </div>
-                    </div>
-
-                     <!-- Etapa 5: Resumo -->
-                    <div class="wizard-step" id="step-5" style="display:none;">
-                        <h3>Passo 5: Resumo</h3>
-                        <div id="resumo-container">
-                            <p><strong>Anfitrião:</strong> <span id="resumo-anfitriao"></span></p>
-                            <p><strong>Imóvel:</strong> <span id="resumo-imovel"></span></p>
-                            <p><strong>Plataforma:</strong> <span id="resumo-plataforma"></span></p>
-                            <p><strong>Hóspedes:</strong> <span id="resumo-hospedes"></span></p>
-                            <p><strong>Período:</strong> <span id="resumo-checkin"></span> a <span id="resumo-checkout"></span></p>
-                            <p><strong>Nº de Hóspedes:</strong> <span id="resumo-num-hospedes"></span></p>
-                            <p><strong>Valor Total:</strong> <span id="resumo-valor"></span></p>
-                            <p><strong>Status:</strong> <span id="resumo-status"></span></p>
-                            <p><strong>Observações:</strong> <span id="resumo-observacoes"></span></p>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="wizard-footer">
-                <button class="btn btn-secondary" id="back-to-step-1" style="display:none;">Voltar</button>
-                <button class="btn" id="next-to-step-2">Próximo</button>
-                
-                <button class="btn btn-secondary" id="back-to-step-2" style="display:none;">Voltar</button>
-                <button class="btn" id="next-to-step-3" style="display:none;">Próximo</button>
-
-                <button class="btn btn-secondary" id="back-to-step-3" style="display:none;">Voltar</button>
-                <button class="btn" id="next-to-step-4" style="display:none;">Próximo</button>
-
-                <button class="btn btn-secondary" id="back-to-step-4" style="display:none;">Voltar</button>
-                <button class="btn" id="next-to-step-5" style="display:none;">Ver Resumo</button>
-                
-                <button class="btn btn-secondary" id="cancel-reserva">Cancelar</button>
-                <button class="btn btn-primary" id="save-reserva" style="display:none;">Salvar Reserva</button>
-            </div>
-        </div>
-    </div>
-
-
     <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <script src="assets/js/storage.js"></script>
     <script src="assets/js/main.js"></script>
-    <script src="assets/js/entities/anfitriao.js"></script>
-    <script src="assets/js/entities/plataforma.js"></script>
     <script src="assets/js/entities/cliente.js"></script>
+    <script src="assets/js/entities/comodo.js"></script>
     <script src="assets/js/entities/imovel.js"></script>
     <script src="assets/js/entities/reserva.js"></script>
     <script src="assets/js/wizard-reservas.js"></script>
+    <script src="assets/js/entities/anfitriao.js"></script>
+    <script src="assets/js/entities/plataforma.js"></script>
 
     <!-- Sidebar dinâmica -->
     <script>
+        // Lógica para marcar o link ativo ao carregar a página e expandir o submenu se necessário
+        const setActiveSidebarLink = () => {
+            const path = window.location.pathname.split("/").pop();
+            const hash = window.location.hash;
+
+            document.querySelectorAll(".sidebar a").forEach(link => {
+                link.classList.remove("active");
+                const linkHref = link.getAttribute("href");
+
+                if (linkHref === path + hash) {
+                    link.classList.add("active");
+                    const parentSubmenu = link.closest('.has-submenu');
+                    if (parentSubmenu) {
+                        const submenuElement = parentSubmenu.querySelector('.submenu');
+                        const arrowElement = parentSubmenu.querySelector('.arrow');
+                        if (submenuElement) submenuElement.style.display = 'block';
+                        if (arrowElement) arrowElement.textContent = '▼';
+                        const submenuToggleElement = parentSubmenu.querySelector('.submenu-toggle');
+                        if (submenuToggleElement) submenuToggleElement.classList.add('active');
+                    }
+                }
+            });
+        };
+
         fetch("assets/components/sidebar.html")
             .then(res => res.text())
             .then(html => {
                 document.getElementById("sidebar").innerHTML = html;
                 
-                const currentPage = window.location.pathname.split('/').pop();
                 const body = document.body;
                 const sidebarElement = document.querySelector('.sidebar');
-                const menuToggleButton = document.getElementById('menu-toggle');
-                const headerMenuToggleButton = document.getElementById('header-menu-toggle');
+                const menuToggleButton = document.getElementById('menu-toggle'); // Menu toggle inside sidebar
+                const headerMenuToggleButton = document.getElementById('header-menu-toggle'); // Menu toggle in header
 
                 function toggleSidebar() {
                     body.classList.toggle('sidebar-open-mobile');
                 }
 
+                // Add listener for the hamburger menu button in the sidebar (if it exists)
                 if (menuToggleButton) {
-                    menuToggleButton.addEventListener('click', e => { e.stopPropagation(); toggleSidebar(); });
+                    menuToggleButton.addEventListener('click', function(e) {
+                        e.stopPropagation(); 
+                        toggleSidebar();
+                    });
                 }
+
+                // Add listener for the hamburger menu button in the header (for mobile)
                 if (headerMenuToggleButton) {
-                    headerMenuToggleButton.addEventListener('click', e => { e.stopPropagation(); toggleSidebar(); });
+                    headerMenuToggleButton.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        toggleSidebar();
+                    });
                 }
-                document.addEventListener('click', e => {
-                    if (body.classList.contains('sidebar-open-mobile') && !sidebarElement.contains(e.target) && 
-                        (!menuToggleButton || !menuToggleButton.contains(e.target)) && 
-                        (!headerMenuToggleButton || !headerMenuToggleButton.contains(e.target))) {
+
+                // Close sidebar if clicking outside of it (mobile only)
+                document.addEventListener('click', function(e) {
+                    if (body.classList.contains('sidebar-open-mobile') && 
+                        !sidebarElement.contains(e.target) && 
+                        (menuToggleButton && !menuToggleButton.contains(e.target)) && 
+                        (headerMenuToggleButton && !headerMenuToggleButton.contains(e.target))) {
                         toggleSidebar();
                     }
                 });
 
+                // Lógica para expandir/recolher submenus e ativar links
                 document.querySelectorAll('.sidebar a').forEach(link => {
-                    const href = link.getAttribute('href');
-                    if (href === currentPage) {
-                        link.classList.add('active');
-                        const parentSubmenu = link.closest('.submenu');
-                        if (parentSubmenu) {
-                            parentSubmenu.style.display = 'block';
-                            parentSubmenu.closest('.has-submenu')?.classList.add('expanded');
-                        }
-                    }
-                    link.addEventListener('click', () => {
-                        if (window.innerWidth <= 768 && !link.classList.contains('submenu-toggle')) {
+                    // Fecha a sidebar em mobile quando um link é clicado (a menos que seja um submenu-toggle)
+                    link.addEventListener('click', function() {
+                        if (window.innerWidth <= 768 && !this.classList.contains('submenu-toggle')) {
                             body.classList.remove('sidebar-open-mobile');
                         }
                     });
                 });
 
+                // Lógica para expandir/recolher submenus
                 document.querySelectorAll('.submenu-toggle').forEach(item => {
-                    item.addEventListener('click', e => {
+                    item.addEventListener('click', function(e) {
                         e.preventDefault();
-                        const parentLi = item.closest('.has-submenu');
+                        const parentLi = this.closest('.has-submenu');
                         parentLi.classList.toggle('expanded');
                         const submenu = parentLi.querySelector('.submenu');
-                        if (submenu) submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+                        if (submenu) {
+                            submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+                        }
                     });
                 });
+
+                setActiveSidebarLink(); // Chama ao carregar a sidebar
             })
             .catch(err => console.error("Erro ao carregar sidebar: ", err));
+        
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768 && body.classList.contains('sidebar-open-mobile')) {
+                body.classList.remove('sidebar-open-mobile');
+            }
+        });
     </script>
 </body>
 </html>
