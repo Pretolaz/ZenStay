@@ -1,53 +1,47 @@
 class Cliente {
-    // O construtor espera um objeto com as propriedades do cliente
-    constructor({ id, nome, email, telefone, endereco, observacoes }) {
-        // O ID é o identificador principal, usado pelo storage.js
+    // Construtor atualizado para incluir todos os campos do formulário de clientes.html
+    constructor({ id, codigoPlataforma, nome, email, codPais, telefone, linkChat, idioma, observacao, dataCadastro }) {
         this.id = id;
+        this.codigoPlataforma = codigoPlataforma;
         this.nome = nome;
         this.email = email;
+        this.codPais = codPais;
         this.telefone = telefone;
-        this.endereco = endereco;
-        this.observacoes = observacoes;
+        this.linkChat = linkChat;
+        this.idioma = idioma;
+        this.observacao = observacao; // Mantido como 'observacao' para corresponder ao form
+        this.dataCadastro = dataCadastro;
 
-        // Para consistência com outras entidades, podemos ter um getter para codigoInterno
-        Object.defineProperty(this, 'codigoInterno', {
-            get: function() { return this.id; },
-            set: function(value) { this.id = value; },
-            enumerable: true,
-            configurable: true
-        });
+        // Para consistência e retrocompatibilidade
+        this.codigoInterno = this.id;
     }
 
     static listarTodos() {
         const storage = new Storage('clientes');
         const clientesData = storage.getAll();
-        
-        // Mapeia os dados brutos do localStorage para instâncias da classe Cliente
-        // A classe Storage já retorna um array de objetos, então só precisamos instanciar
-        return clientesData.map(data => new Cliente(data));
+        // Garante que mesmo dados 'nulos' do localStorage não quebrem o map
+        return clientesData.map(data => new Cliente(data || {}));
     }
 
     static salvar(clienteData) {
         const storage = new Storage('clientes');
-        let nextId = parseInt(localStorage.getItem('nextClienteId') || '2001');
-
-        // Se o cliente não tem um ID, é um novo cliente.
+        
+        // Se for um novo cliente (sem ID), atribui um novo ID e a data de cadastro.
         if (!clienteData.id) {
+            let nextId = parseInt(localStorage.getItem('nextClienteId') || '2001');
             clienteData.id = nextId;
+            clienteData.dataCadastro = new Date().toISOString();
             localStorage.setItem('nextClienteId', String(nextId + 1));
         }
 
-        // O método save da classe Storage espera um objeto com a propriedade 'id'.
-        // clienteData já está no formato correto.
+        // O método 'save' da Storage class espera um objeto com um 'id'.
         storage.save(clienteData);
     }
 
     static buscarPorId(id) {
         const storage = new Storage('clientes');
-        // O método get da classe Storage busca pelo 'id'
         const data = storage.get(id);
         if (data) {
-            // Retorna uma nova instância de Cliente com os dados encontrados
             return new Cliente(data);
         }
         return null;
@@ -55,7 +49,6 @@ class Cliente {
 
     static excluir(id) {
         const storage = new Storage('clientes');
-        // O método delete da classe Storage deleta pelo 'id'
         storage.delete(id);
     }
 }
