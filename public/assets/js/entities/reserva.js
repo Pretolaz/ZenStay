@@ -1,58 +1,46 @@
 class Reserva {
-    constructor(id, idImovel, idsHospedes, dataCheckin, dataCheckout, status) {
-        this.id = id;
-        this.idImovel = idImovel;
-        this.idsHospedes = idsHospedes; // Array of client IDs
-        this.dataCheckin = dataCheckin;
-        this.dataCheckout = dataCheckout;
-        this.status = status; // e.g., 'Confirmada', 'Pendente', 'Cancelada'
+    constructor({ codigoInterno, anfitriaoId, imovelId, plataformaId, hospedes, checkin, checkout, numHospedes, valorTotal, status, observacoes, dataCriacao }) {
+        this.codigoInterno = codigoInterno;
+        this.anfitriaoId = anfitriaoId;
+        this.imovelId = imovelId;
+        this.plataformaId = plataformaId;
+        this.hospedes = Array.isArray(hospedes) ? hospedes : []; // Garante que seja sempre um array
+        this.checkin = checkin;
+        this.checkout = checkout;
+        this.numHospedes = numHospedes;
+        this.valorTotal = valorTotal;
+        this.status = status;
+        this.observacoes = observacoes;
+        this.dataCriacao = dataCriacao || new Date().toISOString();
     }
 
-    // Salva a reserva no localStorage
-    salvar() {
-        const storage = new Storage('reservas');
-        let nextId = parseInt(localStorage.getItem('nextReservaId') || '1');
-        
-        if (!this.id) {
-            this.id = nextId;
-            localStorage.setItem('nextReservaId', nextId + 1);
-        }
-
-        storage.save(this);
-    }
-
-    // Lista todas as reservas
-    static listarTodas() {
+    static listarTodos() {
         const storage = new Storage('reservas');
         const reservasData = storage.getAll();
-        return reservasData.map(data => new Reserva(
-            data.id,
-            data.idImovel,
-            data.idsHospedes,
-            data.dataCheckin,
-            data.dataCheckout,
-            data.status
-        ));
+        return reservasData.map(data => new Reserva(data));
     }
 
-    // Busca uma reserva por ID
+    static salvar(reservaData) {
+        const storage = new Storage('reservas');
+        let nextId = parseInt(localStorage.getItem('nextReservaId') || '101');
+
+        if (!reservaData.codigoInterno) {
+            reservaData.codigoInterno = nextId;
+            localStorage.setItem('nextReservaId', String(nextId + 1));
+        }
+
+        storage.save(reservaData);
+    }
+
     static buscarPorId(id) {
         const storage = new Storage('reservas');
         const data = storage.get(id);
         if (data) {
-            return new Reserva(
-                data.id,
-                data.idImovel,
-                data.idsHospedes,
-                data.dataCheckin,
-                data.dataCheckout,
-                data.status
-            );
+            return new Reserva(data);
         }
         return null;
     }
 
-    // Exclui uma reserva por ID
     static excluir(id) {
         const storage = new Storage('reservas');
         storage.delete(id);
