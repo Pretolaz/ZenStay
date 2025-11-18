@@ -1,61 +1,70 @@
 class Imovel {
-    constructor(id, apelido, localizacao, quartos, capacidadeMaxima, foto, situacao) {
-        this.id = id;
-        this.apelido = apelido;
-        this.localizacao = localizacao;
-        this.quartos = quartos;
-        this.capacidadeMaxima = capacidadeMaxima;
-        this.foto = foto;
-        this.situacao = situacao; // e.g., 'Livre', 'Ocupado', 'Em Manutenção'
+    constructor({ codigoInterno, anfitriaoId, titulo, tipo, endereco, comodos, capacidade, fotos, status, valorDiaria, observacoes }) {
+        this.codigoInterno = codigoInterno;
+        this.anfitriaoId = anfitriaoId;
+        this.titulo = titulo; // Apelido ou título descritivo do imóvel
+        this.tipo = tipo; // Ex: Casa, Apartamento, Cabana
+        this.endereco = endereco; // Objeto ou string com o endereço
+        this.comodos = Array.isArray(comodos) ? comodos : []; // Garante que seja um array
+        this.capacidade = capacidade; // Número máximo de hóspedes
+        this.fotos = Array.isArray(fotos) ? fotos : []; // Garante que seja um array
+        this.status = status; // Ex: Disponível, Ocupado, Manutenção
+        this.valorDiaria = valorDiaria;
+        this.observacoes = observacoes;
     }
 
-    // Salva o imóvel no localStorage
-    salvar() {
-        const storage = new Storage('imoveis');
-        let nextId = parseInt(localStorage.getItem('nextImovelId') || '1');
-        
-        if (!this.id) {
-            this.id = nextId;
-            localStorage.setItem('nextImovelId', nextId + 1);
-        }
-
-        storage.save(this);
-    }
-
-    // Lista todos os imóveis
     static listarTodos() {
         const storage = new Storage('imoveis');
         const imoveisData = storage.getAll();
-        return imoveisData.map(data => new Imovel(
-            data.id,
-            data.apelido,
-            data.localizacao,
-            data.quartos,
-            data.capacidadeMaxima,
-            data.foto,
-            data.situacao
-        ));
+        // Mapeia os dados do localStorage para o novo formato, garantindo compatibilidade
+        return imoveisData.map(data => new Imovel({
+            codigoInterno: data.codigoInterno || data.id,
+            anfitriaoId: data.anfitriaoId,
+            titulo: data.titulo || data.apelido,
+            tipo: data.tipo,
+            endereco: data.endereco || data.localizacao,
+            comodos: data.comodos || [],
+            capacidade: data.capacidade || data.capacidadeMaxima,
+            fotos: data.fotos || (data.foto ? [data.foto] : []), // Transforma 'foto' em 'fotos' se necessário
+            status: data.status || data.situacao,
+            valorDiaria: data.valorDiaria,
+            observacoes: data.observacoes
+        }));
     }
 
-    // Busca um imóvel por ID
+    static salvar(imovelData) {
+        const storage = new Storage('imoveis');
+        let nextId = parseInt(localStorage.getItem('nextImovelId') || '1001');
+
+        if (!imovelData.codigoInterno) {
+            imovelData.codigoInterno = nextId;
+            localStorage.setItem('nextImovelId', String(nextId + 1));
+        }
+
+        storage.save(imovelData);
+    }
+
     static buscarPorId(id) {
         const storage = new Storage('imoveis');
         const data = storage.get(id);
         if (data) {
-            return new Imovel(
-                data.id,
-                data.apelido,
-                data.localizacao,
-                data.quartos,
-                data.capacidadeMaxima,
-                data.foto,
-                data.situacao
-            );
+            return new Imovel({
+                codigoInterno: data.codigoInterno || data.id,
+                anfitriaoId: data.anfitriaoId,
+                titulo: data.titulo || data.apelido,
+                tipo: data.tipo,
+                endereco: data.endereco || data.localizacao,
+                comodos: data.comodos || [],
+                capacidade: data.capacidade || data.capacidadeMaxima,
+                fotos: data.fotos || (data.foto ? [data.foto] : []), 
+                status: data.status || data.situacao,
+                valorDiaria: data.valorDiaria,
+                observacoes: data.observacoes
+            });
         }
         return null;
     }
 
-    // Exclui um imóvel por ID
     static excluir(id) {
         const storage = new Storage('imoveis');
         storage.delete(id);
