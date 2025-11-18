@@ -14,14 +14,14 @@
     box-sizing: border-box;
 }
 
-/* O container do wizard em si */
+/* O container do wizard em si - CORREÇÃO DE CONFLITO */
 .reservation-wizard {
     display: flex;
     gap: 20px;
     width: 100%;
     max-width: 1200px;
     height: 90vh;
-    background-color: var(--color-background-primary);
+    background-color: #fff !important; /* Garante fundo branco sobrepondo outros estilos */
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     overflow: hidden; /* Previne que conteúdo interno vaze */
@@ -37,24 +37,25 @@
 
 .wizard-summary {
     flex: 0.8;
-    background-color: var(--color-background-card);
-    border-right: 1px solid var(--color-border);
+    background-color: #f8f9fa; /* Um cinza muito claro para o resumo */
+    border-right: 1px solid #dee2e6;
 }
 
 .wizard-action {
     flex: 1.2;
     position: relative; /* Para posicionar a navegação no final */
+    background-color: #fff; /* Garante que a coluna de ação seja branca */
 }
 
 .wizard-header {
     margin: 0 0 25px 0;
     padding-bottom: 15px;
-    border-bottom: 1px solid var(--color-border-dark);
+    border-bottom: 1px solid #ced4da;
 }
 
 .wizard-title {
     font-size: 1.6em;
-    color: var(--color-text-primary);
+    color: #343a40;
     margin: 0;
 }
 
@@ -69,7 +70,7 @@
     display: flex;
     justify-content: space-between;
     padding-top: 20px;
-    border-top: 1px solid var(--color-border);
+    border-top: 1px solid #dee2e6;
     margin-top: auto; /* Empurra a navegação para o fundo */
 }
 
@@ -82,21 +83,22 @@
 }
 
 .summary-item {
-    background-color: var(--color-background-light);
+    background-color: #fff;
     padding: 12px;
+    border: 1px solid #e9ecef;
     border-radius: 5px;
 }
 
 .summary-item label {
     font-weight: bold;
-    color: var(--color-text-primary);
+    color: #495057;
     display: block;
     margin-bottom: 5px;
     font-size: 0.9em;
 }
 
 .summary-item span, .summary-item ul {
-    color: var(--color-text-secondary);
+    color: #6c757d;
     font-size: 0.95em;
     margin: 0;
     padding: 0;
@@ -118,13 +120,13 @@
     overflow: hidden;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
-    background-color: var(--color-background-card);
+    background-color: #fff;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .property-card.selected {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 10px rgba(var(--color-primary-rgb), 0.5);
+    border-color: #0d6efd; /* Cor primária do Bootstrap para exemplo */
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
 }
 
 .property-card-thumbnail {
@@ -166,7 +168,7 @@
 }
 
 .alert-warning {
-    background-color: var(--color-warning-background);
-    color: var(--color-warning-text);
-    border: 1px solid var(--color-warning-border);
+    background-color: #fff3cd;
+    color: #664d03;
+    border: 1px solid #ffecb5;
 }
