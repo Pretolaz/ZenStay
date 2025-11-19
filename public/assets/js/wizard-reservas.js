@@ -32,6 +32,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const summaryPeriodo = document.getElementById('summary-periodo');
     const summaryDiarias = document.getElementById('summary-diarias');
 
+    // Elementos do Modal de Detalhes
+    const detailsModal = document.getElementById('reservation-details-modal');
+    const closeDetailsBtn = document.getElementById('close-details-btn');
+    const detailsImovelFoto = document.getElementById('details-imovel-foto');
+    const detailsImovelTitulo = document.getElementById('details-imovel-titulo');
+    const detailsStatus = document.getElementById('details-status');
+    const detailsCodigo = document.getElementById('details-codigo');
+    const detailsHospedes = document.getElementById('details-hospedes');
+    const detailsCheckin = document.getElementById('details-checkin');
+    const detailsCheckout = document.getElementById('details-checkout');
+    const detailsPets = document.getElementById('details-pets');
+    const detailsDiarias = document.getElementById('details-diarias');
+
     // -----
     // Estado do Wizard
     // -----
@@ -142,6 +155,18 @@ document.addEventListener('DOMContentLoaded', () => {
             wizardModal.addEventListener('click', (e) => {
                 if (e.target === wizardModal) { // Fechar apenas no clique do fundo (overlay)
                     closeWizard();
+                }
+            });
+        }
+
+        if (closeDetailsBtn) {
+            closeDetailsBtn.addEventListener('click', closeReservationDetails);
+        }
+
+        if (detailsModal) {
+            detailsModal.addEventListener('click', (e) => {
+                if (e.target === detailsModal) {
+                    closeReservationDetails();
                 }
             });
         }
@@ -397,34 +422,112 @@ document.addEventListener('DOMContentLoaded', () => {
         reservas.forEach(reserva => {
             const imovel = imoveis.find(i => i.id == reserva.imovelId);
             const tr = document.createElement('tr');
+            tr.style.cursor = 'pointer';
+            tr.title = 'Clique para ver detalhes';
 
             // Formatar datas
             const checkin = new Date(reserva.checkin).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
             const checkout = new Date(reserva.checkout).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 
-            // Contar hóspedes
-            const numHospedes = reserva.hospedes ? reserva.hospedes.length : 0;
+            // Formatar Hóspedes
+            let hospedesTexto = '0';
+            if (reserva.hospedes && reserva.hospedes.length > 0) {
+                const primeiroHospedeId = reserva.hospedes[0];
+                const primeiroHospede = clientes.find(c => c.id == primeiroHospedeId);
+                const nomePrimeiro = primeiroHospede ? primeiroHospede.nome.split(' ')[0] : 'Desconhecido';
+                const extras = reserva.hospedes.length - 1;
+
+                if (extras > 0) {
+                    hospedesTexto = `${nomePrimeiro} (mais ${extras})`;
+                } else {
+                    hospedesTexto = nomePrimeiro;
+                }
+            }
 
             tr.innerHTML = `
                 <td>${imovel ? imovel.titulo : 'Imóvel removido'}</td>
                 <td>${checkin}</td>
                 <td>${checkout}</td>
-                <td>${numHospedes}</td>
+                <td>${hospedesTexto}</td>
                 <td><span class="status-badge ${reserva.status ? reserva.status.toLowerCase() : ''}">${reserva.status || 'Pendente'}</span></td>
                 <td>
-                    <button class="btn-icon delete-btn" onclick="deleteReserva('${reserva.id}')">🗑️</button>
+                    <button class="btn-icon delete-btn" onclick="event.stopPropagation(); deleteReserva('${reserva.id}')">🗑️</button>
                 </td>
             `;
+
+            tr.addEventListener('click', () => openReservationDetails(reserva));
             tbody.appendChild(tr);
         });
 
         // Expor função de deletar globalmente para o onclick funcionar
         window.deleteReserva = function (id) {
             if (confirm('Tem certeza que deseja excluir esta reserva?')) {
-                Reserva.deletar(id);
+                // Verifica se existe o método excluir (novo padrão) ou deletar (antigo/erro)
+                if (typeof Reserva.excluir === 'function') {
+                    Reserva.excluir(id);
+                } else if (typeof Reserva.deletar === 'function') {
+                    Reserva.deletar(id);
+                } else {
+                    console.error("Método de exclusão não encontrado na classe Reserva.");
+                    alert("Erro ao excluir: método não encontrado.");
+                    return;
+                }
                 loadReservasTableLocal();
             }
         };
+    }
+
+    function openReservationDetails(reserva) {
+        if (!detailsModal) return;
+
+        const imovel = imoveis.find(i => i.id == reserva.imovelId);
+
+        // Preencher dados
+        if (detailsImovelFoto) detailsImovelFoto.src = (imovel && imovel.fotos && imovel.fotos.length > 0) ? imovel.fotos[0] : 'assets/img/placeholder.jpg';
+        if (detailsImovelTitulo) detailsImovelTitulo.textContent = imovel ? imovel.titulo : 'Imóvel não encontrado';
+        if (detailsStatus) {
+            detailsStatus.textContent = reserva.status || 'Pendente';
+            detailsStatus.className = `status-badge ${reserva.status ? reserva.status.toLowerCase() : ''}`;
+        }
+        if (detailsCodigo) detailsCodigo.textContent = `#${reserva.codigoInterno || reserva.id}`;
+
+        // Hóspedes detalhados
+        if (detailsHospedes) {
+            if (reserva.hospedes && reserva.hospedes.length > 0) {
+                const primeiroHospedeId = reserva.hospedes[0];
+                const primeiroHospede = clientes.find(c => c.id == primeiroHospedeId);
+                const nomePrimeiro = primeiroHospede ? primeiroHospede.nome.split(' ')[0] : 'Desconhecido';
+                const extras = reserva.hospedes.length - 1;
+                detailsHospedes.textContent = extras > 0 ? `${nomePrimeiro} (mais ${extras})` : nomePrimeiro;
+            } else {
+                detailsHospedes.textContent = 'Nenhum';
+            }
+        }
+
+        if (detailsCheckin) detailsCheckin.textContent = new Date(reserva.checkin).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+        if (detailsCheckout) detailsCheckout.textContent = new Date(reserva.checkout).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+        if (detailsPets) detailsPets.textContent = reserva.numPets;
+
+        // Calcular diárias
+        const checkinDate = new Date(reserva.checkin);
+        const checkoutDate = new Date(reserva.checkout);
+        if (!isNaN(checkinDate) && !isNaN(checkoutDate)) {
+            const diffTime = Math.abs(checkoutDate - checkinDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            if (detailsDiarias) detailsDiarias.textContent = diffDays;
+        }
+
+        detailsModal.style.display = 'flex';
+        setTimeout(() => detailsModal.style.opacity = '1', 10);
+    }
+
+    function closeReservationDetails() {
+        if (detailsModal) {
+            detailsModal.style.opacity = '0';
+            setTimeout(() => {
+                detailsModal.style.display = 'none';
+            }, 300);
+        }
     }
 
     // -----

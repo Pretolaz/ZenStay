@@ -425,3 +425,134 @@
         gap: 15px;
     }
 }
+/* Modal de Detalhes (Zoom) */
+.details-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.details-card {
+    background: var(--surface-card);
+    width: 90%;
+    max-width: 500px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    position: relative;
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid var(--border);
+}
+
+.details-modal-overlay[style*='display: flex'] {
+    opacity: 1;
+}
+
+.details-modal-overlay[style*='display: flex'] .details-card {
+    transform: scale(1);
+}
+
+.close-details-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.close-details-btn:hover {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.details-card-header {
+    position: relative;
+    height: 180px;
+}
+
+.details-imovel-thumb {
+    width: 100%;
+    height: 100%;
+}
+
+.details-imovel-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.details-header-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.details-header-info h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.details-card-body {
+    padding: 25px;
+}
+
+.details-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.details-row:last-child {
+    margin-bottom: 0;
+}
+
+.details-group {
+    flex: 1;
+}
+
+.details-group label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.details-group p {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text);
+}
+

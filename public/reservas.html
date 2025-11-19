@@ -167,6 +167,54 @@
                 </main>
             </div>
         </div>
+
+        <!-- Modal de Detalhes da Reserva (Zoom) -->
+        <div id="reservation-details-modal" class="details-modal-overlay" style="display: none;">
+            <div class="details-card">
+                <button class="close-details-btn" id="close-details-btn">&times;</button>
+                <div class="details-card-header">
+                    <div class="details-imovel-thumb">
+                        <img id="details-imovel-foto" src="" alt="Foto do Imóvel">
+                    </div>
+                    <div class="details-header-info">
+                        <h2 id="details-imovel-titulo">Título do Imóvel</h2>
+                        <span class="status-badge" id="details-status">Confirmada</span>
+                    </div>
+                </div>
+                <div class="details-card-body">
+                    <div class="details-row">
+                        <div class="details-group">
+                            <label>Código</label>
+                            <p id="details-codigo">#0000</p>
+                        </div>
+                        <div class="details-group">
+                            <label>Hóspedes</label>
+                            <p id="details-hospedes">Nome (mais 0)</p>
+                        </div>
+                    </div>
+                    <div class="details-row">
+                        <div class="details-group">
+                            <label>Check-in</label>
+                            <p id="details-checkin">00/00/0000</p>
+                        </div>
+                        <div class="details-group">
+                            <label>Check-out</label>
+                            <p id="details-checkout">00/00/0000</p>
+                        </div>
+                    </div>
+                    <div class="details-row">
+                        <div class="details-group">
+                            <label>Pets</label>
+                            <p id="details-pets">0</p>
+                        </div>
+                        <div class="details-group">
+                            <label>Diárias</label>
+                            <p id="details-diarias">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- Scripts -->

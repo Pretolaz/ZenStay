@@ -1,6 +1,7 @@
 class Reserva {
     constructor({ codigoInterno, anfitriaoId, imovelId, plataformaId, hospedes, checkin, checkout, numHospedes, numPets, valorTotal, status, observacoes, dataCriacao }) {
         this.codigoInterno = codigoInterno;
+        this.id = codigoInterno;
         this.anfitriaoId = anfitriaoId;
         this.imovelId = imovelId;
         this.plataformaId = plataformaId;
@@ -23,7 +24,7 @@ class Reserva {
 
     static salvar(reservaData) {
         const storage = new Storage('reservas');
-        let nextId = parseInt(localStorage.getItem('nextReservaId') || '101');
+        let nextId = parseInt(localStorage.getItem('nextReservaId') || '1000');
 
         if (!reservaData.codigoInterno) {
             reservaData.codigoInterno = nextId;
