@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,7 +10,8 @@
     <link rel="stylesheet" href="assets/css/components.css">
     <link rel="stylesheet" href="assets/css/home.css">
     <link rel="stylesheet" href="theme/dark.css" id="theme-style">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
@@ -103,12 +105,12 @@
 
     <!-- Scripts -->
     <script src="assets/js/storage.js"></script>
-    
+
     <!-- Entities -->
     <script src="assets/js/entities/imovel.js"></script>
     <script src="assets/js/entities/cliente.js"></script>
     <script src="assets/js/entities/reserva.js"></script>
-    
+
     <script src="assets/js/main.js"></script>
     <script src="assets/js/home.js"></script>
 
@@ -118,7 +120,7 @@
             .then(res => res.text())
             .then(html => {
                 document.getElementById("sidebar").innerHTML = html;
-                
+
                 const currentPage = window.location.pathname.split('/').pop();
                 const body = document.body;
                 const sidebarElement = document.querySelector('.sidebar');
@@ -130,23 +132,23 @@
                 }
 
                 if (menuToggleButton) {
-                    menuToggleButton.addEventListener('click', function(e) {
+                    menuToggleButton.addEventListener('click', function (e) {
                         e.stopPropagation();
                         toggleSidebar();
                     });
                 }
 
                 if (headerMenuToggleButton) {
-                    headerMenuToggleButton.addEventListener('click', function(e) {
+                    headerMenuToggleButton.addEventListener('click', function (e) {
                         e.stopPropagation();
                         toggleSidebar();
                     });
                 }
 
-                document.addEventListener('click', function(e) {
-                    if (body.classList.contains('sidebar-open-mobile') && 
-                        sidebarElement && !sidebarElement.contains(e.target) && 
-                        (menuToggleButton && !menuToggleButton.contains(e.target)) && 
+                document.addEventListener('click', function (e) {
+                    if (body.classList.contains('sidebar-open-mobile') &&
+                        sidebarElement && !sidebarElement.contains(e.target) &&
+                        (menuToggleButton && !menuToggleButton.contains(e.target)) &&
                         (headerMenuToggleButton && !headerMenuToggleButton.contains(e.target))) {
                         toggleSidebar();
                     }
@@ -170,7 +172,7 @@
                         link.classList.remove('active');
                     }
 
-                    link.addEventListener('click', function() {
+                    link.addEventListener('click', function () {
                         if (window.innerWidth <= 768 && !this.classList.contains('submenu-toggle')) {
                             body.classList.remove('sidebar-open-mobile');
                         }
@@ -178,7 +180,7 @@
                 });
 
                 document.querySelectorAll('.submenu-toggle').forEach(item => {
-                    item.addEventListener('click', function(e) {
+                    item.addEventListener('click', function (e) {
                         e.preventDefault();
                         const parentLi = this.closest('.has-submenu');
                         parentLi.classList.toggle('expanded');
@@ -192,6 +194,8 @@
             .catch(err => console.error("Erro ao carregar sidebar: ", err));
     </script>
 </body>
+
 </html>
 
 <!-- git add .; git commit -m "Config firebase Hosting"; git push; firebase deploy --only hosting:zenstay-d0ac5 -->
+<!-- git add .; git commit -m "$((Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) - Deploy Hosting"; git push; firebase deploy --only hosting:zenstay-d0ac5 -->
