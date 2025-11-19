@@ -19,6 +19,19 @@ class Reserva {
     static listarTodos() {
         const storage = new Storage('reservas');
         const reservasData = storage.getAll();
+
+        // Auto-repair: Fix missing IDs in raw data
+        let hasChanges = false;
+        reservasData.forEach(data => {
+            if (!data.id && data.codigoInterno) {
+                data.id = data.codigoInterno;
+                hasChanges = true;
+            }
+        });
+        if (hasChanges) {
+            localStorage.setItem('reservas', JSON.stringify(reservasData));
+        }
+
         return reservasData.map(data => new Reserva(data));
     }
 
@@ -30,6 +43,9 @@ class Reserva {
             reservaData.codigoInterno = nextId;
             localStorage.setItem('nextReservaId', String(nextId + 1));
         }
+
+        // Ensure ID is synced with codigoInterno for Storage compatibility
+        reservaData.id = reservaData.codigoInterno;
 
         storage.save(reservaData);
     }
