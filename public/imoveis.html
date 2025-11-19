@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,8 +8,10 @@
 
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/imoveis.css"> <!-- Novo CSS -->
     <link rel="stylesheet" href="theme/dark.css" id="theme-style">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
@@ -17,18 +20,27 @@
 
     <main class="content">
         <header class="header">
-            <button class="menu-toggle" id="header-menu-toggle">☰</button> <!-- Botão de menu hambúrguer no cabeçalho -->
+            <button class="menu-toggle" id="header-menu-toggle">☰</button>
+            <!-- Botão de menu hambúrguer no cabeçalho -->
             <h1 id="main-title">🏡 Gerenciar Imóveis</h1>
             <button id="toggle-theme">🌓</button>
         </header>
 
         <!-- Seção de Gerenciamento de Imóveis -->
         <section class="dashboard" id="gerenciar-imoveis-section">
-            <div class="card" style="flex: 1 1 100%;">
-                <h3>➕ Gerenciar Imóveis</h3>
-                <!-- Botão para Adicionar Imóvel -->
-                <button id="adicionarImovelBtn" class="btn">➕ Adicionar Imóvel</button>
-    
+            <div class="card"
+                style="flex: 1 1 100%; background: transparent; box-shadow: none; padding: 0; border: none;">
+
+                <div class="imoveis-header-actions">
+                    <div class="section-title">
+                        <span>📋</span> Lista de Imóveis
+                    </div>
+                    <!-- Botão para Adicionar Imóvel -->
+                    <button id="adicionarImovelBtn">
+                        <span>➕</span> Adicionar Imóvel
+                    </button>
+                </div>
+
                 <!-- Formulário de Imóveis (Inicialmente oculto) -->
                 <div id="formImovelContainer" style="display: none;">
                     <h3>➕ Cadastrar Novo Imóvel</h3>
@@ -73,15 +85,17 @@
                                 <input type="text" id="googleMapsLink" placeholder="Link do Google Maps">
                             </div>
                         </div>
-                        
+
                         <div class="form-row">
                             <div class="input-group">
                                 <span>👨‍👩‍👧‍👦</span>
-                                <input type="number" id="capacidadeAdulto" placeholder="Capacidade Adulto" min="0" required>
+                                <input type="number" id="capacidadeAdulto" placeholder="Capacidade Adulto" min="0"
+                                    required>
                             </div>
                             <div class="input-group">
                                 <span>👶</span>
-                                <input type="number" id="capacidadeCrianca" placeholder="Capacidade Criança" min="0" required>
+                                <input type="number" id="capacidadeCrianca" placeholder="Capacidade Criança" min="0"
+                                    required>
                             </div>
                         </div>
 
@@ -99,7 +113,7 @@
                         <div class="form-row">
                             <textarea id="descricao" placeholder="Descrição da casa..."></textarea>
                         </div>
-                        
+
                         <div class="form-row">
                             <textarea id="instrucoesGerais" placeholder="Instruções Gerais..."></textarea>
                         </div>
@@ -107,7 +121,7 @@
                         <div class="form-row">
                             <textarea id="instrucoesChegada" placeholder="Instruções para chegar..."></textarea>
                         </div>
-    
+
                         <!-- Campo para a foto do imóvel e pré-visualização -->
                         <div class="form-row">
                             <div class="input-group">
@@ -115,7 +129,8 @@
                                 <input type="file" id="fotoImovel" accept="image/*">
                             </div>
                             <div class="input-group">
-                                <img id="previewFotoImovel" src="" alt="Pré-visualização da Foto" style="max-width: 100px; max-height: 100px; display: none; margin-top: 10px; border-radius: 5px;">
+                                <img id="previewFotoImovel" src="" alt="Pré-visualização da Foto"
+                                    style="max-width: 100px; max-height: 100px; display: none; margin-top: 10px; border-radius: 5px;">
                             </div>
                         </div>
 
@@ -124,7 +139,7 @@
                 </div>
 
                 <!-- Container para os cards de imóveis -->
-                <div id="imoveisCardsContainer" class="dashboard"></div>
+                <div id="imoveisCardsContainer"></div>
             </div>
         </section>
 
@@ -132,11 +147,12 @@
         <section class="dashboard" id="comodos-imovel-section" style="display: none;">
             <div class="card" style="flex: 1 1 100%;">
                 <h3 id="comodos-title">Gerenciar Cômodos para: <span id="imovel-apelido-comodos"></span></h3>
-                
+
                 <div class="form-row" style="margin-bottom: 15px;">
                     <div class="input-group" style="flex: 1;">
                         <span>🏠</span>
-                        <select id="selectImovelComodos" style="flex: 1; border: none; background: transparent; color: var(--text); padding: 10px 5px;">
+                        <select id="selectImovelComodos"
+                            style="flex: 1; border: none; background: transparent; color: var(--text); padding: 10px 5px;">
                             <option value="">Selecione um Imóvel</option>
                         </select>
                     </div>
@@ -204,16 +220,20 @@
                 <h3>➕ Adicionar/Editar Objeto</h3>
 
                 <form id="formObjeto">
-                     <div class="form-row" style="margin-bottom: 15px;">
+                    <div class="form-row" style="margin-bottom: 15px;">
                         <div class="input-group" style="flex: 1;">
                             <span>🏠</span>
-                            <select id="selectImovelObjetos" style="flex: 1; border: none; background: transparent; color: var(--text); padding: 10px 5px;" required>
+                            <select id="selectImovelObjetos"
+                                style="flex: 1; border: none; background: transparent; color: var(--text); padding: 10px 5px;"
+                                required>
                                 <option value="">Selecione um Imóvel</option>
                             </select>
                         </div>
                         <div class="input-group" style="flex: 1; margin-left: 10px;">
                             <span>🚪</span>
-                            <select id="selectComodoObjetos" style="flex: 1; border: none; background: transparent; color: var(--text); padding: 10px 5px;" required>
+                            <select id="selectComodoObjetos"
+                                style="flex: 1; border: none; background: transparent; color: var(--text); padding: 10px 5px;"
+                                required>
                                 <option value="">Selecione um Cômodo</option>
                             </select>
                         </div>
@@ -354,7 +374,7 @@
             .then(res => res.text())
             .then(html => {
                 document.getElementById("sidebar").innerHTML = html;
-                
+
                 // Configura os toggles da sidebar e o comportamento responsivo
                 setupSidebarToggles();
 
@@ -423,9 +443,9 @@
             const gerenciarImoveisSection = document.getElementById('gerenciar-imoveis-section');
             const comodosImovelSection = document.getElementById('comodos-imovel-section');
             const inventarioObjetosSection = document.getElementById('inventario-objetos-section');
-            
+
             const hash = window.location.hash;
-            
+
             // Esconde todas as seções
             gerenciarImoveisSection.style.display = 'none';
             comodosImovelSection.style.display = 'none';
@@ -443,11 +463,11 @@
                 currentSectionTitle = '📦 Inventário de Objetos';
                 if (window.inicializarInventario) window.inicializarInventario();
 
-            } else { 
+            } else {
                 gerenciarImoveisSection.style.display = 'flex';
-                 if (window.carregarCardsDeImoveis) window.carregarCardsDeImoveis();
+                if (window.carregarCardsDeImoveis) window.carregarCardsDeImoveis();
             }
-            
+
             document.getElementById('main-title').textContent = currentSectionTitle;
             setActiveSidebarLink();
         }
@@ -465,4 +485,5 @@
     </script>
 
 </body>
+
 </html>

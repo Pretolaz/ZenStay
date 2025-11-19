@@ -21,6 +21,7 @@ class Imovel {
         instrucoesChegada
     }) {
         this.codigoInterno = codigoInterno;
+        this.id = codigoInterno;
         this.anfitriaoId = anfitriaoId;
         this.titulo = titulo; // Apelido
         this.nome = nome;
