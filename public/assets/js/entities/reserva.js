@@ -1,5 +1,5 @@
 class Reserva {
-    constructor({ codigoInterno, anfitriaoId, imovelId, plataformaId, hospedes, checkin, checkout, numHospedes, valorTotal, status, observacoes, dataCriacao }) {
+    constructor({ codigoInterno, anfitriaoId, imovelId, plataformaId, hospedes, checkin, checkout, numHospedes, numPets, valorTotal, status, observacoes, dataCriacao }) {
         this.codigoInterno = codigoInterno;
         this.anfitriaoId = anfitriaoId;
         this.imovelId = imovelId;
@@ -8,6 +8,7 @@ class Reserva {
         this.checkin = checkin;
         this.checkout = checkout;
         this.numHospedes = numHospedes;
+        this.numPets = numPets || 0;
         this.valorTotal = valorTotal;
         this.status = status;
         this.observacoes = observacoes;

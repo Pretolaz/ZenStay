@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Zennnn</title>
+    <title>ZenStay | Painel</title>
 
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/home.css">
     <link rel="stylesheet" href="theme/dark.css" id="theme-style">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -17,37 +18,99 @@
 
     <main class="content">
         <header class="header">
-            <button class="menu-toggle" id="header-menu-toggle">☰</button> <!-- Botão de menu hambúrguer no cabeçalho -->
-            <h1>🏨 Painel Principal!</h1>
+            <button class="menu-toggle" id="header-menu-toggle">☰</button>
+            <h1>Painel Principal</h1>
             <button id="toggle-theme">🌓</button>
         </header>
 
-        <section class="dashboard">
-            <div class="card">
-                <h3>🏡 Imóveis</h3>
-                <p>Gerencie seus imóveis cadastrados.</p>
-            </div>
+        <div class="dashboard-container">
+            <section class="welcome-section">
+                <h2>Bem-vindo de volta! 👋</h2>
+                <p>Aqui está o resumo das suas atividades hoje.</p>
+            </section>
 
-            <div class="card">
-                <h3>👨‍👩‍👧 Hóspedes</h3>
-                <p>Veja e edite os hóspedes ativos.</p>
-            </div>
+            <!-- Stats Grid -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🏡</div>
+                    <div class="stat-info">
+                        <h3 id="stat-imoveis">0</h3>
+                        <p>Imóveis</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🔑</div>
+                    <div class="stat-info">
+                        <h3 id="stat-reservas-ativas">0</h3>
+                        <p>Reservas Ativas</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-info">
+                        <h3 id="stat-hospedes">0</h3>
+                        <p>Hóspedes</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-info">
+                        <h3 id="stat-checkins">0</h3>
+                        <p>Próx. Check-ins</p>
+                    </div>
+                </div>
+            </section>
 
-            <div class="card">
-                <h3>🗓️ Reservas</h3>
-                <p>Acompanhe as reservas em andamento.</p>
-            </div>
+            <div class="dashboard-content">
+                <!-- Left Column: Recent Activity -->
+                <section class="activity-section">
+                    <div class="section-title">
+                        <span>🔔</span> Atividades Recentes
+                    </div>
+                    <div class="activity-list" id="activity-list">
+                        <!-- Items injected via JS -->
+                        <div class="empty-state">Carregando...</div>
+                    </div>
+                </section>
 
-            <div class="card">
-                <h3>💸 Financeiro</h3>
-                <p>Controle de ganhos e despesas.</p>
+                <!-- Right Column: Quick Actions -->
+                <section class="quick-actions-section">
+                    <div class="section-title">
+                        <span>⚡</span> Acesso Rápido
+                    </div>
+                    <div class="quick-actions">
+                        <a href="reservas.html" class="action-btn">
+                            <i>📅</i>
+                            <span>Nova Reserva</span>
+                        </a>
+                        <a href="clientes.html" class="action-btn">
+                            <i>👤</i>
+                            <span>Novo Hóspede</span>
+                        </a>
+                        <a href="imoveis.html" class="action-btn">
+                            <i>🏡</i>
+                            <span>Cadastrar Imóvel</span>
+                        </a>
+                        <a href="financeiro.html" class="action-btn">
+                            <i>💰</i>
+                            <span>Ver Financeiro</span>
+                        </a>
+                    </div>
+                </section>
             </div>
-        </section>
+        </div>
     </main>
 
     <!-- Scripts -->
     <script src="assets/js/storage.js"></script>
+    
+    <!-- Entities -->
+    <script src="assets/js/entities/imovel.js"></script>
+    <script src="assets/js/entities/cliente.js"></script>
+    <script src="assets/js/entities/reserva.js"></script>
+    
     <script src="assets/js/main.js"></script>
+    <script src="assets/js/home.js"></script>
 
     <!-- Sidebar dinâmica -->
     <script>
@@ -66,15 +129,13 @@
                     body.classList.toggle('sidebar-open-mobile');
                 }
 
-                // Adiciona listener para o botão de menu hambúrguer na sidebar
                 if (menuToggleButton) {
                     menuToggleButton.addEventListener('click', function(e) {
-                        e.stopPropagation(); // Evita que o clique se propague para o document
+                        e.stopPropagation();
                         toggleSidebar();
                     });
                 }
 
-                // Adiciona listener para o botão de menu hambúrguer no header (para mobile)
                 if (headerMenuToggleButton) {
                     headerMenuToggleButton.addEventListener('click', function(e) {
                         e.stopPropagation();
@@ -82,23 +143,20 @@
                     });
                 }
 
-                // Fecha a sidebar se clicar fora dela (apenas em mobile)
                 document.addEventListener('click', function(e) {
                     if (body.classList.contains('sidebar-open-mobile') && 
-                        !sidebarElement.contains(e.target) && 
-                        !menuToggleButton.contains(e.target) && 
-                        !headerMenuToggleButton.contains(e.target)) {
+                        sidebarElement && !sidebarElement.contains(e.target) && 
+                        (menuToggleButton && !menuToggleButton.contains(e.target)) && 
+                        (headerMenuToggleButton && !headerMenuToggleButton.contains(e.target))) {
                         toggleSidebar();
                     }
                 });
 
-                // Lógica para expandir/recolher submenus e ativar links
                 document.querySelectorAll('.sidebar a').forEach(link => {
                     const href = link.getAttribute('href');
                     const parentLi = link.closest('li');
 
-                    // Handle active state and submenu expansion
-                    if (href === currentPage) {
+                    if (href === currentPage || (currentPage === '' && href === 'index.html')) {
                         link.classList.add('active');
                         const parentSubmenu = link.closest('.submenu');
                         if (parentSubmenu) {
@@ -108,18 +166,10 @@
                                 parentHasSubmenu.classList.add('expanded');
                             }
                         }
-                        
-                        // Prevent default behavior if clicking on the active non-submenu link
-                        if (!parentLi.classList.contains('has-submenu')) {
-                            link.addEventListener('click', function(e) {
-                                e.preventDefault();
-                            });
-                        }
                     } else {
                         link.classList.remove('active');
                     }
 
-                    // Fecha a sidebar em mobile quando um link é clicado (a menos que seja um submenu-toggle)
                     link.addEventListener('click', function() {
                         if (window.innerWidth <= 768 && !this.classList.contains('submenu-toggle')) {
                             body.classList.remove('sidebar-open-mobile');
@@ -127,7 +177,6 @@
                     });
                 });
 
-                // Lógica para expandir/recolher submenus
                 document.querySelectorAll('.submenu-toggle').forEach(item => {
                     item.addEventListener('click', function(e) {
                         e.preventDefault();

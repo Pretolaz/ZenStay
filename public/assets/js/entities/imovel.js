@@ -1,34 +1,69 @@
 class Imovel {
-    constructor({ codigoInterno, anfitriaoId, titulo, tipo, endereco, comodos, capacidade, fotos, status, valorDiaria, observacoes }) {
+    constructor({
+        codigoInterno,
+        anfitriaoId,
+        titulo,
+        nome,
+        tipo,
+        endereco,
+        googleMapsLink,
+        comodos,
+        capacidade,
+        capacidadeAdulto,
+        capacidadeCrianca,
+        aceitaPet,
+        fotos,
+        status,
+        valorDiaria,
+        observacoes,
+        descricao,
+        instrucoesGerais,
+        instrucoesChegada
+    }) {
         this.codigoInterno = codigoInterno;
         this.anfitriaoId = anfitriaoId;
-        this.titulo = titulo; // Apelido ou título descritivo do imóvel
-        this.tipo = tipo; // Ex: Casa, Apartamento, Cabana
-        this.endereco = endereco; // Objeto ou string com o endereço
-        this.comodos = Array.isArray(comodos) ? comodos : []; // Garante que seja um array
-        this.capacidade = capacidade; // Número máximo de hóspedes
-        this.fotos = Array.isArray(fotos) ? fotos : []; // Garante que seja um array
-        this.status = status; // Ex: Disponível, Ocupado, Manutenção
+        this.titulo = titulo; // Apelido
+        this.nome = nome;
+        this.tipo = tipo;
+        this.endereco = endereco;
+        this.googleMapsLink = googleMapsLink;
+        this.comodos = Array.isArray(comodos) ? comodos : [];
+        this.capacidade = capacidade;
+        this.capacidadeAdulto = capacidadeAdulto;
+        this.capacidadeCrianca = capacidadeCrianca;
+        this.aceitaPet = aceitaPet;
+        this.fotos = Array.isArray(fotos) ? fotos : [];
+        this.status = status;
         this.valorDiaria = valorDiaria;
         this.observacoes = observacoes;
+        this.descricao = descricao;
+        this.instrucoesGerais = instrucoesGerais;
+        this.instrucoesChegada = instrucoesChegada;
     }
 
     static listarTodos() {
         const storage = new Storage('imoveis');
         const imoveisData = storage.getAll();
-        // Mapeia os dados do localStorage para o novo formato, garantindo compatibilidade
         return imoveisData.map(data => new Imovel({
             codigoInterno: data.codigoInterno || data.id,
             anfitriaoId: data.anfitriaoId,
             titulo: data.titulo || data.apelido,
+            nome: data.nome,
             tipo: data.tipo,
             endereco: data.endereco || data.localizacao,
+            googleMapsLink: data.googleMapsLink,
             comodos: data.comodos || [],
             capacidade: data.capacidade || data.capacidadeMaxima,
-            fotos: data.fotos || (data.foto ? [data.foto] : []), // Transforma 'foto' em 'fotos' se necessário
+            capacidadeAdulto: data.capacidadeAdulto,
+            capacidadeCrianca: data.capacidadeCrianca,
+            aceitaPet: data.aceitaPet,
+            fotos: data.fotos || (data.foto ? [data.foto] : []),
             status: data.status || data.situacao,
             valorDiaria: data.valorDiaria,
-            observacoes: data.observacoes
+            observacoes: data.observacoes,
+            descricao: data.descricao,
+            instrucoesGerais: data.instrucoesGerais,
+            instrucoesChegada: data.instrucoesChegada
         }));
     }
 
@@ -41,6 +76,9 @@ class Imovel {
             localStorage.setItem('nextImovelId', String(nextId + 1));
         }
 
+        // Ensure id is also saved for compatibility
+        imovelData.id = imovelData.codigoInterno;
+
         storage.save(imovelData);
     }
 
@@ -52,14 +90,22 @@ class Imovel {
                 codigoInterno: data.codigoInterno || data.id,
                 anfitriaoId: data.anfitriaoId,
                 titulo: data.titulo || data.apelido,
+                nome: data.nome,
                 tipo: data.tipo,
                 endereco: data.endereco || data.localizacao,
+                googleMapsLink: data.googleMapsLink,
                 comodos: data.comodos || [],
                 capacidade: data.capacidade || data.capacidadeMaxima,
-                fotos: data.fotos || (data.foto ? [data.foto] : []), 
+                capacidadeAdulto: data.capacidadeAdulto,
+                capacidadeCrianca: data.capacidadeCrianca,
+                aceitaPet: data.aceitaPet,
+                fotos: data.fotos || (data.foto ? [data.foto] : []),
                 status: data.status || data.situacao,
                 valorDiaria: data.valorDiaria,
-                observacoes: data.observacoes
+                observacoes: data.observacoes,
+                descricao: data.descricao,
+                instrucoesGerais: data.instrucoesGerais,
+                instrucoesChegada: data.instrucoesChegada
             });
         }
         return null;

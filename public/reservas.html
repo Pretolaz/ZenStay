@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -48,99 +49,123 @@
         </section>
 
         <!-- Wizard de Criação de Reserva (Modal Container) -->
-        <div id="reservation-wizard-modal" class="reservation-wizard-modal" style="display: none;">
-            <section class="reservation-wizard" id="reservation-wizard">
-                <div class="wizard-column wizard-summary">
-                    <h2 class="wizard-header wizard-title">Resumo da Reserva</h2>
-                    <div id="wizard-summary-content">
-                        <div class="summary-item">
-                            <label>Imóvel:</label>
-                            <span id="summary-imovel">- Nenhum selecionado -</span>
+        <div id="reservation-wizard-modal" class="wizard-modal-overlay" style="display: none;">
+            <div class="wizard-container">
+                <!-- Painel Esquerdo: Resumo -->
+                <aside class="wizard-summary-panel">
+                    <div class="summary-header">
+                        <h3>Resumo da Reserva</h3>
+                        <p>Acompanhe os detalhes</p>
+                    </div>
+                    <div class="summary-content" id="wizard-summary-content">
+                        <div class="summary-group">
+                            <label>Imóvel Selecionado</label>
+                            <div id="summary-imovel" class="summary-value">- Selecione -</div>
                         </div>
-                        <div class="summary-item">
-                            <label>Hóspedes:</label>
-                            <ul id="summary-hospedes">
-                                <li>- Nenhum selecionado -</li>
+
+                        <div class="summary-group">
+                            <label>Hóspedes</label>
+                            <ul id="summary-hospedes" class="summary-list">
+                                <li>- Selecione -</li>
                             </ul>
                         </div>
-                        <div class="summary-item">
-                            <label>Pets:</label>
-                            <span id="summary-pets">- Não informado -</span>
+
+                        <div class="summary-group">
+                            <label>Pets</label>
+                            <div id="summary-pets" class="summary-value">Não</div>
                         </div>
-                        <div class="summary-item">
-                            <label>Período:</label>
-                            <span id="summary-periodo">- Não informado -</span>
-                        </div>
-                        <div class="summary-item">
-                            <label>Diárias:</label>
-                            <span id="summary-diarias">- 0 -</span>
+
+                        <div class="summary-group">
+                            <label>Período</label>
+                            <div id="summary-periodo" class="summary-value">- Defina as datas -</div>
                         </div>
                     </div>
-                </div>
+                    <div class="summary-footer">
+                        <div class="summary-stat">
+                            <span>Diárias</span>
+                            <strong id="summary-diarias">0</strong>
+                        </div>
+                    </div>
+                </aside>
 
-                <div class="wizard-column wizard-action">
-                    <h2 class="wizard-header wizard-title" id="wizard-step-title">Etapa 1: Seleção do Imóvel</h2>
-                    <div class="wizard-step-content" id="wizard-step-content">
-                        <!-- Conteúdo da Etapa 1: Seleção do Imóvel -->
-                        <div id="step-1" class="wizard-step">
-                            <div id="property-list-alert-container"></div>
-                            <div class="property-card-list" id="wizard-property-list">
-                                <!-- Cards de imóveis serão carregados aqui via JS -->
+                <!-- Painel Direito: Conteúdo e Passos -->
+                <main class="wizard-main-content">
+                    <header class="wizard-header">
+                        <div class="step-indicator">
+                            <div class="step-item active" data-step="1">
+                                <span class="step-number">1</span>
+                                <span class="step-label">Imóvel</span>
+                            </div>
+                            <div class="step-line"></div>
+                            <div class="step-item" data-step="2">
+                                <span class="step-number">2</span>
+                                <span class="step-label">Detalhes</span>
+                            </div>
+                        </div>
+                        <button class="close-wizard-btn" id="close-wizard-btn" title="Fechar">&times;</button>
+                    </header>
+
+                    <div class="wizard-body">
+                        <!-- Etapa 1: Seleção de Imóvel -->
+                        <div id="step-1" class="wizard-step active">
+                            <h2 class="step-title">Escolha o Imóvel</h2>
+                            <p class="step-subtitle">Selecione onde o hóspede irá ficar.</p>
+                            <div class="property-grid" id="wizard-property-list">
+                                <!-- Cards injetados via JS -->
                             </div>
                         </div>
 
-                        <!-- Conteúdo da Etapa 2: Seleção de Hóspedes e Pets -->
+                        <!-- Etapa 2: Detalhes da Reserva -->
                         <div id="step-2" class="wizard-step" style="display: none;">
-                            <div id="guest-selection-alert-container"></div>
-                            <div class="guest-selection">
-                                <h3>Selecione os Hóspedes</h3>
-                                <div class="guest-search-container">
-                                    <input type="text" id="wizard-hospede-search-input" placeholder="Pesquisar hóspedes por nome ou telefone...">
-                                    <button id="add-new-guest-btn" class="btn">➕ Novo Hóspede</button>
-                                </div>
-                                <div class="guest-list" id="wizard-hospedes-list">
-                                    <!-- Hóspedes serão carregados aqui -->
-                                </div>
-                            </div>
-                            <div class="pet-selection">
-                                <h3>Haverá Pets?</h3>
-                                <div class="pet-slider-container">
-                                    <label for="has-pets-slider">Sim/Não:</label>
-                                    <label class="switch">
-                                        <input type="checkbox" id="has-pets-slider">
-                                        <span class="slider round"></span>
-                                    </label>
-                                    <span id="has-pets-status">Não</span>
-                                </div>
-                            </div>
-                        </div>
+                            <h2 class="step-title">Detalhes da Estadia</h2>
+                            <p class="step-subtitle">Defina hóspedes, datas e pets.</p>
 
-                        <!-- Conteúdo da Etapa 3: Seleção de Período (Datas) -->
-                        <div id="step-3" class="wizard-step" style="display: none;">
-                            <div id="date-selection-alert-container"></div>
-                            <h3>Selecione o Período da Reserva</h3>
-                            <div class="date-selection-container">
-                                <div class="date-input-group">
-                                    <label for="checkin-date">Data de Entrada:</label>
-                                    <input type="date" id="checkin-date">
+                            <div class="form-section">
+                                <h3>Hóspedes</h3>
+                                <div class="guest-selection-wrapper">
+                                    <input type="text" id="wizard-hospede-search-input" class="modern-input"
+                                        placeholder="Buscar hóspede...">
+                                    <div id="wizard-hospedes-list" class="guest-list-container">
+                                        <!-- Lista de hóspedes injetada via JS -->
+                                    </div>
                                 </div>
-                                <div class="date-input-group">
-                                    <label for="checkout-date">Data de Saída:</label>
-                                    <input type="date" id="checkout-date">
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="checkin-date">Check-in</label>
+                                    <input type="date" id="checkin-date" class="modern-input">
                                 </div>
-                                <div class="date-calculation">
-                                    Diárias Calculadas: <strong id="calculated-nights">0</strong>
+                                <div class="form-group">
+                                    <label for="checkout-date">Check-out</label>
+                                    <input type="date" id="checkout-date" class="modern-input">
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h3>Pets</h3>
+                                <div class="pet-slider-wrapper">
+                                    <div class="slider-header">
+                                        <span>Quantidade de Pets</span>
+                                        <span id="num-pets-display" class="highlight-badge">0</span>
+                                    </div>
+                                    <input type="range" id="num-pets-slider" min="0" max="5" value="0"
+                                        class="modern-range">
+                                    <div class="slider-labels">
+                                        <span>0</span>
+                                        <span>5</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="wizard-navigation">
-                        <button class="btn prev" id="wizard-prev-btn" style="display: none;">Anterior</button>
-                        <button class="btn next" id="wizard-next-btn">Próximo</button>
-                    </div>
-                </div>
-            </section>
+                    <footer class="wizard-footer">
+                        <button id="wizard-prev-btn" class="btn btn-ghost" style="display: none;">Voltar</button>
+                        <button id="wizard-next-btn" class="btn btn-primary">Continuar</button>
+                    </footer>
+                </main>
+            </div>
         </div>
     </main>
 
@@ -158,7 +183,7 @@
     <!-- Sidebar dinâmica -->
     <script>
         const body = document.body;
-        
+
         const setActiveSidebarLink = () => {
             const path = window.location.pathname.split("/").pop();
             const hash = window.location.hash;
@@ -186,7 +211,7 @@
             .then(res => res.text())
             .then(html => {
                 document.getElementById("sidebar").innerHTML = html;
-                
+
                 const sidebarElement = document.querySelector('.sidebar');
                 const menuToggleButton = document.getElementById('menu-toggle');
                 const headerMenuToggleButton = document.getElementById('header-menu-toggle');
@@ -196,30 +221,30 @@
                 }
 
                 if (menuToggleButton) {
-                    menuToggleButton.addEventListener('click', function(e) {
-                        e.stopPropagation(); 
-                        toggleSidebar();
-                    });
-                }
-
-                if (headerMenuToggleButton) {
-                    headerMenuToggleButton.addEventListener('click', function(e) {
+                    menuToggleButton.addEventListener('click', function (e) {
                         e.stopPropagation();
                         toggleSidebar();
                     });
                 }
 
-                document.addEventListener('click', function(e) {
-                    if (body.classList.contains('sidebar-open-mobile') && 
-                        sidebarElement && !sidebarElement.contains(e.target) && 
-                        (menuToggleButton && !menuToggleButton.contains(e.target)) && 
+                if (headerMenuToggleButton) {
+                    headerMenuToggleButton.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        toggleSidebar();
+                    });
+                }
+
+                document.addEventListener('click', function (e) {
+                    if (body.classList.contains('sidebar-open-mobile') &&
+                        sidebarElement && !sidebarElement.contains(e.target) &&
+                        (menuToggleButton && !menuToggleButton.contains(e.target)) &&
                         (headerMenuToggleButton && !headerMenuToggleButton.contains(e.target))) {
                         toggleSidebar();
                     }
                 });
 
                 document.querySelectorAll('.sidebar a').forEach(link => {
-                    link.addEventListener('click', function() {
+                    link.addEventListener('click', function () {
                         if (window.innerWidth <= 768 && !this.classList.contains('submenu-toggle')) {
                             body.classList.remove('sidebar-open-mobile');
                         }
@@ -227,7 +252,7 @@
                 });
 
                 document.querySelectorAll('.submenu-toggle').forEach(item => {
-                    item.addEventListener('click', function(e) {
+                    item.addEventListener('click', function (e) {
                         e.preventDefault();
                         const parentLi = this.closest('.has-submenu');
                         parentLi.classList.toggle('expanded');
@@ -241,7 +266,7 @@
                 setActiveSidebarLink();
             })
             .catch(err => console.error("Erro ao carregar sidebar: ", err));
-        
+
         window.addEventListener('resize', () => {
             if (window.innerWidth > 768 && body.classList.contains('sidebar-open-mobile')) {
                 body.classList.remove('sidebar-open-mobile');
@@ -249,4 +274,5 @@
         });
     </script>
 </body>
+
 </html>

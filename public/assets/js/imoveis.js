@@ -6,7 +6,7 @@ const formImovelContainer = document.getElementById('formImovelContainer');
 const formImovel = document.getElementById('formImovel');
 const imoveisCardsContainer = document.getElementById('imoveisCardsContainer');
 const fotoImovelInput = document.getElementById('fotoImovel');
-const previewFotoImovel = document.getElementById('previewFotoImovel'); 
+const previewFotoImovel = document.getElementById('previewFotoImovel');
 
 const imovelModal = document.getElementById('imovelModal');
 const modalImovelApelido = document.getElementById('modalImovelApelido');
@@ -14,12 +14,12 @@ const modalImovelFoto = document.getElementById('modalImovelFoto');
 const modalImovelNome = document.getElementById('modalImovelNome');
 const modalImovelEndereco = document.getElementById('modalImovelEndereco');
 const modalImovelDescricao = document.getElementById('modalImovelDescricao');
-const modalImovelSituacao = document.getElementById('modalImovelSituacao'); 
+const modalImovelSituacao = document.getElementById('modalImovelSituacao');
 const modalImovelMoveis = document.getElementById('modalImovelMoveis');
 const modalImovelUtensilios = document.getElementById('modalImovelUtensilios');
 
 let currentEditingImovel = null;
-let fotoImovelURL = ''; 
+let fotoImovelURL = '';
 
 // Funções auxiliares
 function mostrarFormulario() {
@@ -53,7 +53,7 @@ function fecharModal() {
 
 // Lógica para mostrar/ocultar o formulário
 adicionarImovelBtn.addEventListener('click', () => {
-    limparFormulario(); 
+    limparFormulario();
     mostrarFormulario();
     document.getElementById('formImovel').querySelector('button[type="submit"]').textContent = '💾 Salvar Imóvel';
 });
@@ -95,7 +95,10 @@ function carregarImoveis() {
 
         let situacaoClass = '';
         let situacaoIcon = '';
-        switch (imovel.situacao) {
+        // Use imovel.status instead of imovel.situacao if mapped, but let's support both or use the class property
+        const status = imovel.status || imovel.situacao;
+
+        switch (status) {
             case 'Liberado':
                 situacaoClass = 'situacao-liberado';
                 situacaoIcon = '✅';
@@ -127,11 +130,11 @@ function carregarImoveis() {
         const { totalMoveis, totalUtensilios } = calcularInventario(imovel);
 
         card.innerHTML = `
-            <h3 class="imovel-card-apelido">${imovel.apelido}</h3>
-            <img src="${fotoSrc}" alt="${imovel.apelido}" class="imovel-card-mini-foto">
+            <h3 class="imovel-card-apelido">${imovel.titulo}</h3>
+            <img src="${fotoSrc}" alt="${imovel.titulo}" class="imovel-card-mini-foto">
             <div class="imovel-card-content">
                 <div class="situacao-info ${situacaoClass}">
-                    <span>${situacaoIcon} ${imovel.situacao}</span>
+                    <span>${situacaoIcon} ${status}</span>
                 </div>
                 <p>Móveis: ${totalMoveis}</p>
                 <p>Utensílios: ${totalUtensilios}</p>
@@ -149,13 +152,13 @@ function carregarImoveis() {
 // Lógica para abrir o modal de visualização
 function abrirModal(imovel) {
     currentEditingImovel = imovel;
-    modalImovelApelido.textContent = imovel.apelido;
-    modalImovelFoto.src = (imovel.fotos && imovel.fotos.length > 0) ? imovel.fotos[0] : 'https://placehold.co/600x400?text=Sem+Foto'; 
-    modalImovelNome.textContent = `Nome: ${imovel.nome}`;
-    modalImovelEndereco.textContent = `Endereço: ${imovel.endereco}`;
-    modalImovelDescricao.textContent = `Descrição: ${imovel.descricao}`;
-    modalImovelSituacao.textContent = `Situação: ${imovel.situacao}`; 
-    
+    modalImovelApelido.textContent = imovel.titulo;
+    modalImovelFoto.src = (imovel.fotos && imovel.fotos.length > 0) ? imovel.fotos[0] : 'https://placehold.co/600x400?text=Sem+Foto';
+    modalImovelNome.textContent = `Nome: ${imovel.nome || ''}`;
+    modalImovelEndereco.textContent = `Endereço: ${imovel.endereco || ''}`;
+    modalImovelDescricao.textContent = `Descrição: ${imovel.descricao || ''}`;
+    modalImovelSituacao.textContent = `Situação: ${imovel.status || ''}`;
+
     const { totalMoveis, totalUtensilios } = calcularInventario(imovel);
     modalImovelMoveis.textContent = `Móveis: ${totalMoveis}`;
     modalImovelUtensilios.textContent = `Utensílios: ${totalUtensilios}`;
@@ -168,14 +171,19 @@ function editarImovelModal() {
     if (currentEditingImovel) {
         mostrarFormulario();
         const imovel = currentEditingImovel;
-        document.getElementById('imovelId').value = imovel.codigo;
-        document.getElementById('apelido').value = imovel.apelido;
-        document.getElementById('situacao').value = imovel.situacao;
-        document.getElementById('nome').value = imovel.nome;
-        document.getElementById('descricao').value = imovel.descricao;
-        document.getElementById('endereco').value = imovel.endereco;
-        document.getElementById('googleMapsLink').value = imovel.googleMapsLink;
-        document.getElementById('instrucoesChegada').value = imovel.instrucoesChegada;
+        document.getElementById('imovelId').value = imovel.codigoInterno;
+        document.getElementById('apelido').value = imovel.titulo;
+        document.getElementById('situacao').value = imovel.status;
+        document.getElementById('nome').value = imovel.nome || '';
+        document.getElementById('descricao').value = imovel.descricao || '';
+        document.getElementById('endereco').value = imovel.endereco || '';
+        document.getElementById('googleMapsLink').value = imovel.googleMapsLink || '';
+        document.getElementById('instrucoesChegada').value = imovel.instrucoesChegada || '';
+        document.getElementById('instrucoesGerais').value = imovel.instrucoesGerais || '';
+        document.getElementById('capacidadeAdulto').value = imovel.capacidadeAdulto || '';
+        document.getElementById('capacidadeCrianca').value = imovel.capacidadeCrianca || '';
+        document.getElementById('aceitaPet').checked = imovel.aceitaPet || false;
+
         fotoImovelURL = (imovel.fotos && imovel.fotos.length > 0) ? imovel.fotos[0] : '';
         if (previewFotoImovel) {
             previewFotoImovel.src = fotoImovelURL;
@@ -192,8 +200,8 @@ function excluirImovelModal() {
         if (confirm('Tem certeza que deseja excluir este imóvel? (1/3)')) {
             if (confirm('Esta ação é irreversível. Confirmar exclusão? (2/3)')) {
                 if (confirm('Última chance! Deseja realmente excluir este imóvel? (3/3)')) {
-                    const imovel = new Imovel(currentEditingImovel.codigo);
-                    imovel.excluir();
+                    // FIX: Use static method directly
+                    Imovel.excluir(currentEditingImovel.codigoInterno);
                     fecharModal();
                     carregarImoveis();
                 }
@@ -214,47 +222,40 @@ function salvarImovel(e) {
     const endereco = document.getElementById('endereco').value;
     const googleMapsLink = document.getElementById('googleMapsLink').value;
     const instrucoesChegada = document.getElementById('instrucoesChegada').value;
+    const instrucoesGerais = document.getElementById('instrucoesGerais').value;
+    const capacidadeAdulto = document.getElementById('capacidadeAdulto').value;
+    const capacidadeCrianca = document.getElementById('capacidadeCrianca').value;
+    const aceitaPet = document.getElementById('aceitaPet').checked;
 
-    let imovel;
-    if (imovelId) {
-        imovel = new Imovel(
-            parseInt(imovelId),
-            apelido,
-            situacao,
-            nome,
-            descricao,
-            endereco,
-            googleMapsLink,
-            instrucoesChegada,
-            fotoImovelURL,
-            currentEditingImovel ? currentEditingImovel.comodos : [] 
-        );
-    } else {
-        imovel = new Imovel(
-            null,
-            apelido,
-            situacao,
-            nome,
-            descricao,
-            endereco,
-            googleMapsLink,
-            instrucoesChegada,
-            fotoImovelURL
-        );
-    }
+    const imovelData = {
+        codigoInterno: imovelId ? parseInt(imovelId) : null,
+        titulo: apelido,
+        status: situacao,
+        nome: nome,
+        descricao: descricao,
+        endereco: endereco,
+        googleMapsLink: googleMapsLink,
+        instrucoesChegada: instrucoesChegada,
+        instrucoesGerais: instrucoesGerais,
+        capacidadeAdulto: parseInt(capacidadeAdulto) || 0,
+        capacidadeCrianca: parseInt(capacidadeCrianca) || 0,
+        aceitaPet: aceitaPet,
+        fotos: fotoImovelURL ? [fotoImovelURL] : [],
+        comodos: currentEditingImovel ? currentEditingImovel.comodos : []
+    };
 
-    imovel.salvar();
+    Imovel.salvar(imovelData);
     ocultarFormulario();
     carregarImoveis();
 }
 
 // Lógica para lidar com o upload da foto e pré-visualização
-fotoImovelInput.addEventListener('change', function() {
+fotoImovelInput.addEventListener('change', function () {
     const file = fotoImovelInput.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = function(e) {
-            fotoImovelURL = e.target.result; 
+        reader.onload = function (e) {
+            fotoImovelURL = e.target.result;
             if (previewFotoImovel) {
                 previewFotoImovel.src = fotoImovelURL;
                 previewFotoImovel.style.display = 'block';
