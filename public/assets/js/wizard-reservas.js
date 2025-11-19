@@ -381,6 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const newReserva = {
+            // Não incluir ID aqui para garantir que o Storage crie um novo
             imovelId: reservaState.imovelId,
             hospedes: reservaState.hospedesIds,
             checkin: reservaState.checkin,
@@ -462,11 +463,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Expor função de deletar globalmente para o onclick funcionar
         window.deleteReserva = function (id) {
             if (confirm('Tem certeza que deseja excluir esta reserva?')) {
+                // Tenta converter para número se o ID original for numérico, mas mantém string se não for
+                // O Storage usa ==, então a conversão não é estritamente necessária, mas é boa prática se os IDs forem números
+                const idParaExcluir = isNaN(id) ? id : Number(id);
+
                 // Verifica se existe o método excluir (novo padrão) ou deletar (antigo/erro)
                 if (typeof Reserva.excluir === 'function') {
-                    Reserva.excluir(id);
+                    Reserva.excluir(idParaExcluir);
                 } else if (typeof Reserva.deletar === 'function') {
-                    Reserva.deletar(id);
+                    Reserva.deletar(idParaExcluir);
                 } else {
                     console.error("Método de exclusão não encontrado na classe Reserva.");
                     alert("Erro ao excluir: método não encontrado.");
