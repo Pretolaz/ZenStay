@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,7 +19,8 @@
 
     <main class="content">
         <header class="header">
-            <button class="menu-toggle" id="header-menu-toggle">☰</button> <!-- Botão de menu hambúrguer no cabeçalho -->
+            <button class="menu-toggle" id="header-menu-toggle">☰</button>
+            <!-- Botão de menu hambúrguer no cabeçalho -->
             <h1>👨‍👩‍👧 Gerenciar Hóspedes</h1>
             <button id="toggle-theme">🌓</button>
         </header>
@@ -117,7 +119,8 @@
                     </div>
                     <div class="input-group" style="margin-left: 10px; max-width: 250px;">
                         <span>Ordenar por:</span>
-                        <select id="ordenacaoClientes" style="flex: 1; border: none; background: transparent; color: var(--text);">
+                        <select id="ordenacaoClientes"
+                            style="flex: 1; border: none; background: transparent; color: var(--text);">
                             <option value="idDesc" selected>Cód. Interno (Recente)</option>
                             <option value="idAsc">Cód. Interno (Antigo)</option>
                             <option value="nomeAsc">Nome (A-Z)</option>
@@ -149,7 +152,7 @@
     <!-- Scripts -->
     <script src="assets/js/storage.js"></script>
     <script src="assets/js/main.js"></script>
-    <script src="assets/js/entities/cliente.js"></script> 
+    <script type="module" src="assets/js/entities/cliente.js"></script>
 
     <!-- Sidebar dinâmica -->
     <script>
@@ -157,7 +160,7 @@
             .then(res => res.text())
             .then(html => {
                 document.getElementById("sidebar").innerHTML = html;
-                
+
                 const currentPage = window.location.pathname.split('/').pop();
                 const body = document.body;
                 const sidebarElement = document.querySelector('.sidebar');
@@ -169,23 +172,23 @@
                 }
 
                 if (menuToggleButton) {
-                    menuToggleButton.addEventListener('click', function(e) {
-                        e.stopPropagation(); 
-                        toggleSidebar();
-                    });
-                }
-
-                if (headerMenuToggleButton) {
-                    headerMenuToggleButton.addEventListener('click', function(e) {
+                    menuToggleButton.addEventListener('click', function (e) {
                         e.stopPropagation();
                         toggleSidebar();
                     });
                 }
 
-                document.addEventListener('click', function(e) {
-                    if (body.classList.contains('sidebar-open-mobile') && 
-                        !sidebarElement.contains(e.target) && 
-                        (menuToggleButton && !menuToggleButton.contains(e.target)) && 
+                if (headerMenuToggleButton) {
+                    headerMenuToggleButton.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        toggleSidebar();
+                    });
+                }
+
+                document.addEventListener('click', function (e) {
+                    if (body.classList.contains('sidebar-open-mobile') &&
+                        !sidebarElement.contains(e.target) &&
+                        (menuToggleButton && !menuToggleButton.contains(e.target)) &&
                         (headerMenuToggleButton && !headerMenuToggleButton.contains(e.target))) {
                         toggleSidebar();
                     }
@@ -205,7 +208,7 @@
                             }
                         }
                     }
-                    link.addEventListener('click', function() {
+                    link.addEventListener('click', function () {
                         if (window.innerWidth <= 768 && !this.classList.contains('submenu-toggle')) {
                             body.classList.remove('sidebar-open-mobile');
                         }
@@ -213,7 +216,7 @@
                 });
 
                 document.querySelectorAll('.submenu-toggle').forEach(item => {
-                    item.addEventListener('click', function(e) {
+                    item.addEventListener('click', function (e) {
                         e.preventDefault();
                         const parentLi = this.closest('.has-submenu');
                         parentLi.classList.toggle('expanded');
@@ -274,10 +277,10 @@
             return new Date(dataString).toLocaleString('pt-BR', options);
         }
 
-        function carregarClientes() {
+        async function carregarClientes() {
             const termoBusca = filtroBuscaInput.value.toLowerCase();
             const tipoOrdenacao = ordenacaoClientesSelect.value;
-            let todosClientes = Cliente.listarTodos();
+            let todosClientes = await Cliente.listarTodos();
 
             // 1. Filtrar
             const clientesFiltrados = todosClientes.filter(cli => {
@@ -292,7 +295,7 @@
                 const key = match[1];
                 const direction = match[2];
                 const order = direction === 'Asc' ? 1 : -1;
-                
+
                 const valA = key === 'nome' ? a[key].toLowerCase() : a[key];
                 const valB = key === 'nome' ? b[key].toLowerCase() : b[key];
 
@@ -334,20 +337,20 @@
             setTimeout(() => alerta.style.display = 'none', 4000);
         }
 
-        function salvarCliente(e) {
+        async function salvarCliente(e) {
             e.preventDefault();
             let clienteData = { id: document.getElementById('clienteId').value ? parseInt(document.getElementById('clienteId').value) : null };
             campos.forEach(c => clienteData[c] = document.getElementById(c).value);
 
-            const todosClientes = Cliente.listarTodos();
+            const todosClientes = await Cliente.listarTodos();
             const isEditing = !!clienteData.id;
 
-            const duplicadoTel = todosClientes.find(c => 
-                c.telefone === clienteData.telefone && 
+            const duplicadoTel = todosClientes.find(c =>
+                c.telefone === clienteData.telefone &&
                 c.codPais === clienteData.codPais &&
                 c.id !== clienteData.id
             );
-            const duplicadoPlataforma = clienteData.codigoPlataforma && todosClientes.find(c => 
+            const duplicadoPlataforma = clienteData.codigoPlataforma && todosClientes.find(c =>
                 c.codigoPlataforma === clienteData.codigoPlataforma &&
                 c.id !== clienteData.id
             );
@@ -361,13 +364,17 @@
                 return;
             }
 
-            Cliente.salvar(clienteData);
-            resetAndToggleForm();
-            carregarClientes();
+            try {
+                await Cliente.salvar(clienteData);
+                resetAndToggleForm();
+                await carregarClientes();
+            } catch (error) {
+                mostrarAlerta("Erro ao salvar cliente: " + error.message);
+            }
         }
 
-        function editarCliente(id) {
-            const cli = Cliente.buscarPorId(id);
+        async function editarCliente(id) {
+            const cli = await Cliente.buscarPorId(id);
             if (cli) {
                 campos.forEach(c => {
                     const element = document.getElementById(c);
@@ -377,20 +384,20 @@
                 document.getElementById('codigoInterno').value = cli.id;
                 document.getElementById('dataCadastro').value = cli.dataCadastro ? formatarData(cli.dataCadastro) : '';
                 atualizarBandeira(cli.codPais);
-                
+
                 cadastroClienteCard.style.display = 'block';
                 btnToggleForm.textContent = '✖️ Fechar Formulário';
                 window.scrollTo(0, 0);
             }
         }
 
-        function excluirCliente(id) {
+        async function excluirCliente(id) {
             if (confirm('Excluir este hóspede?')) {
-                Cliente.excluir(id);
-                carregarClientes();
+                await Cliente.excluir(id);
+                await carregarClientes();
             }
         }
-        
+
         function resetAndToggleForm() {
             const isFormVisible = cadastroClienteCard.style.display === 'block';
             if (!isFormVisible) {
@@ -418,4 +425,5 @@
         window.addEventListener('DOMContentLoaded', carregarClientes);
     </script>
 </body>
+
 </html>
