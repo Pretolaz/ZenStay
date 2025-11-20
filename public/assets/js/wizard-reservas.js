@@ -1,22 +1,10 @@
-import { Reserva } from './entities/reserva.js';
-import { Imovel } from './entities/imovel.js';
-import { Cliente } from './entities/cliente.js';
-import { Toast } from './toast.js'; // Assuming Toast is available as a module or global. If not, we might need to adjust. 
-// Actually, Toast seems to be global from toast.js script tag in other files. 
-// But since we are moving to modules, we should check if Toast is exported.
-// Looking at file list, toast.js exists. Let's assume it's global for now or check.
-// If toast.js is not a module, we can't import it easily unless we change it too.
-// For now, I'll assume Toast is global (window.Toast) or I'll use alert/console if Toast is not available, 
-// but the user asked for Toast in previous turns.
-// Let's just use window.Toast if available.
-
 document.addEventListener('DOMContentLoaded', () => {
     // -----
     // Elementos do DOM
     // -----
     const startWizardBtn = document.getElementById('start-reservation-wizard-btn');
     const wizardModal = document.getElementById('reservation-wizard-modal');
-    const closeWizardBtn = document.getElementById('close-wizard-btn'); // Novo botão de fechar
+    const closeWizardBtn = document.getElementById('close-wizard-btn');
     const prevBtn = document.getElementById('wizard-prev-btn');
     const nextBtn = document.getElementById('wizard-next-btn');
 
@@ -76,17 +64,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // -----
 
     async function loadInitialData() {
-        try {
-            imoveis = await Imovel.listarTodos();
-            clientes = await Cliente.listarTodos();
-
-            // Carregar tabela de reservas inicial
-            await loadReservasTableLocal();
-        } catch (error) {
-            console.error("Erro ao carregar dados iniciais:", error);
-            if (window.Toast) window.Toast.error("Erro ao carregar dados.");
+        // Adiciona um 'await' e assume que as outras classes também serão assíncronas
+        if (typeof Imovel !== 'undefined' && typeof Imovel.listarTodos === 'function') {
+            // Mocking async behavior for Imovel and Cliente if they are not async yet
+            imoveis = await (Imovel.listarTodos().then ? Imovel.listarTodos() : Promise.resolve(Imovel.listarTodos()));
         }
+        if (typeof Cliente !== 'undefined' && typeof Cliente.listarTodos === 'function') {
+            clientes = await (Cliente.listarTodos().then ? Cliente.listarTodos() : Promise.resolve(Cliente.listarTodos()));
+        }
+
+        // A função de carregar a tabela agora é assíncrona
+        await loadReservasTableLocal();
     }
+
 
     function initializeWizard() {
         loadPropertiesStep();
@@ -106,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         imoveis.forEach(imovel => {
             const card = document.createElement('div');
             card.className = 'property-card';
-            card.dataset.imovelId = imovel.id; // or imovel.codigoInterno
+            card.dataset.imovelId = imovel.id;
 
             const fotoUrl = (imovel.fotos && imovel.fotos.length > 0) ? imovel.fotos[0] : 'assets/img/placeholder.jpg';
 
@@ -117,9 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="font-size: 0.85rem; color: #666; margin-top: 5px;">${imovel.cidade || ''} - ${imovel.estado || ''}</div>
                 </div>
             `;
-            // Use codigoInterno/id consistently
-            const idToUse = imovel.codigoInterno || imovel.id;
-            card.addEventListener('click', () => handlePropertySelection(idToUse, card));
+            card.addEventListener('click', () => handlePropertySelection(imovel.id, card));
             propertyListContainer.appendChild(card);
         });
     }
@@ -141,7 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const item = document.createElement('div');
             item.className = 'guest-list-item';
 
-            // Verifica se já está selecionado
             const isChecked = reservaState.hospedesIds.includes(String(cliente.id)) ? 'checked' : '';
 
             item.innerHTML = `
@@ -160,43 +147,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // -----
 
     function setupEventListeners() {
-        if (startWizardBtn) {
-            startWizardBtn.addEventListener('click', openWizard);
-        }
-
-        if (closeWizardBtn) {
-            closeWizardBtn.addEventListener('click', closeWizard);
-        }
-
-        if (wizardModal) {
-            wizardModal.addEventListener('click', (e) => {
-                if (e.target === wizardModal) { // Fechar apenas no clique do fundo (overlay)
-                    closeWizard();
-                }
-            });
-        }
-
-        if (closeDetailsBtn) {
-            closeDetailsBtn.addEventListener('click', closeReservationDetails);
-        }
-
-        if (detailsModal) {
-            detailsModal.addEventListener('click', (e) => {
-                if (e.target === detailsModal) {
-                    closeReservationDetails();
-                }
-            });
-        }
-
+        if (startWizardBtn) startWizardBtn.addEventListener('click', openWizard);
+        if (closeWizardBtn) closeWizardBtn.addEventListener('click', closeWizard);
+        if (wizardModal) wizardModal.addEventListener('click', (e) => { if (e.target === wizardModal) closeWizard(); });
+        if (closeDetailsBtn) closeDetailsBtn.addEventListener('click', closeReservationDetails);
+        if (detailsModal) detailsModal.addEventListener('click', (e) => { if (e.target === detailsModal) closeReservationDetails(); });
         if (prevBtn) prevBtn.addEventListener('click', goToPrevStep);
         if (nextBtn) nextBtn.addEventListener('click', goToNextStep);
-
-        if (numPetsSlider) {
-            numPetsSlider.addEventListener('input', handlePetSelection);
-        }
+        if (numPetsSlider) numPetsSlider.addEventListener('input', handlePetSelection);
         if (checkinInput) checkinInput.addEventListener('change', handleDateSelection);
         if (checkoutInput) checkoutInput.addEventListener('change', handleDateSelection);
-
         if (guestSearchInput) {
             guestSearchInput.addEventListener('input', (e) => {
                 const term = e.target.value.toLowerCase();
@@ -214,16 +174,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleGuestSelection() {
-        reservaState.hospedesIds = [];
-        guestListContainer.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
-            reservaState.hospedesIds.push(checkbox.dataset.guestId);
-        });
+        reservaState.hospedesIds = Array.from(guestListContainer.querySelectorAll('input[type="checkbox"]:checked'))
+            .map(cb => cb.dataset.guestId);
         updateSummary();
     }
 
     function handlePetSelection() {
         reservaState.numPets = parseInt(numPetsSlider.value);
-        numPetsDisplay.textContent = reservaState.numPets;
+        if(numPetsDisplay) numPetsDisplay.textContent = reservaState.numPets;
         updateSummary();
     }
 
@@ -241,19 +199,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (wizardModal) {
             wizardModal.style.display = 'flex';
             setTimeout(() => wizardModal.style.opacity = '1', 10);
-
             currentStep = 1;
             reservaState = { imovelId: null, hospedesIds: [], checkin: null, checkout: null, numPets: 0 };
-
             if (numPetsSlider) numPetsSlider.value = 0;
             if (numPetsDisplay) numPetsDisplay.textContent = '0';
             if (checkinInput) checkinInput.value = '';
             if (checkoutInput) checkoutInput.value = '';
             if (guestSearchInput) guestSearchInput.value = '';
-
-            document.querySelectorAll('.property-card').forEach(c => c.classList.remove('selected'));
-            document.querySelectorAll('.guest-list-item input').forEach(c => c.checked = false);
-
+            document.querySelectorAll('.property-card.selected').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('.guest-list-item input:checked').forEach(c => c.checked = false);
             showStep(currentStep);
             updateSummary();
         }
@@ -262,23 +216,17 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeWizard() {
         if (wizardModal) {
             wizardModal.style.opacity = '0';
-            setTimeout(() => {
-                wizardModal.style.display = 'none';
-            }, 300);
+            setTimeout(() => { wizardModal.style.display = 'none'; }, 300);
         }
     }
 
     function showStep(stepNumber) {
-        Object.values(steps).forEach(step => {
-            if (step) step.style.display = 'none';
-        });
-
+        Object.values(steps).forEach(step => { if (step) step.style.display = 'none'; });
         if (steps[stepNumber]) {
             steps[stepNumber].style.display = 'block';
             steps[stepNumber].style.opacity = 0;
             setTimeout(() => steps[stepNumber].style.opacity = 1, 50);
         }
-
         updateWizardControls(stepNumber);
         updateStepIndicator(stepNumber);
     }
@@ -286,32 +234,21 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateStepIndicator(stepNumber) {
         stepIndicators.forEach(indicator => {
             const step = parseInt(indicator.dataset.step);
-            if (step === stepNumber) {
-                indicator.classList.add('active');
-                indicator.style.opacity = '1';
-            } else if (step < stepNumber) {
-                indicator.classList.remove('active');
-                indicator.style.opacity = '0.7';
-            } else {
-                indicator.classList.remove('active');
-                indicator.style.opacity = '0.4';
-            }
+            indicator.classList.toggle('active', step === stepNumber);
+            indicator.style.opacity = step <= stepNumber ? '1' : '0.4';
         });
     }
 
-    async function goToNextStep() {
-        if (currentStep === 1) {
-            if (!reservaState.imovelId) {
-                alert('Por favor, selecione um imóvel para continuar.');
-                return;
-            }
+    function goToNextStep() {
+        if (currentStep === 1 && !reservaState.imovelId) {
+            showToast('Por favor, selecione um imóvel para continuar.', 'warning');
+            return;
         }
-
         if (currentStep < totalSteps) {
             currentStep++;
             showStep(currentStep);
         } else {
-            await saveReservation();
+            saveReservation();
         }
     }
 
@@ -332,168 +269,145 @@ document.addEventListener('DOMContentLoaded', () => {
     // -----
 
     function updateSummary() {
-        // Imóvel
-        const imovel = imoveis.find(i => (i.codigoInterno || i.id) == reservaState.imovelId);
-        summaryImovel.textContent = imovel ? imovel.titulo : '- Selecione -';
+        const imovel = imoveis.find(i => i.id == reservaState.imovelId);
+        if(summaryImovel) summaryImovel.textContent = imovel ? imovel.titulo : '- Selecione -';
 
-        // Hóspedes
-        summaryHospedes.innerHTML = '';
-        if (reservaState.hospedesIds.length > 0) {
-            reservaState.hospedesIds.forEach(id => {
-                const cliente = clientes.find(c => c.id == id);
-                if (cliente) {
-                    const li = document.createElement('li');
-                    li.textContent = cliente.nome;
-                    summaryHospedes.appendChild(li);
-                }
-            });
-        } else {
-            summaryHospedes.innerHTML = '<li>- Selecione -</li>';
+        if (summaryHospedes) {
+            summaryHospedes.innerHTML = '';
+            if (reservaState.hospedesIds.length > 0) {
+                reservaState.hospedesIds.forEach(id => {
+                    const cliente = clientes.find(c => c.id == id);
+                    if (cliente) {
+                        const li = document.createElement('li');
+                        li.textContent = cliente.nome;
+                        summaryHospedes.appendChild(li);
+                    }
+                });
+            } else {
+                summaryHospedes.innerHTML = '<li>- Selecione -</li>';
+            }
         }
 
-        // Pets
-        summaryPets.textContent = reservaState.numPets > 0 ? `${reservaState.numPets} pet(s)` : 'Não';
+        if(summaryPets) summaryPets.textContent = reservaState.numPets > 0 ? `${reservaState.numPets} pet(s)` : 'Não';
 
-        // Período e Diárias
-        if (reservaState.checkin && reservaState.checkout) {
-            const checkinDate = new Date(reservaState.checkin);
-            const checkoutDate = new Date(reservaState.checkout);
+        if (summaryPeriodo && summaryDiarias) {
+            if (reservaState.checkin && reservaState.checkout) {
+                const checkinDate = new Date(reservaState.checkin);
+                const checkoutDate = new Date(reservaState.checkout);
+                const checkinStr = checkinDate.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+                const checkoutStr = checkoutDate.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 
-            const checkinStr = checkinDate.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-            const checkoutStr = checkoutDate.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-
-            if (!isNaN(checkinDate) && !isNaN(checkoutDate) && checkoutDate > checkinDate) {
-                summaryPeriodo.textContent = `${checkinStr} a ${checkoutStr}`;
-
-                const diffTime = Math.abs(checkoutDate - checkinDate);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                summaryDiarias.textContent = diffDays;
+                if (checkoutDate > checkinDate) {
+                    summaryPeriodo.textContent = `${checkinStr} a ${checkoutStr}`;
+                    const diffTime = checkoutDate - checkinDate;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    summaryDiarias.textContent = diffDays;
+                } else {
+                    summaryPeriodo.textContent = 'Datas inválidas';
+                    summaryDiarias.textContent = '0';
+                }
             } else {
-                summaryPeriodo.textContent = 'Datas inválidas';
+                summaryPeriodo.textContent = '- Defina as datas -';
                 summaryDiarias.textContent = '0';
             }
-        } else {
-            summaryPeriodo.textContent = '- Defina as datas -';
-            summaryDiarias.textContent = '0';
         }
     }
 
     async function saveReservation() {
         if (!reservaState.imovelId || reservaState.hospedesIds.length === 0 || !reservaState.checkin || !reservaState.checkout) {
-            alert('Por favor, preencha todos os campos obrigatórios: Imóvel, Hóspedes e Período.');
+            showToast('Preencha todos os campos: Imóvel, Hóspedes e Período.', 'error');
             return;
         }
 
-        const newReserva = {
+        const newReservaData = {
             imovelId: reservaState.imovelId,
             hospedes: reservaState.hospedesIds,
             checkin: reservaState.checkin,
             checkout: reservaState.checkout,
             numPets: reservaState.numPets,
             status: 'Confirmada',
+            dataCriacao: new Date().toISOString(),
         };
 
         try {
-            await Reserva.salvar(newReserva);
-            if (window.Toast) window.Toast.success('Reserva salva com sucesso!');
-            else alert('Reserva salva com sucesso!');
-
+            await Reserva.salvar(newReservaData);
+            showToast('Reserva salva com sucesso!', 'success');
             closeWizard();
-            await loadReservasTableLocal();
+            await loadReservasTableLocal(); // Recarrega a tabela
         } catch (error) {
             console.error("Erro ao salvar a reserva:", error);
-            if (window.Toast) window.Toast.error("Ocorreu um erro ao salvar a reserva.");
-            else alert("Ocorreu um erro ao salvar a reserva.");
+            showToast("Ocorreu um erro ao salvar a reserva.", 'error');
         }
     }
 
-    // Função local para carregar a tabela
     async function loadReservasTableLocal() {
         const tbody = document.getElementById('reservas-table-body');
         if (!tbody) return;
 
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">Carregando...</td></tr>';
+        const reservas = await Reserva.listarTodos();
+        tbody.innerHTML = '';
 
-        try {
-            const reservas = await Reserva.listarTodos();
-            tbody.innerHTML = '';
+        if (reservas.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">Nenhuma reserva encontrada.</td></tr>';
+            return;
+        }
 
-            if (reservas.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">Nenhuma reserva encontrada.</td></tr>';
-                return;
+        reservas.forEach(reserva => {
+            const imovel = imoveis.find(i => i.id == reserva.imovelId);
+            const tr = document.createElement('tr');
+            tr.style.cursor = 'pointer';
+            tr.title = 'Clique para ver detalhes';
+
+            const checkin = new Date(reserva.checkin).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+            const checkout = new Date(reserva.checkout).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+
+            let hospedesTexto = '0';
+            if (reserva.hospedes && reserva.hospedes.length > 0) {
+                const primeiroHospede = clientes.find(c => c.id == reserva.hospedes[0]);
+                const nomePrimeiro = primeiroHospede ? primeiroHospede.nome.split(' ')[0] : '...';
+                const extras = reserva.hospedes.length - 1;
+                hospedesTexto = extras > 0 ? `${nomePrimeiro} (+${extras})` : nomePrimeiro;
             }
 
-            reservas.forEach(reserva => {
-                const imovel = imoveis.find(i => (i.codigoInterno || i.id) == reserva.imovelId);
-                const tr = document.createElement('tr');
-                tr.style.cursor = 'pointer';
-                tr.title = 'Clique para ver detalhes';
+            tr.innerHTML = `
+                <td>${imovel ? imovel.titulo : 'Imóvel removido'}</td>
+                <td>${checkin}</td>
+                <td>${checkout}</td>
+                <td>${hospedesTexto}</td>
+                <td><span class="status-badge ${reserva.status ? reserva.status.toLowerCase() : ''}">${reserva.status || 'Pendente'}</span></td>
+                <td>
+                    <button class="btn-icon delete-btn" data-id="${reserva.id}">🗑️</button>
+                </td>
+            `;
 
-                const checkin = new Date(reserva.checkin).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-                const checkout = new Date(reserva.checkout).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+            tr.addEventListener('click', () => openReservationDetails(reserva));
+            tbody.appendChild(tr);
+        });
 
-                let hospedesTexto = '0';
-                if (reserva.hospedes && reserva.hospedes.length > 0) {
-                    const primeiroHospedeId = reserva.hospedes[0];
-                    const primeiroHospede = clientes.find(c => c.id == primeiroHospedeId);
-                    const nomePrimeiro = primeiroHospede ? primeiroHospede.nome.split(' ')[0] : 'Desconhecido';
-                    const extras = reserva.hospedes.length - 1;
-
-                    if (extras > 0) {
-                        hospedesTexto = `${nomePrimeiro} (mais ${extras})`;
-                    } else {
-                        hospedesTexto = nomePrimeiro;
+        // Adiciona event listener para os botões de deletar
+        tbody.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const id = e.target.dataset.id;
+                if (confirm('Tem certeza que deseja excluir esta reserva?')) {
+                    try {
+                        await Reserva.excluir(id);
+                        showToast('Reserva excluída com sucesso.', 'success');
+                        await loadReservasTableLocal(); // Recarrega
+                    } catch (error) {
+                        console.error('Erro ao excluir reserva:', error);
+                        showToast('Falha ao excluir reserva.', 'error');
                     }
                 }
-
-                tr.innerHTML = `
-                    <td>${imovel ? imovel.titulo : 'Imóvel removido'}</td>
-                    <td>${checkin}</td>
-                    <td>${checkout}</td>
-                    <td>${hospedesTexto}</td>
-                    <td><span class="status-badge ${reserva.status ? reserva.status.toLowerCase() : ''}">${reserva.status || 'Pendente'}</span></td>
-                    <td>
-                        <button class="btn-icon delete-btn" data-id="${reserva.codigoInterno || reserva.id}">🗑️</button>
-                    </td>
-                `;
-
-                tr.addEventListener('click', (e) => {
-                    // Prevent click if delete button was clicked
-                    if (e.target.closest('.delete-btn')) return;
-                    openReservationDetails(reserva);
-                });
-
-                // Add delete event listener directly
-                const deleteBtn = tr.querySelector('.delete-btn');
-                if (deleteBtn) {
-                    deleteBtn.addEventListener('click', async (e) => {
-                        e.stopPropagation();
-                        const id = deleteBtn.dataset.id;
-                        if (confirm('Tem certeza que deseja excluir esta reserva?')) {
-                            try {
-                                await Reserva.excluir(id);
-                                if (window.Toast) window.Toast.success("Reserva excluída com sucesso!");
-                                await loadReservasTableLocal();
-                            } catch (error) {
-                                console.error("Erro ao excluir:", error);
-                                if (window.Toast) window.Toast.error("Erro ao excluir reserva.");
-                            }
-                        }
-                    });
-                }
-
-                tbody.appendChild(tr);
             });
-        } catch (error) {
-            console.error("Erro ao carregar tabela de reservas:", error);
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">Erro ao carregar reservas.</td></tr>';
-        }
+        });
     }
+
 
     function openReservationDetails(reserva) {
         if (!detailsModal) return;
 
-        const imovel = imoveis.find(i => (i.codigoInterno || i.id) == reserva.imovelId);
+        const imovel = imoveis.find(i => i.id == reserva.imovelId);
 
         if (detailsImovelFoto) detailsImovelFoto.src = (imovel && imovel.fotos && imovel.fotos.length > 0) ? imovel.fotos[0] : 'assets/img/placeholder.jpg';
         if (detailsImovelTitulo) detailsImovelTitulo.textContent = imovel ? imovel.titulo : 'Imóvel não encontrado';
@@ -505,11 +419,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (detailsHospedes) {
             if (reserva.hospedes && reserva.hospedes.length > 0) {
-                const primeiroHospedeId = reserva.hospedes[0];
-                const primeiroHospede = clientes.find(c => c.id == primeiroHospedeId);
-                const nomePrimeiro = primeiroHospede ? primeiroHospede.nome.split(' ')[0] : 'Desconhecido';
+                const primeiroHospede = clientes.find(c => c.id == reserva.hospedes[0]);
+                const nomePrimeiro = primeiroHospede ? primeiroHospede.nome.split(' ')[0] : '...';
                 const extras = reserva.hospedes.length - 1;
-                detailsHospedes.textContent = extras > 0 ? `${nomePrimeiro} (mais ${extras})` : nomePrimeiro;
+                detailsHospedes.textContent = extras > 0 ? `${nomePrimeiro} (+${extras})` : nomePrimeiro;
             } else {
                 detailsHospedes.textContent = 'Nenhum';
             }
@@ -519,12 +432,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (detailsCheckout) detailsCheckout.textContent = new Date(reserva.checkout).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
         if (detailsPets) detailsPets.textContent = reserva.numPets;
 
-        const checkinDate = new Date(reserva.checkin);
-        const checkoutDate = new Date(reserva.checkout);
-        if (!isNaN(checkinDate) && !isNaN(checkoutDate)) {
-            const diffTime = Math.abs(checkoutDate - checkinDate);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            if (detailsDiarias) detailsDiarias.textContent = diffDays;
+        if (detailsDiarias) {
+            const checkinDate = new Date(reserva.checkin);
+            const checkoutDate = new Date(reserva.checkout);
+            if (checkoutDate > checkinDate) {
+                const diffTime = Math.abs(checkoutDate - checkinDate);
+                detailsDiarias.textContent = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            } else {
+                detailsDiarias.textContent = 0;
+            }
         }
 
         detailsModal.style.display = 'flex';
@@ -534,21 +450,25 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeReservationDetails() {
         if (detailsModal) {
             detailsModal.style.opacity = '0';
-            setTimeout(() => {
-                detailsModal.style.display = 'none';
-            }, 300);
+            setTimeout(() => { detailsModal.style.display = 'none'; }, 300);
         }
     }
 
     // -----
     // Inicialização
     // -----
-    try {
-        loadInitialData().then(() => {
+    async function init() {
+        try {
+            await loadInitialData();
             initializeWizard();
-        });
-    } catch (error) {
-        console.error("Erro ao inicializar o assistente de reservas:", error);
+        } catch (error) {
+            console.error("Erro ao inicializar o assistente de reservas:", error);
+            // Opcional: Mostrar um toast de erro para o usuário
+            if (typeof showToast === 'function') {
+                showToast("Erro ao carregar dados iniciais.", "error");
+            }
+        }
     }
-});
 
+    init();
+});

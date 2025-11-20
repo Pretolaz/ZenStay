@@ -212,99 +212,119 @@
                             <p id="details-diarias">0</p>
                         </div>
                     </div>
-                    <!-- Sidebar dinâmica -->
-                    <script>
-                        const body = document.body;
+                </div>
+            </div>
+        </div>
+    </main>
 
-                        const setActiveSidebarLink = () => {
-                            const path = window.location.pathname.split("/").pop();
-                            const hash = window.location.hash;
+    <!-- Scripts -->
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script type="module" src="assets/js/firebase-config.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+    <script src="assets/js/entities/cliente.js"></script>
+    <script src="assets/js/entities/comodo.js"></script>
+    <script src="assets/js/entities/imovel.js?v=2"></script>
+    <script src="assets/js/entities/reserva.js"></script>
+    <script src="assets/js/wizard-reservas.js"></script>
+    <script src="assets/js/entities/anfitriao.js"></script>
+    <script src="assets/js/entities/plataforma.js"></script>
 
-                            document.querySelectorAll(".sidebar a").forEach(link => {
-                                link.classList.remove("active");
-                                const linkHref = link.getAttribute("href");
+    <!-- Sidebar dinâmica -->
+    <script>
+        const body = document.body;
 
-                                if (linkHref === path + hash) {
-                                    link.classList.add("active");
-                                    const parentSubmenu = link.closest('.has-submenu');
-                                    if (parentSubmenu) {
-                                        const submenuElement = parentSubmenu.querySelector('.submenu');
-                                        const arrowElement = parentSubmenu.querySelector('.arrow');
-                                        if (submenuElement) submenuElement.style.display = 'block';
-                                        if (arrowElement) arrowElement.textContent = '▼';
-                                        const submenuToggleElement = parentSubmenu.querySelector('.submenu-toggle');
-                                        if (submenuToggleElement) submenuToggleElement.classList.add('active');
-                                    }
-                                }
-                            });
-                        };
+        const setActiveSidebarLink = () => {
+            const path = window.location.pathname.split("/").pop();
+            const hash = window.location.hash;
 
-                        fetch("assets/components/sidebar.html")
-                            .then(res => res.text())
-                            .then(html => {
-                                document.getElementById("sidebar").innerHTML = html;
+            document.querySelectorAll(".sidebar a").forEach(link => {
+                link.classList.remove("active");
+                const linkHref = link.getAttribute("href");
 
-                                const sidebarElement = document.querySelector('.sidebar');
-                                const menuToggleButton = document.getElementById('menu-toggle');
-                                const headerMenuToggleButton = document.getElementById('header-menu-toggle');
+                if (linkHref === path + hash) {
+                    link.classList.add("active");
+                    const parentSubmenu = link.closest('.has-submenu');
+                    if (parentSubmenu) {
+                        const submenuElement = parentSubmenu.querySelector('.submenu');
+                        const arrowElement = parentSubmenu.querySelector('.arrow');
+                        if (submenuElement) submenuElement.style.display = 'block';
+                        if (arrowElement) arrowElement.textContent = '▼';
+                        const submenuToggleElement = parentSubmenu.querySelector('.submenu-toggle');
+                        if (submenuToggleElement) submenuToggleElement.classList.add('active');
+                    }
+                }
+            });
+        };
 
-                                function toggleSidebar() {
-                                    body.classList.toggle('sidebar-open-mobile');
-                                }
+        fetch("assets/components/sidebar.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("sidebar").innerHTML = html;
 
-                                if (menuToggleButton) {
-                                    menuToggleButton.addEventListener('click', function (e) {
-                                        e.stopPropagation();
-                                        toggleSidebar();
-                                    });
-                                }
+                const sidebarElement = document.querySelector('.sidebar');
+                const menuToggleButton = document.getElementById('menu-toggle');
+                const headerMenuToggleButton = document.getElementById('header-menu-toggle');
 
-                                if (headerMenuToggleButton) {
-                                    headerMenuToggleButton.addEventListener('click', function (e) {
-                                        e.stopPropagation();
-                                        toggleSidebar();
-                                    });
-                                }
+                function toggleSidebar() {
+                    body.classList.toggle('sidebar-open-mobile');
+                }
 
-                                document.addEventListener('click', function (e) {
-                                    if (body.classList.contains('sidebar-open-mobile') &&
-                                        sidebarElement && !sidebarElement.contains(e.target) &&
-                                        (menuToggleButton && !menuToggleButton.contains(e.target)) &&
-                                        (headerMenuToggleButton && !headerMenuToggleButton.contains(e.target))) {
-                                        toggleSidebar();
-                                    }
-                                });
+                if (menuToggleButton) {
+                    menuToggleButton.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        toggleSidebar();
+                    });
+                }
 
-                                document.querySelectorAll('.sidebar a').forEach(link => {
-                                    link.addEventListener('click', function () {
-                                        if (window.innerWidth <= 768 && !this.classList.contains('submenu-toggle')) {
-                                            body.classList.remove('sidebar-open-mobile');
-                                        }
-                                    });
-                                });
+                if (headerMenuToggleButton) {
+                    headerMenuToggleButton.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        toggleSidebar();
+                    });
+                }
 
-                                document.querySelectorAll('.submenu-toggle').forEach(item => {
-                                    item.addEventListener('click', function (e) {
-                                        e.preventDefault();
-                                        const parentLi = this.closest('.has-submenu');
-                                        parentLi.classList.toggle('expanded');
-                                        const submenu = parentLi.querySelector('.submenu');
-                                        if (submenu) {
-                                            submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
-                                        }
-                                    });
-                                });
+                document.addEventListener('click', function (e) {
+                    if (body.classList.contains('sidebar-open-mobile') &&
+                        sidebarElement && !sidebarElement.contains(e.target) &&
+                        (menuToggleButton && !menuToggleButton.contains(e.target)) &&
+                        (headerMenuToggleButton && !headerMenuToggleButton.contains(e.target))) {
+                        toggleSidebar();
+                    }
+                });
 
-                                setActiveSidebarLink();
-                            })
-                            .catch(err => console.error("Erro ao carregar sidebar: ", err));
+                document.querySelectorAll('.sidebar a').forEach(link => {
+                    link.addEventListener('click', function () {
+                        if (window.innerWidth <= 768 && !this.classList.contains('submenu-toggle')) {
+                            body.classList.remove('sidebar-open-mobile');
+                        }
+                    });
+                });
 
-                        window.addEventListener('resize', () => {
-                            if (window.innerWidth > 768 && body.classList.contains('sidebar-open-mobile')) {
-                                body.classList.remove('sidebar-open-mobile');
-                            }
-                        });
-                    </script>
+                document.querySelectorAll('.submenu-toggle').forEach(item => {
+                    item.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const parentLi = this.closest('.has-submenu');
+                        parentLi.classList.toggle('expanded');
+                        const submenu = parentLi.querySelector('.submenu');
+                        if (submenu) {
+                            submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+                        }
+                    });
+                });
+
+                setActiveSidebarLink();
+            })
+            .catch(err => console.error("Erro ao carregar sidebar: ", err));
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768 && body.classList.contains('sidebar-open-mobile')) {
+                body.classList.remove('sidebar-open-mobile');
+            }
+        });
+    </script>
 </body>
 
 </html>
