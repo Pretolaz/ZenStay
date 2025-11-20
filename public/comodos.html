@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZenStay | Cômodos</title>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/imoveis.css">
+    <link rel="stylesheet" href="assets/css/toast.css">
+    <link rel="stylesheet" href="theme/dark.css" id="theme-style">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- Sidebar dinâmica -->
+    <div id="sidebar"></div>
+
+    <main class="content">
+        <header class="header">
+            <button class="menu-toggle" id="header-menu-toggle">☰</button>
+            <h1 id="main-title">🚪 Gerenciar Cômodos</h1>
+            <button id="toggle-theme">🌓</button>
+        </header>
+
+        <!-- Seção de Gerenciamento de Cômodos -->
+        <section class="dashboard" id="comodos-imovel-section" style="display: flex;">
+            <div class="card"
+                style="flex: 1 1 100%; background: transparent; box-shadow: none; padding: 0; border: none;">
+
+                <!-- Header & Filter -->
+                <div class="imoveis-header-actions">
+                    <div class="section-title">
+                        <span>🚪</span> Gerenciar Cômodos
+                    </div>
+                    <div class="filter-group" style="flex: 1; max-width: 400px; margin-left: auto; margin-right: 20px;">
+                        <select id="selectImovelComodos" class="modern-select"
+                            style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text);">
+                            <option value="">Selecione um Imóvel para gerenciar</option>
+                        </select>
+                    </div>
+                    <button id="btnNovoComodo"
+                        style="display: none; background: linear-gradient(135deg, var(--accent), var(--hover-accent)); color: #fff; border: none; padding: 12px 28px; border-radius: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 191, 166, 0.3);">
+                        <span>➕</span> Novo Cômodo
+                    </button>
+                </div>
+
+                <!-- Form (Hidden by default) -->
+                <div id="formComodoContainer"
+                    style="display: none; background: var(--card); border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                    <h3
+                        style="margin-bottom: 20px; color: var(--accent); display: flex; align-items: center; gap: 10px;">
+                        <span id="formTitleComodo">➕ Adicionar Cômodo</span>
+                    </h3>
+                    <form id="formComodo">
+                        <input type="hidden" id="comodoId">
+                        <div class="form-row">
+                            <div class="input-group" style="flex: 0 0 150px;">
+                                <span>#️⃣</span>
+                                <input type="number" id="codigoComodo" placeholder="Auto" readonly
+                                    style="background: rgba(255,255,255,0.05);">
+                            </div>
+                            <div class="input-group" style="flex: 2;">
+                                <span>📝</span>
+                                <input type="text" id="nomeComodo" placeholder="Nome do cômodo (ex: Suíte Master)"
+                                    required>
+                            </div>
+                            <div class="input-group" style="flex: 1;">
+                                <span>✨</span>
+                                <select id="iconeComodo" required>
+                                    <option value="">Ícone</option>
+                                    <option value="🛋️">🛋️ Sala</option>
+                                    <option value="🛏️">🛏️ Quarto</option>
+                                    <option value="🚽">🚽 Banheiro</option>
+                                    <option value="🍽️">🍽️ Cozinha</option>
+                                    <option value="🧺">🧺 Lavanderia</option>
+                                    <option value="🚪">🚪 Corredor</option>
+                                    <option value="🌅">🌅 Varanda</option>
+                                    <option value="🏊">🏊 Piscina</option>
+                                    <option value="🌳">🌳 Jardim</option>
+                                    <option value="🚗">🚗 Garagem</option>
+                                    <option value="💻">💻 Escritório</option>
+                                    <option value="📺">📺 Sala de TV</option>
+                                    <option value="💡">💡 Outro</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-actions"
+                            style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                            <button type="button" class="btn btn-secondary" id="cancelarComodo">❌ Cancelar</button>
+                            <button type="submit" class="btn">💾 Salvar</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyStateComodos"
+                    style="text-align: center; padding: 50px; color: var(--text); opacity: 0.7;">
+                    <p style="font-size: 1.2rem;">👆 Selecione um imóvel acima para gerenciar seus cômodos.</p>
+                </div>
+
+                <!-- List/Table -->
+                <div id="listaComodosContainer" style="display: none;">
+                    <div class="card" style="padding: 0; overflow: hidden;">
+                        <table id="tabelaComodos" style="width: 100%; border-collapse: collapse;">
+                            <thead style="background: rgba(0,0,0,0.2);">
+                                <tr>
+                                    <th style="padding: 15px; text-align: left; color: var(--accent);">Ícone</th>
+                                    <th style="padding: 15px; text-align: left; color: var(--accent);">Nome</th>
+                                    <th style="padding: 15px; text-align: left; color: var(--accent);">Cód.</th>
+                                    <th style="padding: 15px; text-align: right; color: var(--accent);">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Scripts Essenciais -->
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/toast.js"></script>
+    <script src="assets/js/entities/comodo.js"></script>
+
+    <!-- Scripts de Lógica de Página -->
+    <script type="module" src="assets/js/comodos-imovel.js"></script>
+
+    <!-- Script de Inicialização e Navegação -->
+    <script>
+        // Lógica para marcar o link ativo na sidebar
+        const setActiveSidebarLink = () => {
+            const path = window.location.pathname.split("/").pop();
+
+            document.querySelectorAll(".sidebar a").forEach(link => {
+                link.classList.remove("active");
+                const linkHref = link.getAttribute("href");
+
+                if (linkHref === path) {
+                    link.classList.add("active");
+                    const parentSubmenu = link.closest('.has-submenu');
+                    if (parentSubmenu) {
+                        const submenuElement = parentSubmenu.querySelector('.submenu');
+                        const arrowElement = parentSubmenu.querySelector('.arrow');
+                        if (submenuElement) submenuElement.style.display = 'block';
+                        if (arrowElement) arrowElement.textContent = '▼';
+                        parentSubmenu.classList.add('expanded');
+                    }
+                }
+            });
+        };
+
+        // Carrega a sidebar e depois inicializa a lógica da página
+        fetch("assets/components/sidebar.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("sidebar").innerHTML = html;
+
+                // Configura os toggles da sidebar e o comportamento responsivo
+                setupSidebarToggles();
+
+                // Adiciona listeners para os links da sidebar
+                document.querySelector('.sidebar').addEventListener('click', handleSidebarClick);
+
+                // Define o link ativo inicial na sidebar
+                setActiveSidebarLink();
+            });
+
+        function setupSidebarToggles() {
+            const body = document.body;
+            const loadedSidebarElement = document.querySelector('.sidebar');
+            const menuToggleBtnInSidebar = document.getElementById('menu-toggle');
+            const headerMenuToggleButton = document.getElementById('header-menu-toggle');
+
+            function toggleSidebar() {
+                body.classList.toggle('sidebar-open-mobile');
+            }
+
+            if (menuToggleBtnInSidebar) menuToggleBtnInSidebar.addEventListener('click', (e) => { e.stopPropagation(); toggleSidebar(); });
+            if (headerMenuToggleButton) headerMenuToggleButton.addEventListener('click', (e) => { e.stopPropagation(); toggleSidebar(); });
+
+            document.addEventListener('click', (e) => {
+                if (body.classList.contains('sidebar-open-mobile') && !loadedSidebarElement.contains(e.target) && !headerMenuToggleButton.contains(e.target)) {
+                    toggleSidebar();
+                }
+            });
+        }
+
+        function handleSidebarClick(e) {
+            const submenuToggle = e.target.closest('.submenu-toggle');
+            if (submenuToggle) {
+                e.preventDefault();
+                const parentLi = submenuToggle.closest('.has-submenu');
+                const submenu = parentLi.querySelector('.submenu');
+                const arrow = submenuToggle.querySelector('.arrow');
+
+                if (submenu && arrow) {
+                    const isExpanded = submenu.style.display === 'block';
+                    submenu.style.display = isExpanded ? 'none' : 'block';
+                    arrow.textContent = isExpanded ? '▶' : '▼';
+                    parentLi.classList.toggle('expanded', !isExpanded);
+                }
+            }
+
+            let clickedLink = e.target.closest("a");
+            if (clickedLink) {
+                document.querySelectorAll(".sidebar a").forEach(link => link.classList.remove("active"));
+                clickedLink.classList.add("active");
+                const parentSubmenuItem = clickedLink.closest('.has-submenu');
+                if (parentSubmenuItem) {
+                    parentSubmenuItem.querySelector('.submenu-toggle')?.classList.add('active');
+                }
+                if (window.innerWidth <= 768 && !clickedLink.classList.contains('submenu-toggle')) {
+                    document.body.classList.remove('sidebar-open-mobile');
+                }
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768 && document.body.classList.contains('sidebar-open-mobile')) {
+                document.body.classList.remove('sidebar-open-mobile');
+            }
+        });
+    </script>
+
+</body>
+
+</html>
