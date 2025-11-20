@@ -1,5 +1,6 @@
 import { Imovel } from './entities/imovel.js';
 import { db, app } from './firebase-config.js';
+import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // assets/js/objetos-comodo.js
 
@@ -118,19 +119,21 @@ function renderTable() {
     sortedObjects.forEach(obj => {
         const row = document.createElement('tr');
         row.style.cursor = 'pointer';
-        row.classList.add('table-row-hover'); // Classe CSS para hover effect se desejar
+        row.classList.add('table-row-hover');
 
-        // Evento de clique na linha para abrir detalhes (exceto se clicar nos botões de ação)
+        // Evento de clique na linha para abrir detalhes
         row.addEventListener('click', (e) => {
             if (!e.target.closest('.action-btn')) {
                 verDetalhesObjeto(obj);
             }
         });
 
-        const imageUrl = (obj.fotoUrl && !obj.fotoUrl.includes('placehold.co')) ? obj.fotoUrl : 'https://placehold.co/100x100?text=N/A';
+        // Placeholder inicial
+        const imgId = `img-${obj.imovelId}-${obj.comodoId}-${obj.id}`;
+        const imageUrl = 'https://placehold.co/100x100?text=...';
 
         row.innerHTML = `
-            <td><img src="${imageUrl}" alt="${obj.nome}" class="inventory-item-image" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"></td>
+            <td><img id="${imgId}" src="${imageUrl}" alt="${obj.nome}" class="inventory-item-image" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"></td>
             <td>${obj.id}</td>
             <td>${obj.imovelTitulo}</td>
             <td>${obj.comodoNome}</td>
@@ -143,6 +146,25 @@ function renderTable() {
             </td>
         `;
         tabelaObjetosBody.appendChild(row);
+
+        // Carregar imagem real se existir
+        if (obj.fotoId) {
+            recuperarFotoInventario(obj.fotoId).then(base64 => {
+                const imgElement = document.getElementById(imgId);
+                if (imgElement && base64) {
+                    imgElement.src = base64;
+                } else if (imgElement) {
+                    imgElement.src = 'https://placehold.co/100x100?text=N/A';
+                }
+            });
+        } else if (obj.fotoUrl) {
+            // Fallback para compatibilidade antiga
+            const imgElement = document.getElementById(imgId);
+            if (imgElement) imgElement.src = obj.fotoUrl;
+        } else {
+            const imgElement = document.getElementById(imgId);
+            if (imgElement) imgElement.src = 'https://placehold.co/100x100?text=N/A';
+        }
     });
 
     document.querySelectorAll('#tabelaObjetos th[data-sort-key] span').forEach(span => span.textContent = '');
@@ -186,6 +208,34 @@ async function popularSelectComodosObjetos(imovelId) {
     }
 }
 
+// Função para salvar a foto em uma coleção separada
+async function salvarFotoInventario(fotoId, base64) {
+    try {
+        await setDoc(doc(db, "inventario_fotos", fotoId), {
+            base64: base64
+        });
+        return true;
+    } catch (error) {
+        console.error("Erro ao salvar foto separada:", error);
+        return false;
+    }
+}
+
+// Função para recuperar a foto
+async function recuperarFotoInventario(fotoId) {
+    try {
+        const docRef = doc(db, "inventario_fotos", fotoId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            return docSnap.data().base64;
+        }
+        return null;
+    } catch (error) {
+        console.error("Erro ao recuperar foto:", error);
+        return null;
+    }
+}
+
 async function salvarObjeto(e) {
     e.preventDefault();
     const imovelId = parseInt(selectImovelObjetos.value);
@@ -198,12 +248,16 @@ async function salvarObjeto(e) {
     }
 
     try {
-        // Utilizando Base64 diretamente (como em imoveis.js) para evitar configuração de CORS no Storage por enquanto
-        let fotoUrl = document.getElementById('previewObjeto').src;
+        let fotoBase64 = document.getElementById('previewObjeto').src;
+        let fotoId = null;
 
-        // Se a imagem for o placeholder, não salvamos nada
-        if (fotoUrl.includes('placehold.co')) {
-            fotoUrl = null;
+        // Se a imagem NÃO for o placeholder, preparamos para salvar
+        if (fotoBase64 && !fotoBase64.includes('placehold.co')) {
+            // Gera um ID único para a foto
+            fotoId = `foto_${imovelId}_${comodoId}_${Date.now()}`;
+
+            // Salva a foto na coleção separada
+            await salvarFotoInventario(fotoId, fotoBase64);
         }
 
         const imoveis = await Imovel.listarTodos();
@@ -211,13 +265,34 @@ async function salvarObjeto(e) {
         if (!imovelData) return;
 
         const imovel = new Imovel(imovelData);
+
+        // Objeto a ser salvo no array do imóvel (agora SEM o base64 gigante)
         const objetoData = {
             id: objetoId,
             tipo: tipoObjetoInput.value,
             nome: nomeObjetoInput.value,
             quantidade: parseInt(quantidadeObjetoInput.value, 10),
-            fotoUrl: fotoUrl
+            fotoId: fotoId, // Salvamos apenas o ID
+            fotoUrl: null   // Limpamos o campo antigo para economizar espaço
         };
+
+        // Se estiver editando e não trocou a foto, precisamos manter o fotoId antigo
+        if (objetoId) {
+            const comodoAntigo = imovelData.comodos.find(c => c.id == comodoId);
+            if (comodoAntigo) {
+                const objetoAntigo = comodoAntigo.objetos.find(o => o.id == objetoId);
+                if (objetoAntigo && !fotoId && objetoAntigo.fotoId) {
+                    // Usuário não trocou a foto (preview continua a mesma ou placeholder), mantemos a antiga
+                    // Mas se o preview for placeholder, significa que removeu? 
+                    // Vamos assumir: se preview tem algo que não é placeholder e não geramos novo ID, é pq não mudou?
+                    // Na verdade, se não mudou, o previewObjeto.src estaria com o base64 antigo.
+                    // Se estivesse com base64 antigo, entraria no if(!placeholder) e salvaria uma nova cópia.
+                    // Para evitar duplicidade, poderíamos checar, mas salvar nova cópia é mais seguro por enquanto.
+                    // O ideal seria: se o src for igual ao que carregamos, não faz nada.
+                    objetoData.fotoId = objetoAntigo.fotoId; // Retain old fotoId if no new one was generated
+                }
+            }
+        }
 
         await imovel.salvarObjeto(comodoId, objetoData);
         Toast.success("Objeto salvo com sucesso!");
@@ -250,7 +325,16 @@ async function editarObjeto(imovelId, comodoId, objetoId) {
         tipoObjetoInput.value = objeto.tipo;
         nomeObjetoInput.value = objeto.nome;
         quantidadeObjetoInput.value = objeto.quantidade;
-        previewObjeto.src = objeto.fotoUrl || 'https://placehold.co/300x200?text=Sem+Imagem';
+
+        // Carregar a foto
+        if (objeto.fotoId) {
+            const base64 = await recuperarFotoInventario(objeto.fotoId);
+            previewObjeto.src = base64 || 'https://placehold.co/300x200?text=Erro+Imagem';
+        } else if (objeto.fotoUrl) {
+            previewObjeto.src = objeto.fotoUrl;
+        } else {
+            previewObjeto.src = 'https://placehold.co/300x200?text=Sem+Imagem';
+        }
 
         document.getElementById('formTitleObjeto').textContent = '✏️ Editar Objeto';
         toggleFormObjeto(true);
@@ -295,7 +379,7 @@ function toggleFormObjeto(show) {
     }
 }
 
-function verDetalhesObjeto(obj) {
+async function verDetalhesObjeto(obj) {
     document.getElementById('detalheTitulo').textContent = `📦 ${obj.nome}`;
     document.getElementById('detalheNome').textContent = obj.nome;
     document.getElementById('detalheTipo').textContent = obj.tipo;
@@ -304,11 +388,20 @@ function verDetalhesObjeto(obj) {
     document.getElementById('detalheComodo').textContent = obj.comodoNome;
 
     const img = document.getElementById('detalheImagem');
-    if (obj.fotoUrl && !obj.fotoUrl.includes('placehold.co')) {
-        img.src = obj.fotoUrl;
-        img.style.display = 'block';
+    img.src = 'https://placehold.co/300x200?text=Carregando...';
+    img.style.display = 'block';
+
+    let base64 = null;
+    if (obj.fotoId) {
+        base64 = await recuperarFotoInventario(obj.fotoId);
+    } else if (obj.fotoUrl) {
+        base64 = obj.fotoUrl;
+    }
+
+    if (base64 && !base64.includes('placehold.co')) {
+        img.src = base64;
     } else {
-        img.style.display = 'none';
+        img.src = 'https://placehold.co/300x200?text=Sem+Imagem';
     }
 
     document.getElementById('modalDetalhesObjeto').style.display = 'block';
