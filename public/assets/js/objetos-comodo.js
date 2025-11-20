@@ -172,8 +172,8 @@ async function popularSelectComodosObjetos(imovelId) {
 
 async function salvarObjeto(e) {
     e.preventDefault();
-    const imovelId = selectImovelObjetos.value;
-    const comodoId = selectComodoObjetos.value;
+    const imovelId = parseInt(selectImovelObjetos.value);
+    const comodoId = parseInt(selectComodoObjetos.value);
     const objetoId = objetoIdInput.value ? parseInt(objetoIdInput.value) : null;
 
     if (!imovelId || !comodoId) {
@@ -314,7 +314,7 @@ function captureImage() {
     cameraCanvas.height = cameraStream.videoHeight;
     const context = cameraCanvas.getContext('2d');
     context.drawImage(cameraStream, 0, 0, cameraCanvas.width, cameraCanvas.height);
-    
+
     previewObjeto.src = cameraCanvas.toDataURL('image/webp');
     cameraCanvas.toBlob(blob => {
         currentImageFile = new File([blob], "capture.webp", { type: "image/webp" });
