@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/components.css">
     <link rel="stylesheet" href="assets/css/wizard-reservas.css">
+    <link rel="stylesheet" href="assets/css/toast.css">
     <link rel="stylesheet" href="theme/dark.css" id="theme-style">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -218,16 +219,19 @@
     </main>
 
     <!-- Scripts -->
+    <!-- Scripts -->
     <script src="assets/js/storage.js"></script>
     <script src="assets/js/main.js"></script>
+
+    <!-- Módulos que usam 'import' e expõem classes para o escopo global -->
     <script type="module" src="assets/js/firebase-config.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
-    <script src="assets/js/entities/cliente.js"></script>
+    <script type="module" src="assets/js/entities/cliente.js"></script>
+    <script type="module" src="assets/js/entities/imovel.js?v=2"></script>
+    <script type="module" src="assets/js/entities/reserva.js"></script>
+
+    <!-- Scripts que não são módulos e dependem das classes acima -->
+    <script src="assets/js/toast.js"></script>
     <script src="assets/js/entities/comodo.js"></script>
-    <script src="assets/js/entities/imovel.js?v=2"></script>
-    <script src="assets/js/entities/reserva.js"></script>
     <script src="assets/js/wizard-reservas.js"></script>
     <script src="assets/js/entities/anfitriao.js"></script>
     <script src="assets/js/entities/plataforma.js"></script>

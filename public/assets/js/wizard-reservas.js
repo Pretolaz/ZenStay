@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function goToNextStep() {
         if (currentStep === 1 && !reservaState.imovelId) {
-            showToast('Por favor, selecione um imóvel para continuar.', 'warning');
+            Toast.warning('Por favor, selecione um imóvel para continuar.');
             return;
         }
         if (currentStep < totalSteps) {
@@ -315,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function saveReservation() {
         if (!reservaState.imovelId || reservaState.hospedesIds.length === 0 || !reservaState.checkin || !reservaState.checkout) {
-            showToast('Preencha todos os campos: Imóvel, Hóspedes e Período.', 'error');
+            Toast.error('Preencha todos os campos: Imóvel, Hóspedes e Período.');
             return;
         }
 
@@ -331,12 +331,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             await Reserva.salvar(newReservaData);
-            showToast('Reserva salva com sucesso!', 'success');
+            Toast.success('Reserva salva com sucesso!');
             closeWizard();
             await loadReservasTableLocal(); // Recarrega a tabela
         } catch (error) {
             console.error("Erro ao salvar a reserva:", error);
-            showToast("Ocorreu um erro ao salvar a reserva.", 'error');
+            Toast.error("Ocorreu um erro ao salvar a reserva.");
         }
     }
 
@@ -392,11 +392,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (confirm('Tem certeza que deseja excluir esta reserva?')) {
                     try {
                         await Reserva.excluir(id);
-                        showToast('Reserva excluída com sucesso.', 'success');
+                        Toast.success('Reserva excluída com sucesso.');
                         await loadReservasTableLocal(); // Recarrega
                     } catch (error) {
                         console.error('Erro ao excluir reserva:', error);
-                        showToast('Falha ao excluir reserva.', 'error');
+                        Toast.error('Falha ao excluir reserva.');
                     }
                 }
             });
@@ -464,8 +464,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error("Erro ao inicializar o assistente de reservas:", error);
             // Opcional: Mostrar um toast de erro para o usuário
-            if (typeof showToast === 'function') {
-                showToast("Erro ao carregar dados iniciais.", "error");
+            if (typeof Toast !== 'undefined' && typeof Toast.error === 'function') {
+                Toast.error("Erro ao carregar dados iniciais.");
             }
         }
     }
