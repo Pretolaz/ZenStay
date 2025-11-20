@@ -242,4 +242,4 @@ class Imovel {
     }
 }
 
-export { Imovel };
+window.Imovel = Imovel;

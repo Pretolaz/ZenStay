@@ -1,4 +1,3 @@
-import { Imovel } from './entities/imovel.js';
 // assets/js/comodos-imovel.js
 
 const formComodo = document.getElementById('formComodo');
