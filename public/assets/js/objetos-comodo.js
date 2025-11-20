@@ -260,11 +260,11 @@ async function salvarObjeto(e) {
             await salvarFotoInventario(fotoId, fotoBase64);
         }
 
-        const imoveis = await Imovel.listarTodos();
-        const imovelData = imoveis.find(i => i.id == imovelId);
-        if (!imovelData) return;
-
-        const imovel = new Imovel(imovelData);
+        const imovel = await Imovel.buscarPorId(imovelId);
+        if (!imovel) {
+            Toast.error("Imóvel não encontrado.");
+            return;
+        }
 
         // Objeto a ser salvo no array do imóvel (agora SEM o base64 gigante)
         const objetoData = {
@@ -278,18 +278,11 @@ async function salvarObjeto(e) {
 
         // Se estiver editando e não trocou a foto, precisamos manter o fotoId antigo
         if (objetoId) {
-            const comodoAntigo = imovelData.comodos.find(c => c.id == comodoId);
+            const comodoAntigo = imovel.comodos.find(c => c.id == comodoId);
             if (comodoAntigo) {
                 const objetoAntigo = comodoAntigo.objetos.find(o => o.id == objetoId);
                 if (objetoAntigo && !fotoId && objetoAntigo.fotoId) {
-                    // Usuário não trocou a foto (preview continua a mesma ou placeholder), mantemos a antiga
-                    // Mas se o preview for placeholder, significa que removeu? 
-                    // Vamos assumir: se preview tem algo que não é placeholder e não geramos novo ID, é pq não mudou?
-                    // Na verdade, se não mudou, o previewObjeto.src estaria com o base64 antigo.
-                    // Se estivesse com base64 antigo, entraria no if(!placeholder) e salvaria uma nova cópia.
-                    // Para evitar duplicidade, poderíamos checar, mas salvar nova cópia é mais seguro por enquanto.
-                    // O ideal seria: se o src for igual ao que carregamos, não faz nada.
-                    objetoData.fotoId = objetoAntigo.fotoId; // Retain old fotoId if no new one was generated
+                    objetoData.fotoId = objetoAntigo.fotoId;
                 }
             }
         }
@@ -297,7 +290,34 @@ async function salvarObjeto(e) {
         await imovel.salvarObjeto(comodoId, objetoData);
         Toast.success("Objeto salvo com sucesso!");
 
-        await loadAndRenderAllObjects();
+        // Atualização Otimista da Interface (sem recarregar tudo do banco)
+        const comodo = imovel.comodos.find(c => c.id == comodoId);
+        const flatObject = {
+            ...objetoData,
+            imovelId: imovel.id,
+            imovelTitulo: imovel.titulo,
+            comodoId: comodo.id,
+            comodoNome: comodo.nome
+        };
+
+        if (objetoId) {
+            // Editando: atualiza o item no array local
+            const index = allObjects.findIndex(o => o.id == objetoId && o.imovelId == imovelId && o.comodoId == comodoId);
+            if (index !== -1) {
+                // Mantém a fotoUrl antiga se não houve nova foto, para não piscar na tela
+                if (!flatObject.fotoId && !flatObject.fotoUrl && allObjects[index].fotoUrl) {
+                    flatObject.fotoUrl = allObjects[index].fotoUrl;
+                }
+                allObjects[index] = { ...allObjects[index], ...flatObject };
+            }
+        } else {
+            // Adicionando: empurra para o array local
+            // Se tiver fotoId, a renderTable vai buscar async. Se tiver preview, podemos usar temporariamente?
+            // Por simplicidade, deixamos a renderTable buscar.
+            allObjects.push(flatObject);
+        }
+
+        renderTable();
         toggleFormObjeto(false);
         resetFormObjeto();
     } catch (error) {
@@ -354,14 +374,19 @@ async function executarExclusao() {
 
     try {
         const { imovelId, comodoId, objetoId } = itemParaExcluir;
-        const imoveis = await Imovel.listarTodos();
-        const imovelData = imoveis.find(i => i.id === imovelId);
 
-        if (imovelData) {
-            const imovel = new Imovel(imovelData);
+        // Otimização: Buscar apenas o imóvel específico
+        const imovel = await Imovel.buscarPorId(imovelId);
+
+        if (imovel) {
             await imovel.removerObjeto(comodoId, objetoId);
             Toast.success("Objeto excluído com sucesso!");
-            await loadAndRenderAllObjects();
+
+            // Atualização Local (sem recarregar tudo)
+            allObjects = allObjects.filter(o => !(o.id == objetoId && o.imovelId == imovelId && o.comodoId == comodoId));
+            renderTable();
+        } else {
+            Toast.error("Imóvel não encontrado.");
         }
 
         document.getElementById('modalConfirmacaoExclusao').style.display = 'none';
