@@ -1,0 +1,93 @@
+/* Estilos para a Timeline de Reservas */
+.timeline-view {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow-x: auto;
+    background-color: #f9f9f9;
+}
+
+.timeline-header {
+    display: flex;
+    font-weight: bold;
+    border-bottom: 2px solid #ddd;
+    background-color: #f1f1f1;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.timeline-imoveis-header {
+    flex: 0 0 200px; /* Largura da coluna de imóveis */
+    padding: 10px;
+    border-right: 1px solid #ddd;
+    text-align: center;
+}
+
+.timeline-days {
+    display: flex;
+    flex-grow: 1;
+}
+
+.timeline-day {
+    flex: 1 0 50px; /* Largura mínima de cada dia */
+    padding: 10px;
+    text-align: center;
+    border-right: 1px solid #eee;
+    font-size: 12px;
+}
+
+.timeline-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.timeline-row {
+    display: flex;
+    border-bottom: 1px solid #eee;
+}
+
+.timeline-row:last-child {
+    border-bottom: none;
+}
+
+.timeline-imovel-cell {
+    flex: 0 0 200px;
+    padding: 15px;
+    border-right: 1px solid #ddd;
+    font-weight: 500;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+}
+
+.timeline-reservas-cell {
+    flex-grow: 1;
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(30, 1fr); /* 30 dias visíveis por padrão */
+}
+
+.reserva-bar {
+    position: absolute;
+    height: 30px;
+    background-color: #4a90e2;
+    color: white;
+    border-radius: 4px;
+    margin-top: 10px;
+    font-size: 12px;
+    padding: 0 5px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reserva-bar:hover {
+    opacity: 0.8;
+}

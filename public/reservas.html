@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/components.css">
     <link rel="stylesheet" href="assets/css/wizard-reservas.css">
+    <link rel="stylesheet" href="assets/css/timeline.css">
     <link rel="stylesheet" href="assets/css/toast.css">
     <link rel="stylesheet" href="theme/dark.css" id="theme-style">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -27,6 +28,14 @@
 
         <section class="kanban-actions" style="margin-bottom: 20px; text-align: center;">
             <button id="start-reservation-wizard-btn" class="btn">✨ Nova Reserva (Assistente)</button>
+        </section>
+
+        <!-- Linha do Tempo de Reservas -->
+        <section id="reservas-timeline-container" style="margin-bottom: 20px;">
+            <h2>Linha do Tempo de Reservas</h2>
+            <div id="timeline-view">
+                <!-- A linha do tempo será renderizada aqui via JS -->
+            </div>
         </section>
 
         <!-- Tabela de Reservas -->
@@ -233,6 +242,7 @@
     <script src="assets/js/toast.js"></script>
     <script src="assets/js/entities/comodo.js"></script>
     <script src="assets/js/wizard-reservas.js"></script>
+    <script src="assets/js/timeline.js"></script>
     <script src="assets/js/entities/anfitriao.js"></script>
     <script src="assets/js/entities/plataforma.js"></script>
 
