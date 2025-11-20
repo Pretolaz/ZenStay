@@ -1,15 +1,6 @@
 import { Imovel } from './entities/imovel.js';
 import { db, app } from './firebase-config.js';
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-const storage = getStorage(app);
-
-async function uploadFile(file, path) {
-    const storageRef = ref(storage, path);
-    const snapshot = await uploadBytes(storageRef, file);
-    const downloadURL = await getDownloadURL(snapshot.ref);
-    return downloadURL;
-}
 // assets/js/objetos-comodo.js
 
 // Escopo do módulo para as variáveis principais
@@ -182,10 +173,12 @@ async function salvarObjeto(e) {
     }
 
     try {
+        // Utilizando Base64 diretamente (como em imoveis.js) para evitar configuração de CORS no Storage por enquanto
         let fotoUrl = document.getElementById('previewObjeto').src;
-        if (currentImageFile) {
-            const path = `inventario/${imovelId}_${comodoId}_${Date.now()}`;
-            fotoUrl = await uploadFile(currentImageFile, path);
+
+        // Se a imagem for o placeholder, não salvamos nada
+        if (fotoUrl.includes('placehold.co')) {
+            fotoUrl = null;
         }
 
         const imoveis = await Imovel.listarTodos();
