@@ -89,10 +89,17 @@ class Imovel {
         try {
             // Prepare data for Firestore (remove undefined/custom types if needed)
             // Spread instance properties to a plain object
-            const dataToSave = { ...imovelData };
+            let dataToSave = { ...imovelData };
 
             // Remove firestoreId from the data to be saved (it's the doc ID)
             delete dataToSave.firestoreId;
+
+            // Helper to remove undefined values recursively or flatly
+            Object.keys(dataToSave).forEach(key => {
+                if (dataToSave[key] === undefined) {
+                    delete dataToSave[key];
+                }
+            });
 
             if (!imovelData.codigoInterno) {
                 // Novo imóvel: Gerar ID sequencial (1001+)
