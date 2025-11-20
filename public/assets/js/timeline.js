@@ -172,6 +172,9 @@ function createTimelineRow(imovel, reservas, days, timelineStart, clientes, colu
         const reservaBar = document.createElement('div');
         reservaBar.className = 'reserva-bar';
 
+        // Força a barra a ficar na primeira linha do grid, evitando quebras
+        reservaBar.style.gridRow = '1';
+
         const content = document.createElement('div');
         content.className = 'reserva-bar-content';
 

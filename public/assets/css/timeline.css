@@ -36,6 +36,36 @@
     left: 0;
 }
 
+.timeline-row {
+    display: flex;
+    flex-wrap: nowrap;
+    /* Garante que as células fiquem na mesma linha */
+    border-bottom: 1px solid var(--border);
+    height: 50px;
+    /* Altura fixa */
+    position: relative;
+}
+
+.timeline-row:last-child {
+    border-bottom: none;
+}
+
+.timeline-imovel-cell {
+    flex: 0 0 200px;
+    padding: 0 15px;
+    border-right: 1px solid var(--border);
+    font-weight: 500;
+    font-size: 0.9rem;
+    background-color: var(--card);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+}
+
 .timeline-days {
     display: grid;
     /* O template columns será definido via JS para garantir sincronia */
@@ -62,14 +92,17 @@
     flex-grow: 1;
     position: relative;
     display: grid;
-    /* O grid-template-columns será definido inline no JS */
+    grid-template-rows: 100%;
+    /* Garante uma única linha de altura total */
+    align-items: center;
+    /* Centraliza verticalmente as barras */
     background-color: rgba(76, 175, 80, 0.15);
-    /* Verde suave para indicar 'Livre' */
-    background-image: linear-gradient(to right, var(--border) 1px, transparent 1px);
-    /* O background-size será definido inline no JS */
+    /* Grid lines alinhadas à direita para coincidir com border-right do header */
+    background-image: linear-gradient(to right, transparent calc(100% - 1px), var(--border) 1px);
+    /* background-size definido no JS */
 }
 
-/* Ajuste para o modo escuro se necessário, mas o rgba funciona bem em ambos */
+/* Ajuste para o modo escuro */
 [data-theme="dark"] .timeline-reservas-cell {
     background-color: rgba(76, 175, 80, 0.1);
 }
