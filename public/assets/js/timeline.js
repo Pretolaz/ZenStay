@@ -143,22 +143,24 @@ function createTimelineRow(imovel, reservas, days, timelineStart, clientes, colu
         const checkoutNorm = parseDate(reserva.checkout);
 
         // Usar diffDays para cálculo seguro de dias
-        const startDayIndex = diffDays(timelineStart, checkinNorm);
-        const endDayIndex = diffDays(timelineStart, checkoutNorm);
+        const realStart = diffDays(timelineStart, checkinNorm);
+        const realEnd = diffDays(timelineStart, checkoutNorm);
 
         // Se a reserva termina antes do início da timeline ou começa depois do fim
-        if (endDayIndex < 0 || startDayIndex >= days.length) {
+        if (realEnd < 0 || realStart >= days.length) {
             return;
         }
 
-        // Ajusta para limites da timeline
-        const visibleStart = Math.max(0, startDayIndex);
-        const visibleEnd = Math.min(days.length, endDayIndex);
+        // Lógica de Grid (1-based)
+        // O span deve ir do dia do checkin até o dia do checkout (inclusive para visualização de meia diária)
+        // Grid Line Start = Index + 1
+        // Grid Line End = Index + 2 (para incluir a coluna do checkout)
 
-        // Duração em dias (noites)
-        let duration = visibleEnd - visibleStart;
+        const gridStart = Math.max(1, realStart + 1);
+        const gridEnd = Math.min(days.length + 1, realEnd + 2);
 
-        if (duration <= 0) return;
+        // Se o gridStart >= gridEnd, algo está errado ou fora de visão (mas o check acima já filtra)
+        if (gridStart >= gridEnd) return;
 
         let nomeHospede = 'Reserva';
         if (reserva.hospedes && reserva.hospedes.length > 0) {
@@ -172,8 +174,23 @@ function createTimelineRow(imovel, reservas, days, timelineStart, clientes, colu
         const reservaBar = document.createElement('div');
         reservaBar.className = 'reserva-bar';
 
-        // Força a barra a ficar na primeira linha do grid, evitando quebras
+        // Força a barra a ficar na primeira linha do grid
         reservaBar.style.gridRow = '1';
+
+        // Posiciona a barra na grade
+        reservaBar.style.gridColumnStart = gridStart;
+        reservaBar.style.gridColumnEnd = gridEnd;
+
+        // Lógica de Margens para Meia-Diária (Hotel Style)
+        // Se o checkin está dentro da visão, aplica margem esquerda (começa as 13h)
+        if (realStart >= 0) {
+            reservaBar.style.marginLeft = '25px'; // 50% de 50px
+        }
+
+        // Se o checkout está dentro da visão, aplica margem direita (termina as 11h)
+        if (realEnd < days.length) {
+            reservaBar.style.marginRight = '25px'; // 50% de 50px
+        }
 
         const content = document.createElement('div');
         content.className = 'reserva-bar-content';
@@ -189,10 +206,6 @@ function createTimelineRow(imovel, reservas, days, timelineStart, clientes, colu
         const checkinStr = checkinNorm.toLocaleDateString('pt-BR');
         const checkoutStr = checkoutNorm.toLocaleDateString('pt-BR');
         reservaBar.title = `${nomeHospede}\nCheck-in: ${checkinStr}\nCheck-out: ${checkoutStr}`;
-
-        // Posiciona a barra na grade
-        reservaBar.style.gridColumnStart = visibleStart + 1;
-        reservaBar.style.gridColumnEnd = `span ${duration}`;
 
         reservasCell.appendChild(reservaBar);
     });
