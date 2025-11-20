@@ -6,25 +6,34 @@
     border-radius: 8px;
     overflow-x: auto;
     background-color: var(--card);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .timeline-header {
     display: flex;
-    font-weight: bold;
-    border-bottom: 2px solid var(--border);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
     background-color: var(--background);
     color: var(--text);
     position: sticky;
     top: 0;
-    z-index: 2;
+    z-index: 10;
+    height: 60px;
+    /* Altura fixa para o cabeçalho */
 }
 
 .timeline-imoveis-header {
     flex: 0 0 200px;
-    /* Largura da coluna de imóveis */
     padding: 10px;
     border-right: 1px solid var(--border);
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--background);
+    z-index: 11;
+    /* Fica acima dos dias ao rolar horizontalmente */
+    position: sticky;
+    left: 0;
 }
 
 .timeline-days {
@@ -33,13 +42,24 @@
 }
 
 .timeline-day {
-    flex: 1 0 50px;
-    /* Largura mínima de cada dia */
-    padding: 10px;
+    flex: 1;
+    min-width: 40px;
+    /* Largura mínima para garantir legibilidade */
+    padding: 5px;
     text-align: center;
     border-right: 1px solid var(--border);
-    font-size: 12px;
+    font-size: 0.75rem;
     color: var(--text);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--background);
+}
+
+.timeline-day span.day-number {
+    font-size: 1.1rem;
+    font-weight: bold;
 }
 
 .timeline-body {
@@ -50,6 +70,8 @@
 .timeline-row {
     display: flex;
     border-bottom: 1px solid var(--border);
+    height: 50px;
+    /* Altura fixa para as linhas */
 }
 
 .timeline-row:last-child {
@@ -58,33 +80,51 @@
 
 .timeline-imovel-cell {
     flex: 0 0 200px;
-    padding: 15px;
+    padding: 0 15px;
     border-right: 1px solid var(--border);
     font-weight: 500;
+    font-size: 0.9rem;
     background-color: var(--card);
     color: var(--text);
     display: flex;
     align-items: center;
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+    /* Sombra sutil na coluna fixa */
 }
 
 .timeline-reservas-cell {
     flex-grow: 1;
     position: relative;
     display: grid;
-    grid-template-columns: repeat(30, 1fr);
-    /* 30 dias visíveis por padrão */
+    /* O grid-template-columns será definido inline no JS */
+    background-color: rgba(76, 175, 80, 0.15);
+    /* Verde suave para indicar 'Livre' */
+    background-image: linear-gradient(to right, var(--border) 1px, transparent 1px);
+    background-size: calc(100% / 30) 100%;
+    /* Grid vertical */
+}
+
+/* Ajuste para o modo escuro se necessário, mas o rgba funciona bem em ambos */
+[data-theme="dark"] .timeline-reservas-cell {
+    background-color: rgba(76, 175, 80, 0.1);
 }
 
 .reserva-bar {
-    position: absolute;
-    height: 30px;
-    background-color: var(--accent, #4a90e2);
+    position: relative;
+    /* Mudado de absolute para relative se estiver dentro de um grid cell, mas aqui usamos grid placement */
+    height: 36px;
+    align-self: center;
+    background-color: #e53935;
+    /* Vermelho para ocupado */
+    border: 1px solid #c62828;
+    /* Contorno vermelho mais escuro */
     color: #fff;
-    /* Mantém branco pois o fundo é accent */
     border-radius: 4px;
-    margin-top: 10px;
-    font-size: 12px;
-    padding: 0 5px;
+    font-size: 0.75rem;
+    padding: 0 8px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -92,9 +132,27 @@
     z-index: 1;
     display: flex;
     align-items: center;
-    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin: 0 2px;
+    /* Pequeno espaçamento lateral */
 }
 
 .reserva-bar:hover {
-    opacity: 0.8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    z-index: 2;
+}
+
+.reserva-bar-content {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+}
+
+.reserva-bar-name {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
