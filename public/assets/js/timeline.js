@@ -38,7 +38,7 @@ function renderTimeline(container, imoveis, reservas, clientes) {
     body.className = 'timeline-body';
 
     imoveis.forEach(imovel => {
-        const imovelReservas = reservas.filter(r => r.imovelId === imovel.id);
+        const imovelReservas = reservas.filter(r => r.imovelId == imovel.id);
         const row = createTimelineRow(imovel, imovelReservas, days, today, clientes);
         body.appendChild(row);
     });
