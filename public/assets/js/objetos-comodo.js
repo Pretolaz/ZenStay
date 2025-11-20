@@ -1,5 +1,6 @@
 import { Imovel } from './entities/imovel.js';
-import { db, app } from '../firebase-config.js';
+import { Imovel } from './entities/imovel.js';
+import { db, app } from './firebase-config.js';
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const storage = getStorage(app);

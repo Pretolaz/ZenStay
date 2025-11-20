@@ -1,4 +1,5 @@
 import { Imovel } from './entities/imovel.js';
+import { Imovel } from './entities/imovel.js';
 // assets/js/imoveis.js
 
 // Elementos do DOM
