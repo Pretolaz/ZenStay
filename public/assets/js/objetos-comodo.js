@@ -1,47 +1,56 @@
+import { Imovel } from './entities/imovel.js';
+import { db, app } from '../firebase-config.js';
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+const storage = getStorage(app);
+
+async function uploadFile(file, path) {
+    const storageRef = ref(storage, path);
+    const snapshot = await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    return downloadURL;
+}
 // assets/js/objetos-comodo.js
 
 // Escopo do módulo para as variáveis principais
-let tabelaObjetosBody, formObjeto, objetoIdInput, codigoObjetoInput,
+let tabelaObjetosBody, formObjeto, objetoIdInput,
     tipoObjetoInput, nomeObjetoInput, quantidadeObjetoInput,
-    cancelarObjetoBtn, selectImovelObjetos, selectComodoObjetos;
+    cancelarObjetoBtn, selectImovelObjetos, selectComodoObjetos,
+    fotoObjetoInput, previewObjeto, btnCamera, cameraStream,
+    cameraCanvas, btnCapture;
 
 let allObjects = [];
 let sortState = { key: 'id', ascending: true };
+let currentImageFile = null;
+let activeStream = null;
 
 async function inicializarInventario() {
     // Atribuição de elementos do DOM
     tabelaObjetosBody = document.querySelector('#tabelaObjetos tbody');
     formObjeto = document.getElementById('formObjeto');
     objetoIdInput = document.getElementById('objetoId');
-    codigoObjetoInput = document.getElementById('codigoObjeto');
     tipoObjetoInput = document.getElementById('tipoObjeto');
     nomeObjetoInput = document.getElementById('nomeObjeto');
     quantidadeObjetoInput = document.getElementById('quantidadeObjeto');
     cancelarObjetoBtn = document.getElementById('cancelarObjeto');
     selectImovelObjetos = document.getElementById('selectImovelObjetos');
     selectComodoObjetos = document.getElementById('selectComodoObjetos');
+    fotoObjetoInput = document.getElementById('fotoObjeto');
+    previewObjeto = document.getElementById('previewObjeto');
+    btnCamera = document.getElementById('btnCamera');
+    cameraStream = document.getElementById('cameraStream');
+    cameraCanvas = document.getElementById('cameraCanvas');
+    btnCapture = document.getElementById('btnCapture');
 
-    const btnNovoObjeto = document.getElementById('btnNovoObjeto');
     const formObjetoContainer = document.getElementById('formObjetoContainer');
 
     // Listeners de eventos
     selectImovelObjetos.addEventListener('change', () => popularSelectComodosObjetos(selectImovelObjetos.value));
     formObjeto.addEventListener('submit', salvarObjeto);
-    cancelarObjetoBtn.addEventListener('click', () => {
-        resetFormObjeto();
-        if (formObjetoContainer) formObjetoContainer.style.display = 'none';
-    });
-
-    // Botão novo objeto
-    if (btnNovoObjeto) {
-        btnNovoObjeto.addEventListener('click', () => {
-            resetFormObjeto();
-            if (formObjetoContainer) {
-                formObjetoContainer.style.display = 'block';
-                formObjeto.scrollIntoView({ behavior: 'smooth' });
-            }
-        });
-    }
+    cancelarObjetoBtn.addEventListener('click', resetFormObjeto);
+    fotoObjetoInput.addEventListener('change', handleFileSelect);
+    btnCamera.addEventListener('click', openCamera);
+    btnCapture.addEventListener('click', captureImage);
 
     document.querySelectorAll('#tabelaObjetos th[data-sort-key]').forEach(header => {
         header.addEventListener('click', () => handleSort(header.dataset.sortKey));
@@ -93,10 +102,8 @@ function handleSort(key) {
 
 function renderTable() {
     const sortedObjects = [...allObjects].sort((a, b) => {
-        // Tratamento especial para ordenação numérica vs. alfabética
         const valA = (typeof a[sortState.key] === 'string') ? a[sortState.key].toLowerCase() : a[sortState.key];
         const valB = (typeof b[sortState.key] === 'string') ? b[sortState.key].toLowerCase() : b[sortState.key];
-
         if (valA < valB) return sortState.ascending ? -1 : 1;
         if (valA > valB) return sortState.ascending ? 1 : -1;
         return 0;
@@ -105,16 +112,18 @@ function renderTable() {
     tabelaObjetosBody.innerHTML = '';
     sortedObjects.forEach(obj => {
         const row = document.createElement('tr');
+        const imageUrl = obj.fotoUrl || 'https://placehold.co/100x100?text=N/A';
         row.innerHTML = `
+            <td><img src="${imageUrl}" alt="${obj.nome}" class="inventory-item-image"></td>
             <td>${obj.id}</td>
             <td>${obj.imovelTitulo}</td>
             <td>${obj.comodoNome}</td>
             <td>${obj.tipo}</td>
             <td>${obj.nome}</td>
             <td>${obj.quantidade}</td>
-            <td>
-                <button class="action-btn" onclick="editarObjeto(${obj.imovelId}, ${obj.comodoId}, ${obj.id})" title="Editar">✏️</button>
-                <button class="action-btn" onclick="excluirObjeto(${obj.imovelId}, ${obj.comodoId}, ${obj.id})" title="Excluir">🗑️</button>
+            <td class="actions-cell">
+                <button class="action-btn edit-btn" onclick="editarObjeto(${obj.imovelId}, ${obj.comodoId}, ${obj.id})" title="Editar">✏️</button>
+                <button class="action-btn delete-btn" onclick="excluirObjeto(${obj.imovelId}, ${obj.comodoId}, ${obj.id})" title="Excluir">🗑️</button>
             </td>
         `;
         tabelaObjetosBody.appendChild(row);
@@ -173,19 +182,26 @@ async function salvarObjeto(e) {
     }
 
     try {
+        let fotoUrl = document.getElementById('previewObjeto').src;
+        if (currentImageFile) {
+            const path = `inventario/${imovelId}_${comodoId}_${Date.now()}`;
+            fotoUrl = await uploadFile(currentImageFile, path);
+        }
+
         const imoveis = await Imovel.listarTodos();
         const imovelData = imoveis.find(i => i.id == imovelId);
         if (!imovelData) return;
 
         const imovel = new Imovel(imovelData);
-        const comodo = imovel.comodos.find(c => c.id == comodoId);
-        if (!comodo) return;
+        const objetoData = {
+            id: objetoId,
+            tipo: tipoObjetoInput.value,
+            nome: nomeObjetoInput.value,
+            quantidade: parseInt(quantidadeObjetoInput.value, 10),
+            fotoUrl: fotoUrl.startsWith('https://') ? fotoUrl : null
+        };
 
-        const tipo = tipoObjetoInput.value;
-        const nome = nomeObjetoInput.value;
-        const quantidade = parseInt(quantidadeObjetoInput.value, 10);
-
-        await imovel.salvarObjeto(comodo.id, { id: objetoId, tipo, nome, quantidade });
+        await imovel.salvarObjeto(comodoId, objetoData);
         Toast.success("Objeto salvo com sucesso!");
 
         await loadAndRenderAllObjects();
@@ -207,27 +223,21 @@ async function editarObjeto(imovelId, comodoId, objetoId) {
         const objeto = comodoData.objetos.find(o => o.id === objetoId);
         if (!objeto) return;
 
+        resetFormObjeto();
         selectImovelObjetos.value = imovelId;
-        await popularSelectComodosObjetos(imovelId); // Wait for comodos to populate
+        await popularSelectComodosObjetos(imovelId);
         selectComodoObjetos.value = comodoId;
         objetoIdInput.value = objeto.id;
-        if (codigoObjetoInput) codigoObjetoInput.value = objeto.id;
         tipoObjetoInput.value = objeto.tipo;
         nomeObjetoInput.value = objeto.nome;
         quantidadeObjetoInput.value = objeto.quantidade;
+        previewObjeto.src = objeto.fotoUrl || 'https://placehold.co/300x200?text=Sem+Imagem';
 
-        // Atualizar título do formulário e mostrar
-        const formTitleObjeto = document.getElementById('formTitleObjeto');
-        if (formTitleObjeto) formTitleObjeto.textContent = '✏️ Editar Objeto';
-
-        const formObjetoContainer = document.getElementById('formObjetoContainer');
-        if (formObjetoContainer) {
-            formObjetoContainer.style.display = 'block';
-            formObjeto.scrollIntoView({ behavior: 'smooth' });
-        }
+        document.getElementById('formTitleObjeto').textContent = '✏️ Editar Objeto';
+        formObjeto.scrollIntoView({ behavior: 'smooth' });
     } catch (error) {
-        console.error("Erro ao editar objeto:", error);
-        Toast.error("Erro ao editar objeto.");
+        console.error("Erro ao carregar objeto para edição:", error);
+        Toast.error("Erro ao carregar objeto para edição.");
     }
 }
 
@@ -253,13 +263,64 @@ async function excluirObjeto(imovelId, comodoId, objetoId) {
 function resetFormObjeto() {
     formObjeto.reset();
     objetoIdInput.value = '';
-    if (codigoObjetoInput) codigoObjetoInput.value = '';
     selectImovelObjetos.value = '';
     selectComodoObjetos.innerHTML = '<option value="">Selecione um Cômodo</option>';
+    previewObjeto.src = 'https://placehold.co/300x200?text=Sem+Imagem';
+    currentImageFile = null;
+    fotoObjetoInput.value = '';
+    stopCamera();
+    document.getElementById('formTitleObjeto').textContent = '➕ Adicionar Objeto';
+}
 
-    // Resetar título do formulário
-    const formTitleObjeto = document.getElementById('formTitleObjeto');
-    if (formTitleObjeto) formTitleObjeto.textContent = '➕ Adicionar Objeto';
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            previewObjeto.src = e.target.result;
+            currentImageFile = file;
+        };
+        reader.readAsDataURL(file);
+        stopCamera();
+    }
+}
+
+async function openCamera() {
+    stopCamera();
+    try {
+        activeStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        cameraStream.srcObject = activeStream;
+        cameraStream.style.display = 'block';
+        btnCapture.style.display = 'block';
+        previewObjeto.style.display = 'none';
+    } catch (err) {
+        console.error("Erro ao acessar a câmera: ", err);
+        Toast.error("Não foi possível acessar a câmera.");
+    }
+}
+
+function stopCamera() {
+    if (activeStream) {
+        activeStream.getTracks().forEach(track => track.stop());
+        activeStream = null;
+    }
+    cameraStream.style.display = 'none';
+    btnCapture.style.display = 'none';
+    previewObjeto.style.display = 'block';
+}
+
+function captureImage() {
+    cameraCanvas.width = cameraStream.videoWidth;
+    cameraCanvas.height = cameraStream.videoHeight;
+    const context = cameraCanvas.getContext('2d');
+    context.drawImage(cameraStream, 0, 0, cameraCanvas.width, cameraCanvas.height);
+    
+    previewObjeto.src = cameraCanvas.toDataURL('image/webp');
+    cameraCanvas.toBlob(blob => {
+        currentImageFile = new File([blob], "capture.webp", { type: "image/webp" });
+    }, 'image/webp');
+
+    stopCamera();
 }
 
 // Expor funções globais
@@ -267,5 +328,5 @@ window.inicializarInventario = inicializarInventario;
 window.editarObjeto = editarObjeto;
 window.excluirObjeto = excluirObjeto;
 
-// A LINHA QUE FALTAVA: Chama a inicialização quando o DOM está pronto.
+// Chama a inicialização quando o DOM está pronto
 window.addEventListener('DOMContentLoaded', inicializarInventario);

@@ -1,3 +1,4 @@
+
 /* assets/css/imoveis.css */
 
 /* =========================================
@@ -320,7 +321,7 @@
 .modern-table-container {
     background: var(--card);
     border-radius: 20px;
-    overflow: hidden;
+    overflow-x: auto; /* Permite rolagem horizontal em telas pequenas */
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     border: 1px solid var(--border);
 }
@@ -328,6 +329,7 @@
 .modern-table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 600px; /* Largura mínima para evitar quebra de layout */
 }
 
 .modern-table th {
@@ -343,7 +345,7 @@
 }
 
 .modern-table td {
-    padding: 16px 20px;
+    padding: 12px 20px; /* Padding vertical reduzido */
     color: var(--text);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     vertical-align: middle;
@@ -399,4 +401,58 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* =========================================
+   Inventario Section Styles
+   ========================================= */
+
+.image-upload-container {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed var(--border);
+    height: 100%;
+}
+
+#previewObjeto {
+    width: 100%;
+    max-width: 250px;
+    height: auto;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.image-upload-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.image-upload-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#tabelaObjetos .inventory-item-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+#tabelaObjetos .inventory-item-image:hover {
+    transform: scale(1.5);
+    z-index: 10;
+    position: relative;
 }

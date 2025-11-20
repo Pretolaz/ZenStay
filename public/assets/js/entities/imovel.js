@@ -220,7 +220,8 @@ class Imovel {
                 // Edit
                 const index = comodo.objetos.findIndex(o => o.id === objetoData.id);
                 if (index !== -1) {
-                    comodo.objetos[index] = objetoData;
+                    // Preserve the original ID, but update other fields
+                    comodo.objetos[index] = { ...comodo.objetos[index], ...objetoData, id: comodo.objetos[index].id };
                 }
             } else {
                 // Add

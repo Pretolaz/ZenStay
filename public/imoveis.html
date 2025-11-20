@@ -236,48 +236,40 @@
 
         <!-- Seção de Gerenciamento de Objetos (Inventário) -->
         <section class="dashboard" id="inventario-objetos-section" style="display: none;">
-            <div class="card" style="flex: 1 1 100%;">
-                <h3>➕ Adicionar/Editar Objeto</h3>
+            <!-- Container do Formulário -->
+            <div id="formObjetoContainer" class="card"
+                style="flex: 1 1 100%; margin-bottom: 30px; display: block; background: var(--card); border-radius: 20px; padding: 30px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                <h3 id="formTitleObjeto"
+                    style="margin-bottom: 20px; color: var(--accent); display: flex; align-items: center; gap: 10px;">
+                    ➕ Adicionar Objeto
+                </h3>
+                <form id="formObjeto" style="display: flex; flex-wrap: wrap; gap: 30px;">
+                    <!-- Coluna da Esquerda: Detalhes do Objeto -->
+                    <div class="form-column" style="flex: 1; min-width: 300px;">
+                        <input type="hidden" id="objetoId">
+                        <input type="hidden" id="objetoComodoId">
 
-                <form id="formObjeto">
-                    <div class="form-row" style="margin-bottom: 15px;">
-                        <div class="input-group" style="flex: 1;">
+                        <div class="input-group" style="margin-bottom: 15px;">
                             <span>🏠</span>
-                            <select id="selectImovelObjetos"
-                                style="flex: 1; border: none; background: transparent; color: var(--text); padding: 10px 5px;"
-                                required>
+                            <select id="selectImovelObjetos" class="modern-select" required>
                                 <option value="">Selecione um Imóvel</option>
                             </select>
                         </div>
-                        <div class="input-group" style="flex: 1; margin-left: 10px;">
+                        <div class="input-group" style="margin-bottom: 15px;">
                             <span>🚪</span>
-                            <select id="selectComodoObjetos"
-                                style="flex: 1; border: none; background: transparent; color: var(--text); padding: 10px 5px;"
-                                required>
+                            <select id="selectComodoObjetos" class="modern-select" required>
                                 <option value="">Selecione um Cômodo</option>
                             </select>
                         </div>
-                    </div>
-
-                    <input type="hidden" id="objetoId">
-                    <input type="hidden" id="objetoComodoId">
-
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>#️⃣</span>
-                            <input type="number" id="codigoObjeto" placeholder="Código (auto)" readonly>
-                        </div>
-                        <div class="input-group">
+                        <div class="input-group" style="margin-bottom: 15px;">
                             <span>📦</span>
-                            <select id="tipoObjeto" required>
+                            <select id="tipoObjeto" class="modern-select" required>
                                 <option value="">Selecione o Tipo</option>
                                 <option value="Móvel">Móvel</option>
                                 <option value="Utensílio">Utensílio</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="input-group">
+                        <div class="input-group" style="margin-bottom: 15px;">
                             <span>🛋️</span>
                             <input type="text" id="nomeObjeto" placeholder="Nome do Objeto" required>
                         </div>
@@ -286,27 +278,58 @@
                             <input type="number" id="quantidadeObjeto" placeholder="Quantidade" min="1" required>
                         </div>
                     </div>
-                    <button type="submit" class="btn">➕ Adicionar Objeto</button>
-                    <button type="button" class="btn btn-secondary" id="cancelarObjeto">❌ Cancelar</button>
+
+                    <!-- Coluna da Direita: Upload de Imagem -->
+                    <div class="form-column" style="flex: 1; min-width: 300px; text-align: center;">
+                        <div class="image-upload-container">
+                            <img id="previewObjeto" src="https://placehold.co/300x200?text=Sem+Imagem"
+                                alt="Pré-visualização do Objeto">
+                            <div class="image-upload-actions">
+                                <label for="fotoObjeto" class="btn btn-secondary">
+                                    <span>📁</span> Anexar
+                                </label>
+                                <input type="file" id="fotoObjeto" accept="image/*" style="display: none;">
+                                <button type="button" id="btnCamera" class="btn btn-secondary">
+                                    <span>📷</span> Tirar Foto
+                                </button>
+                            </div>
+                        </div>
+                        <video id="cameraStream" autoplay playsinline style="display: none; width: 100%; border-radius: 10px;"></video>
+                        <canvas id="cameraCanvas" style="display: none;"></canvas>
+                        <button type="button" id="btnCapture" class="btn" style="display: none; margin-top: 10px;">Capturar Imagem</button>
+                    </div>
+
+                    <!-- Ações do Formulário -->
+                    <div class="form-actions"
+                        style="width: 100%; margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn btn-secondary" id="cancelarObjeto">❌ Cancelar</button>
+                        <button type="submit" class="btn">💾 Salvar Objeto</button>
+                    </div>
                 </form>
             </div>
 
+            <!-- Container da Tabela -->
             <div class="card" style="flex: 1 1 100%;">
-                <h3>📋 Inventário Geral de Objetos</h3>
-                <table id="tabelaObjetos">
-                    <thead>
-                        <tr>
-                            <th data-sort-key="codigo">Cód. <span></span></th>
-                            <th data-sort-key="imovelApelido">Imóvel <span></span></th>
-                            <th data-sort-key="comodoNome">Cômodo <span></span></th>
-                            <th data-sort-key="tipo">Tipo <span></span></th>
-                            <th data-sort-key="nome">Nome <span></span></th>
-                            <th data-sort-key="quantidade">Qtd. <span></span></th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="imoveis-header-actions" style="margin-bottom: 20px;">
+                    <h3 style="color: var(--text);">📋 Inventário Geral</h3>
+                </div>
+                <div class="modern-table-container">
+                    <table id="tabelaObjetos" class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Imagem</th>
+                                <th data-sort-key="id">Cód. <span></span></th>
+                                <th data-sort-key="imovelTitulo">Imóvel <span></span></th>
+                                <th data-sort-key="comodoNome">Cômodo <span></span></th>
+                                <th data-sort-key="tipo">Tipo <span></span></th>
+                                <th data-sort-key="nome">Nome <span></span></th>
+                                <th data-sort-key="quantidade">Qtd. <span></span></th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
