@@ -1,9 +1,9 @@
-* { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
-    font-family: 'Poppins', sans-serif; 
-} 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
 
 :root {
     --sidebar-width: 220px;
@@ -17,10 +17,11 @@ body {
 }
 
 body.sidebar-open-mobile {
-    overflow: hidden; /* Evita rolagem do conteúdo principal quando sidebar mobile está aberta */
+    overflow: hidden;
+    /* Evita rolagem do conteúdo principal quando sidebar mobile está aberta */
 }
 
-/* SIDEBAR */ 
+/* SIDEBAR */
 .sidebar {
     position: fixed;
     top: 0;
@@ -42,19 +43,23 @@ body.sidebar-open-mobile {
 /* Estado inicial para desktop */
 @media (min-width: 769px) {
     .sidebar {
-        transform: translateX(0); /* Sempre visível no desktop */
+        transform: translateX(0);
+        /* Sempre visível no desktop */
     }
 }
 
 /* Estado inicial para mobile (oculto) */
 @media (max-width: 768px) {
     .sidebar {
-        transform: translateX(-100%); /* Escondido por padrão no mobile */
-        box-shadow: 0 0 15px rgba(0, 0, 0, 0.4); /* Sombra para destacar quando aberto */
+        transform: translateX(-100%);
+        /* Escondido por padrão no mobile */
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+        /* Sombra para destacar quando aberto */
     }
 
     body.sidebar-open-mobile .sidebar {
-        transform: translateX(0); /* Visível quando a classe é adicionada ao body */
+        transform: translateX(0);
+        /* Visível quando a classe é adicionada ao body */
     }
 
     /* Overlay para o conteúdo principal quando a sidebar mobile está aberta */
@@ -66,7 +71,8 @@ body.sidebar-open-mobile {
         right: 0;
         bottom: 0;
         background-color: rgba(0, 0, 0, 0.5);
-        z-index: 999; /* Abaixo da sidebar, mas acima do conteúdo */
+        z-index: 999;
+        /* Abaixo da sidebar, mas acima do conteúdo */
         transition: opacity 0.3s ease-in-out;
     }
 }
@@ -104,7 +110,7 @@ body.sidebar-open-mobile {
 }
 
 /* Estilos para o submenu */
-.sidebar .has-submenu > a {
+.sidebar .has-submenu>a {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -142,7 +148,7 @@ body.sidebar-open-mobile {
     transform: rotate(90deg);
 }
 
-/* MAIN CONTENT */ 
+/* MAIN CONTENT */
 .content {
     flex: 1;
     background: var(--background);
@@ -150,18 +156,21 @@ body.sidebar-open-mobile {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    transition: margin-left 0.3s ease-in-out; /* Transição para o margin-left */
+    transition: margin-left 0.3s ease-in-out;
+    /* Transição para o margin-left */
 }
 
 @media (min-width: 769px) {
     .content {
-        margin-left: var(--sidebar-width); /* Ajusta o conteúdo para a sidebar no desktop */
+        margin-left: var(--sidebar-width);
+        /* Ajusta o conteúdo para a sidebar no desktop */
     }
 }
 
 @media (max-width: 768px) {
     .content {
-        margin-left: 0; /* Conteúdo ocupa largura total no mobile */
+        margin-left: 0;
+        /* Conteúdo ocupa largura total no mobile */
         width: 100%;
     }
 }
@@ -195,28 +204,32 @@ body.sidebar-open-mobile {
 
 /* Mobile Menu Button (Hamburger) */
 .menu-toggle {
-    display: none; /* Escondido por padrão no desktop */
+    display: none;
+    /* Escondido por padrão no desktop */
     background: none;
     border: none;
     font-size: 1.8em;
-    color: var(--text-color); /* Usar uma variável de cor existente ou definir uma nova */
+    color: var(--text-color);
+    /* Usar uma variável de cor existente ou definir uma nova */
     cursor: pointer;
-    z-index: 1001; /* Acima de tudo para ser clicável */
+    z-index: 1001;
+    /* Acima de tudo para ser clicável */
     padding: 5px;
 }
 
 @media (max-width: 768px) {
     .menu-toggle {
-        display: block; /* Visível no mobile */
+        display: block;
+        /* Visível no mobile */
     }
 }
 
-/* DASHBOARD */ 
-.dashboard { 
-    display: flex; 
-    gap: 20px; 
-    padding: 30px; 
-    flex-wrap: wrap; 
+/* DASHBOARD */
+.dashboard {
+    display: flex;
+    gap: 20px;
+    padding: 30px;
+    flex-wrap: wrap;
 }
 
 /* Estilos para o card */
@@ -248,47 +261,47 @@ body.sidebar-open-mobile {
 
 /* Estilos para o formImovelContainer quando visível */
 #gerenciar-imoveis-section #formImovelContainer {
-    display: block; 
+    display: block;
     margin-bottom: 20px;
 }
 
 /* Estilos para os cards de imóveis */
 .imovel-card {
     position: relative;
-    flex: 1 1 300px; 
+    flex: 1 1 300px;
     min-width: 280px;
-    max-width: 320px; 
+    max-width: 320px;
     background-color: var(--card);
     border-radius: 15px;
-    overflow: hidden; 
+    overflow: hidden;
     cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-bottom: 15px; 
+    padding-bottom: 15px;
 }
 
 .imovel-card:hover {
-    transform: translateY(-8px); 
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4); 
+    transform: translateY(-8px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
 }
 
 .imovel-card-apelido {
     font-size: 1.6em;
     font-weight: 600;
     color: var(--accent);
-    margin: 15px 0 10px 0; 
+    margin: 15px 0 10px 0;
     text-align: center;
     width: 100%;
 }
 
 .imovel-card-mini-foto {
-    width: 90%; 
-    height: 180px; 
-    object-fit: cover; 
-    border-radius: 10px; 
+    width: 90%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
     margin-bottom: 15px;
 }
 
@@ -320,46 +333,47 @@ body.sidebar-open-mobile {
 
 /* Cores e estilos para a situação do imóvel */
 .situacao-liberado {
-    color: #28a745; 
+    color: #28a745;
 }
 
 .situacao-locado {
-    color: #ffc107; 
+    color: #ffc107;
 }
 
 .situacao-em-limpeza {
-    color: #ffda6b; 
+    color: #ffda6b;
 }
 
 .situacao-suspenso {
-    color: #dc3545; 
+    color: #dc3545;
 }
 
 .situacao-inativo {
-    color: #6c757d; 
+    color: #6c757d;
 }
 
 /* Estilos para o modal */
 .modal {
-    display: none; 
+    display: none;
     position: fixed;
-    z-index: 1;
+    z-index: 2000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto; 
-    background-color: rgba(0, 0, 0, 0.8); 
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.8);
 }
 
 .modal-content {
     position: relative;
     background-color: var(--card);
-    margin: 8% auto; 
+    margin: 8% auto;
     padding: 25px;
     border: 1px solid var(--border);
-    width: 90%; 
-    max-width: 800px; /* Aumentado o max-width para acomodar o layout lado a lado */
+    width: 90%;
+    max-width: 800px;
+    /* Aumentado o max-width para acomodar o layout lado a lado */
     border-radius: 12px;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
     animation: slideIn 0.4s ease-out;
@@ -367,7 +381,8 @@ body.sidebar-open-mobile {
 
 .modal-body-content {
     display: flex;
-    flex-direction: column; /* Padrão para mobile: empilha */
+    flex-direction: column;
+    /* Padrão para mobile: empilha */
     gap: 20px;
     margin-top: 20px;
 }
@@ -381,9 +396,10 @@ body.sidebar-open-mobile {
 
 .modal-content img#modalImovelFoto {
     max-width: 100%;
-    height: auto; 
-    max-height: 300px; /* Altura máxima para a imagem no modal */
-    object-fit: contain; 
+    height: auto;
+    max-height: 300px;
+    /* Altura máxima para a imagem no modal */
+    object-fit: contain;
     border-radius: 8px;
 }
 
@@ -392,7 +408,8 @@ body.sidebar-open-mobile {
     text-align: left;
     display: flex;
     flex-direction: column;
-    gap: 8px; /* Espaçamento entre os parágrafos de detalhes */
+    gap: 8px;
+    /* Espaçamento entre os parágrafos de detalhes */
 }
 
 .modal-details-container p {
@@ -403,7 +420,8 @@ body.sidebar-open-mobile {
 /* Media query para desktop: layout lado a lado */
 @media (min-width: 768px) {
     .modal-body-content {
-        flex-direction: row; /* Layout lado a lado em telas maiores */
+        flex-direction: row;
+        /* Layout lado a lado em telas maiores */
     }
 
     .modal-image-container {
@@ -421,7 +439,7 @@ body.sidebar-open-mobile {
     top: 15px;
     right: 20px;
     color: var(--text);
-    font-size: 32px; 
+    font-size: 32px;
     font-weight: bold;
     cursor: pointer;
     transition: color 0.2s;
@@ -429,7 +447,7 @@ body.sidebar-open-mobile {
 
 .close-button:hover,
 .close-button:focus {
-    color: var(--accent); 
+    color: var(--accent);
     text-decoration: none;
     cursor: pointer;
 }
@@ -439,7 +457,7 @@ body.sidebar-open-mobile {
     text-align: center;
     display: flex;
     justify-content: center;
-    gap: 15px; 
+    gap: 15px;
 }
 
 .modal-actions .btn {
@@ -450,6 +468,13 @@ body.sidebar-open-mobile {
 
 /* Animação para o modal */
 @keyframes slideIn {
-    from {transform: translateY(-200px); opacity: 0;}
-    to {transform: translateY(0); opacity: 1;}
+    from {
+        transform: translateY(-200px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
