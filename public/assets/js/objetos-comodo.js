@@ -21,10 +21,28 @@ async function inicializarInventario() {
     selectImovelObjetos = document.getElementById('selectImovelObjetos');
     selectComodoObjetos = document.getElementById('selectComodoObjetos');
 
+    const btnNovoObjeto = document.getElementById('btnNovoObjeto');
+    const formObjetoContainer = document.getElementById('formObjetoContainer');
+
     // Listeners de eventos
     selectImovelObjetos.addEventListener('change', () => popularSelectComodosObjetos(selectImovelObjetos.value));
     formObjeto.addEventListener('submit', salvarObjeto);
-    cancelarObjetoBtn.addEventListener('click', resetFormObjeto);
+    cancelarObjetoBtn.addEventListener('click', () => {
+        resetFormObjeto();
+        if (formObjetoContainer) formObjetoContainer.style.display = 'none';
+    });
+
+    // Botão novo objeto
+    if (btnNovoObjeto) {
+        btnNovoObjeto.addEventListener('click', () => {
+            resetFormObjeto();
+            if (formObjetoContainer) {
+                formObjetoContainer.style.display = 'block';
+                formObjeto.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    }
+
     document.querySelectorAll('#tabelaObjetos th[data-sort-key]').forEach(header => {
         header.addEventListener('click', () => handleSort(header.dataset.sortKey));
     });
@@ -198,10 +216,18 @@ async function editarObjeto(imovelId, comodoId, objetoId) {
         nomeObjetoInput.value = objeto.nome;
         quantidadeObjetoInput.value = objeto.quantidade;
 
-        document.querySelector('#formObjeto button[type="submit"]').textContent = '💾 Salvar Objeto';
-        window.scrollTo(0, 0);
+        // Atualizar título do formulário e mostrar
+        const formTitleObjeto = document.getElementById('formTitleObjeto');
+        if (formTitleObjeto) formTitleObjeto.textContent = '✏️ Editar Objeto';
+
+        const formObjetoContainer = document.getElementById('formObjetoContainer');
+        if (formObjetoContainer) {
+            formObjetoContainer.style.display = 'block';
+            formObjeto.scrollIntoView({ behavior: 'smooth' });
+        }
     } catch (error) {
         console.error("Erro ao editar objeto:", error);
+        Toast.error("Erro ao editar objeto.");
     }
 }
 
@@ -230,7 +256,10 @@ function resetFormObjeto() {
     if (codigoObjetoInput) codigoObjetoInput.value = '';
     selectImovelObjetos.value = '';
     selectComodoObjetos.innerHTML = '<option value="">Selecione um Cômodo</option>';
-    document.querySelector('#formObjeto button[type="submit"]').textContent = '➕ Adicionar Objeto';
+
+    // Resetar título do formulário
+    const formTitleObjeto = document.getElementById('formTitleObjeto');
+    if (formTitleObjeto) formTitleObjeto.textContent = '➕ Adicionar Objeto';
 }
 
 // Expor funções globais
