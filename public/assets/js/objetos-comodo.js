@@ -14,6 +14,7 @@ let allObjects = [];
 let sortState = { key: 'id', ascending: true };
 let currentImageFile = null;
 let activeStream = null;
+let itemParaExcluir = null; // Armazena o item a ser excluído para o modal de confirmação
 
 async function inicializarInventario() {
     // Atribuição de elementos do DOM
@@ -38,10 +39,23 @@ async function inicializarInventario() {
     // Listeners de eventos
     selectImovelObjetos.addEventListener('change', () => popularSelectComodosObjetos(selectImovelObjetos.value));
     formObjeto.addEventListener('submit', salvarObjeto);
-    cancelarObjetoBtn.addEventListener('click', resetFormObjeto);
+    cancelarObjetoBtn.addEventListener('click', () => toggleFormObjeto(false));
     fotoObjetoInput.addEventListener('change', handleFileSelect);
     btnCamera.addEventListener('click', openCamera);
     btnCapture.addEventListener('click', captureImage);
+
+    const btnNovoObjeto = document.getElementById('btnNovoObjeto');
+    if (btnNovoObjeto) {
+        btnNovoObjeto.addEventListener('click', () => {
+            resetFormObjeto();
+            toggleFormObjeto(true);
+        });
+    }
+
+    const btnConfirmarExclusao = document.getElementById('btnConfirmarExclusao');
+    if (btnConfirmarExclusao) {
+        btnConfirmarExclusao.addEventListener('click', executarExclusao);
+    }
 
     document.querySelectorAll('#tabelaObjetos th[data-sort-key]').forEach(header => {
         header.addEventListener('click', () => handleSort(header.dataset.sortKey));
@@ -103,18 +117,29 @@ function renderTable() {
     tabelaObjetosBody.innerHTML = '';
     sortedObjects.forEach(obj => {
         const row = document.createElement('tr');
-        const imageUrl = obj.fotoUrl || 'https://placehold.co/100x100?text=N/A';
+        row.style.cursor = 'pointer';
+        row.classList.add('table-row-hover'); // Classe CSS para hover effect se desejar
+
+        // Evento de clique na linha para abrir detalhes (exceto se clicar nos botões de ação)
+        row.addEventListener('click', (e) => {
+            if (!e.target.closest('.action-btn')) {
+                verDetalhesObjeto(obj);
+            }
+        });
+
+        const imageUrl = (obj.fotoUrl && !obj.fotoUrl.includes('placehold.co')) ? obj.fotoUrl : 'https://placehold.co/100x100?text=N/A';
+
         row.innerHTML = `
-            <td><img src="${imageUrl}" alt="${obj.nome}" class="inventory-item-image"></td>
+            <td><img src="${imageUrl}" alt="${obj.nome}" class="inventory-item-image" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"></td>
             <td>${obj.id}</td>
             <td>${obj.imovelTitulo}</td>
             <td>${obj.comodoNome}</td>
             <td>${obj.tipo}</td>
             <td>${obj.nome}</td>
-            <td>${obj.quantidade}</td>
+            <td style="text-align: center;">${obj.quantidade}</td>
             <td class="actions-cell">
                 <button class="action-btn edit-btn" onclick="editarObjeto(${obj.imovelId}, ${obj.comodoId}, ${obj.id})" title="Editar">✏️</button>
-                <button class="action-btn delete-btn" onclick="excluirObjeto(${obj.imovelId}, ${obj.comodoId}, ${obj.id})" title="Excluir">🗑️</button>
+                <button class="action-btn delete-btn" onclick="prepararExclusao(${obj.imovelId}, ${obj.comodoId}, ${obj.id})" title="Excluir">🗑️</button>
             </td>
         `;
         tabelaObjetosBody.appendChild(row);
@@ -191,13 +216,14 @@ async function salvarObjeto(e) {
             tipo: tipoObjetoInput.value,
             nome: nomeObjetoInput.value,
             quantidade: parseInt(quantidadeObjetoInput.value, 10),
-            fotoUrl: fotoUrl.startsWith('https://') ? fotoUrl : null
+            fotoUrl: fotoUrl
         };
 
         await imovel.salvarObjeto(comodoId, objetoData);
         Toast.success("Objeto salvo com sucesso!");
 
         await loadAndRenderAllObjects();
+        toggleFormObjeto(false);
         resetFormObjeto();
     } catch (error) {
         Toast.error("Erro ao salvar objeto: " + error.message);
@@ -227,30 +253,65 @@ async function editarObjeto(imovelId, comodoId, objetoId) {
         previewObjeto.src = objeto.fotoUrl || 'https://placehold.co/300x200?text=Sem+Imagem';
 
         document.getElementById('formTitleObjeto').textContent = '✏️ Editar Objeto';
-        formObjeto.scrollIntoView({ behavior: 'smooth' });
+        toggleFormObjeto(true);
     } catch (error) {
         console.error("Erro ao carregar objeto para edição:", error);
         Toast.error("Erro ao carregar objeto para edição.");
     }
 }
 
-async function excluirObjeto(imovelId, comodoId, objetoId) {
-    if (!confirm('Tem certeza que deseja excluir este objeto?')) return;
+async function prepararExclusao(imovelId, comodoId, objetoId) {
+    itemParaExcluir = { imovelId, comodoId, objetoId };
+    document.getElementById('modalConfirmacaoExclusao').style.display = 'block';
+}
+
+async function executarExclusao() {
+    if (!itemParaExcluir) return;
 
     try {
+        const { imovelId, comodoId, objetoId } = itemParaExcluir;
         const imoveis = await Imovel.listarTodos();
         const imovelData = imoveis.find(i => i.id === imovelId);
-        if (!imovelData) return;
 
-        const imovel = new Imovel(imovelData);
-        await imovel.removerObjeto(comodoId, objetoId);
-        Toast.success("Objeto excluído com sucesso!");
+        if (imovelData) {
+            const imovel = new Imovel(imovelData);
+            await imovel.removerObjeto(comodoId, objetoId);
+            Toast.success("Objeto excluído com sucesso!");
+            await loadAndRenderAllObjects();
+        }
 
-        await loadAndRenderAllObjects();
-        resetFormObjeto();
+        document.getElementById('modalConfirmacaoExclusao').style.display = 'none';
+        itemParaExcluir = null;
     } catch (error) {
         Toast.error("Erro ao excluir objeto: " + error.message);
     }
+}
+
+function toggleFormObjeto(show) {
+    const container = document.getElementById('formObjetoContainer');
+    container.style.display = show ? 'block' : 'none';
+    if (show) {
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+function verDetalhesObjeto(obj) {
+    document.getElementById('detalheTitulo').textContent = `📦 ${obj.nome}`;
+    document.getElementById('detalheNome').textContent = obj.nome;
+    document.getElementById('detalheTipo').textContent = obj.tipo;
+    document.getElementById('detalheQuantidade').textContent = obj.quantidade;
+    document.getElementById('detalheImovel').textContent = obj.imovelTitulo;
+    document.getElementById('detalheComodo').textContent = obj.comodoNome;
+
+    const img = document.getElementById('detalheImagem');
+    if (obj.fotoUrl && !obj.fotoUrl.includes('placehold.co')) {
+        img.src = obj.fotoUrl;
+        img.style.display = 'block';
+    } else {
+        img.style.display = 'none';
+    }
+
+    document.getElementById('modalDetalhesObjeto').style.display = 'block';
 }
 
 function resetFormObjeto() {
@@ -319,7 +380,10 @@ function captureImage() {
 // Expor funções globais
 window.inicializarInventario = inicializarInventario;
 window.editarObjeto = editarObjeto;
-window.excluirObjeto = excluirObjeto;
+window.excluirObjeto = prepararExclusao; // Mantendo compatibilidade se algo chamar excluirObjeto
+window.prepararExclusao = prepararExclusao;
+window.editarObjeto = editarObjeto;
+window.verDetalhesObjeto = verDetalhesObjeto;
 
 // Chama a inicialização quando o DOM está pronto
 window.addEventListener('DOMContentLoaded', inicializarInventario);
