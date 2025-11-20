@@ -140,340 +140,184 @@
                             <th>Email</th>
                             <th>Whats App</th>
                             <th>Idioma</th>
-                            <!DOCTYPE html>
-                            <html lang="pt-BR">
+                            <th>Data Cadastro</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
 
-                            <head>
-                                <meta charset="UTF-8">
-                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                <title>ZenStay | Clientes</title>
+    <!-- Scripts -->
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/toast.js"></script>
+    <script type="module" src="assets/js/entities/cliente.js"></script>
 
-                                <link rel="stylesheet" href="assets/css/style.css">
-                                <link rel="stylesheet" href="assets/css/components.css">
-                                <link rel="stylesheet" href="assets/css/clientes.css">
-                                <link rel="stylesheet" href="assets/css/toast.css">
-                                <link rel="stylesheet" href="theme/dark.css" id="theme-style">
-                                <link
-                                    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
-                                    rel="stylesheet">
-                            </head>
+    <!-- Sidebar dinâmica -->
+    <script>
+        fetch("assets/components/sidebar.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("sidebar").innerHTML = html;
 
-                            <body>
-                                <!-- Sidebar dinâmica -->
-                                <div id="sidebar"></div>
+                const currentPage = window.location.pathname.split('/').pop();
+                const body = document.body;
+                const sidebarElement = document.querySelector('.sidebar');
+                const menuToggleButton = document.getElementById('menu-toggle');
+                const headerMenuToggleButton = document.getElementById('header-menu-toggle');
 
-                                <main class="content">
-                                    <header class="header">
-                                        <button class="menu-toggle" id="header-menu-toggle">☰</button>
-                                        <!-- Botão de menu hambúrguer no cabeçalho -->
-                                        <h1>👨‍👩‍👧 Gerenciar Hóspedes</h1>
-                                        <button id="toggle-theme">🌓</button>
-                                    </header>
+                function toggleSidebar() {
+                    body.classList.toggle('sidebar-open-mobile');
+                }
 
-                                    <section class="dashboard">
-                                        <!-- Botão para Cadastrar Novo Hóspede -->
-                                        <div class="card" style="flex: 1 1 100%; text-align: center;">
-                                            <button id="btnToggleForm" class="btn">➕ Criar Novo Hóspede</button>
-                                        </div>
+                if (menuToggleButton) {
+                    menuToggleButton.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        toggleSidebar();
+                    });
+                }
 
-                                        <!-- Formulário (inicialmente oculto) -->
-                                        <div id="cadastroClienteCard" class="card"
-                                            style="flex: 1 1 100%; display: none;">
-                                            <h3>📝 Cadastrar Novo Hóspede</h3>
-                                            <div id="alerta" class="alerta-erro"></div>
+                if (headerMenuToggleButton) {
+                    headerMenuToggleButton.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        toggleSidebar();
+                    });
+                }
 
-                                            <form id="formCliente">
-                                                <input type="hidden" id="clienteId">
+                document.addEventListener('click', function (e) {
+                    if (body.classList.contains('sidebar-open-mobile') &&
+                        !sidebarElement.contains(e.target) &&
+                        (menuToggleButton && !menuToggleButton.contains(e.target)) &&
+                        (headerMenuToggleButton && !headerMenuToggleButton.contains(e.target))) {
+                        toggleSidebar();
+                    }
+                });
 
-                                                <div class="form-row">
-                                                    <div class="input-group">
-                                                        <span>#</span>
-                                                        <input type="number" id="codigoInterno"
-                                                            placeholder="Código interno (auto)" readonly>
-                                                    </div>
-                                                    <div class="input-group">
-                                                        <span>🆔</span>
-                                                        <input type="text" id="codigoPlataforma" maxlength="20"
-                                                            placeholder="Código na plataforma">
-                                                    </div>
-                                                </div>
+                document.querySelectorAll('.sidebar a').forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href === currentPage) {
+                        link.classList.add('active');
+                        const parentSubmenu = link.closest('.submenu');
+                        if (parentSubmenu) {
+                            parentSubmenu.style.display = 'block';
+                            const parentHasSubmenu = parentSubmenu.closest('.has-submenu');
+                            if (parentHasSubmenu) {
+                                parentHasSubmenu.classList.add('expanded');
+                                parentHasSubmenu.querySelector('.arrow').textContent = '▼';
+                            }
+                        }
+                    }
+                    link.addEventListener('click', function () {
+                        if (window.innerWidth <= 768 && !this.classList.contains('submenu-toggle')) {
+                            body.classList.remove('sidebar-open-mobile');
+                        }
+                    });
+                });
 
-                                                <div class="form-row">
-                                                    <div class="input-group">
-                                                        <span>👤</span>
-                                                        <input type="text" id="nome" placeholder="Nome completo"
-                                                            required>
-                                                    </div>
-                                                    <div class="input-group">
-                                                        <span>✉️</span>
-                                                        <input type="email" id="email" placeholder="E-mail (opcional)">
-                                                    </div>
-                                                </div>
+                document.querySelectorAll('.submenu-toggle').forEach(item => {
+                    item.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const parentLi = this.closest('.has-submenu');
+                        parentLi.classList.toggle('expanded');
+                        const submenu = parentLi.querySelector('.submenu');
+                        const arrow = parentLi.querySelector('.arrow');
+                        if (submenu && arrow) {
+                            const isExpanded = submenu.style.display === 'block';
+                            submenu.style.display = isExpanded ? 'none' : 'block';
+                            arrow.textContent = isExpanded ? '▼' : '▶';
+                        }
+                    });
+                });
+            })
+            .catch(err => console.error("Erro ao carregar sidebar: ", err));
+    </script>
 
-                                                <div class="form-row">
-                                                    <div class="input-group" style="max-width: 220px;">
-                                                        <span>📞</span>
-                                                        <input type="number" id="codPais" placeholder="55" value="55"
-                                                            min="1">
-                                                    </div>
-                                                    <div class="flag-display" id="flagInfo">
-                                                        <img src="https://flagcdn.com/w20/br.png" alt="BR">
-                                                        <span>Brasil</span>
-                                                    </div>
-                                                    <div class="input-group" style="flex: 2;">
-                                                        <span>📱</span>
-                                                        <input type="text" id="telefone" placeholder="Número com DDD"
-                                                            required>
-                                                    </div>
-                                                </div>
+    <!-- CRUD de Hóspedes -->
+    <script>
+        const tabela = document.querySelector('#tabelaClientes tbody');
+        const form = document.getElementById('formCliente');
+        const alerta = document.getElementById('alerta');
+        const campos = ['codigoPlataforma', 'nome', 'email', 'codPais', 'telefone', 'linkChat', 'idioma', 'observacao'];
+        const flagInfo = document.getElementById('flagInfo');
+        const codPaisInput = document.getElementById('codPais');
+        const cadastroClienteCard = document.getElementById('cadastroClienteCard');
+        const btnToggleForm = document.getElementById('btnToggleForm');
+        const btnCancelarCadastro = document.getElementById('btnCancelarCadastro');
+        const filtroBuscaInput = document.getElementById('filtroBusca');
+        const ordenacaoClientesSelect = document.getElementById('ordenacaoClientes');
 
-                                                <div class="form-row">
-                                                    <div class="input-group">
-                                                        <span>🔗</span>
-                                                        <input type="url" id="linkChat"
-                                                            placeholder="Link do chat (opcional)">
-                                                    </div>
-                                                    <div class="input-group">
-                                                        <span>🗣️</span>
-                                                        <select id="idioma">
-                                                            <option value="pt-BR" selected>🇧🇷 Português (BR)</option>
-                                                            <option value="en">🇬🇧 English</option>
-                                                            <option value="es">🇪🇸 Español</option>
-                                                            <option value="fr">🇫🇷 Français</option>
-                                                            <option value="de">🇩🇪 Deutsch</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
+        let countriesList = [];
 
-                                                <div class="form-row">
-                                                    <textarea id="observacao"
-                                                        placeholder="Observações sobre o hóspede..."></textarea>
-                                                </div>
+        fetch('assets/data/countries.json')
+            .then(res => res.json())
+            .then(data => {
+                countriesList = data;
+                atualizarBandeira(codPaisInput.value || 55);
+            })
+            .catch(err => console.error('Erro ao carregar countries.json: ', err));
 
-                                                <div class="form-row">
-                                                    <div class="input-group">
-                                                        <span>📅</span>
-                                                        <input type="text" id="dataCadastro"
-                                                            placeholder="Data de Cadastro (automático)" readonly>
-                                                    </div>
-                                                </div>
-
-                                                <button type="submit" class="btn">💾 Salvar</button>
-                                                <button type="button" class="btn btn-secondary"
-                                                    id="btnCancelarCadastro">❌ Cancelar</button>
-                                            </form>
-                                        </div>
-
-                                        <!-- Tabela -->
-                                        <div class="card" style="flex: 1 1 100%;">
-                                            <h3>📋 Hóspedes Cadastrados</h3>
-                                            <div class="form-row" style="margin-bottom: 15px; align-items: center;">
-                                                <div class="input-group" style="flex: 1;">
-                                                    <span>🔍</span>
-                                                    <input type="text" id="filtroBusca"
-                                                        placeholder="Filtrar por nome ou telefone...">
-                                                </div>
-                                                <div class="input-group" style="margin-left: 10px; max-width: 250px;">
-                                                    <span>Ordenar por:</span>
-                                                    <select id="ordenacaoClientes"
-                                                        style="flex: 1; border: none; background: transparent; color: var(--text);">
-                                                        <option value="idDesc" selected>Cód. Interno (Recente)</option>
-                                                        <option value="idAsc">Cód. Interno (Antigo)</option>
-                                                        <option value="nomeAsc">Nome (A-Z)</option>
-                                                        <option value="nomeDesc">Nome (Z-A)</option>
-                                                        <option value="dataCadastroDesc">Data Cadastro (Recente)
-                                                        </option>
-                                                        <option value="dataCadastroAsc">Data Cadastro (Antigo)</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <table id="tabelaClientes">
-                                                <thead>
-                                                    <tr>
-                                                        <th>País</th>
-                                                        <th>Cód. Interno</th>
-                                                        <th>Nome</th>
-                                                        <th>Email</th>
-                                                        <th>Whats App</th>
-                                                        <th>Idioma</th>
-                                                        <th>Data Cadastro</th>
-                                                        <th>Ações</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody></tbody>
-                                            </table>
-                                        </div>
-                                    </section>
-                                </main>
-
-                                <!-- Scripts -->
-                                <script src="assets/js/storage.js"></script>
-                                <script src="assets/js/main.js"></script>
-                                <script src="assets/js/toast.js"></script>
-                                <script type="module" src="assets/js/entities/cliente.js"></script>
-
-                                <!-- Sidebar dinâmica -->
-                                <script>
-                                    fetch("assets/components/sidebar.html")
-                                        .then(res => res.text())
-                                        .then(html => {
-                                            document.getElementById("sidebar").innerHTML = html;
-
-                                            const currentPage = window.location.pathname.split('/').pop();
-                                            const body = document.body;
-                                            const sidebarElement = document.querySelector('.sidebar');
-                                            const menuToggleButton = document.getElementById('menu-toggle');
-                                            const headerMenuToggleButton = document.getElementById('header-menu-toggle');
-
-                                            function toggleSidebar() {
-                                                body.classList.toggle('sidebar-open-mobile');
-                                            }
-
-                                            if (menuToggleButton) {
-                                                menuToggleButton.addEventListener('click', function (e) {
-                                                    e.stopPropagation();
-                                                    toggleSidebar();
-                                                });
-                                            }
-
-                                            if (headerMenuToggleButton) {
-                                                headerMenuToggleButton.addEventListener('click', function (e) {
-                                                    e.stopPropagation();
-                                                    toggleSidebar();
-                                                });
-                                            }
-
-                                            document.addEventListener('click', function (e) {
-                                                if (body.classList.contains('sidebar-open-mobile') &&
-                                                    !sidebarElement.contains(e.target) &&
-                                                    (menuToggleButton && !menuToggleButton.contains(e.target)) &&
-                                                    (headerMenuToggleButton && !headerMenuToggleButton.contains(e.target))) {
-                                                    toggleSidebar();
-                                                }
-                                            });
-
-                                            document.querySelectorAll('.sidebar a').forEach(link => {
-                                                const href = link.getAttribute('href');
-                                                if (href === currentPage) {
-                                                    link.classList.add('active');
-                                                    const parentSubmenu = link.closest('.submenu');
-                                                    if (parentSubmenu) {
-                                                        parentSubmenu.style.display = 'block';
-                                                        const parentHasSubmenu = parentSubmenu.closest('.has-submenu');
-                                                        if (parentHasSubmenu) {
-                                                            parentHasSubmenu.classList.add('expanded');
-                                                            parentHasSubmenu.querySelector('.arrow').textContent = '▼';
-                                                        }
-                                                    }
-                                                }
-                                                link.addEventListener('click', function () {
-                                                    if (window.innerWidth <= 768 && !this.classList.contains('submenu-toggle')) {
-                                                        body.classList.remove('sidebar-open-mobile');
-                                                    }
-                                                });
-                                            });
-
-                                            document.querySelectorAll('.submenu-toggle').forEach(item => {
-                                                item.addEventListener('click', function (e) {
-                                                    e.preventDefault();
-                                                    const parentLi = this.closest('.has-submenu');
-                                                    parentLi.classList.toggle('expanded');
-                                                    const submenu = parentLi.querySelector('.submenu');
-                                                    const arrow = parentLi.querySelector('.arrow');
-                                                    if (submenu && arrow) {
-                                                        const isExpanded = submenu.style.display === 'block';
-                                                        submenu.style.display = isExpanded ? 'none' : 'block';
-                                                        arrow.textContent = isExpanded ? '▼' : '▶';
-                                                    }
-                                                });
-                                            });
-                                        })
-                                        .catch(err => console.error("Erro ao carregar sidebar: ", err));
-                                </script>
-
-                                <!-- CRUD de Hóspedes -->
-                                <script>
-                                    const tabela = document.querySelector('#tabelaClientes tbody');
-                                    const form = document.getElementById('formCliente');
-                                    const alerta = document.getElementById('alerta');
-                                    const campos = ['codigoPlataforma', 'nome', 'email', 'codPais', 'telefone', 'linkChat', 'idioma', 'observacao'];
-                                    const flagInfo = document.getElementById('flagInfo');
-                                    const codPaisInput = document.getElementById('codPais');
-                                    const cadastroClienteCard = document.getElementById('cadastroClienteCard');
-                                    const btnToggleForm = document.getElementById('btnToggleForm');
-                                    const btnCancelarCadastro = document.getElementById('btnCancelarCadastro');
-                                    const filtroBuscaInput = document.getElementById('filtroBusca');
-                                    const ordenacaoClientesSelect = document.getElementById('ordenacaoClientes');
-
-                                    let countriesList = [];
-
-                                    fetch('assets/data/countries.json')
-                                        .then(res => res.json())
-                                        .then(data => {
-                                            countriesList = data;
-                                            atualizarBandeira(codPaisInput.value || 55);
-                                        })
-                                        .catch(err => console.error('Erro ao carregar countries.json: ', err));
-
-                                    function atualizarBandeira(cod) {
-                                        const pais = countriesList.find(p => String(p.dial) === String(cod));
-                                        if (pais) {
-                                            flagInfo.innerHTML = `
+        function atualizarBandeira(cod) {
+            const pais = countriesList.find(p => String(p.dial) === String(cod));
+            if (pais) {
+                flagInfo.innerHTML = `
                     <img src="https://flagcdn.com/w20/${pais.code}.png" alt="${pais.name}">
                     <span>${pais.name}</span>
                 `;
-                                        } else {
-                                            flagInfo.innerHTML = `<span>🤷 País não encontrado</span>`;
-                                        }
-                                    }
+            } else {
+                flagInfo.innerHTML = `<span>🤷 País não encontrado</span>`;
+            }
+        }
 
-                                    codPaisInput.addEventListener('input', e => atualizarBandeira(e.target.value));
+        codPaisInput.addEventListener('input', e => atualizarBandeira(e.target.value));
 
-                                    function formatarData(dataString) {
-                                        if (!dataString) return '-';
-                                        const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
-                                        return new Date(dataString).toLocaleString('pt-BR', options);
-                                    }
+        function formatarData(dataString) {
+            if (!dataString) return '-';
+            const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
+            return new Date(dataString).toLocaleString('pt-BR', options);
+        }
 
-                                    async function carregarClientes() {
-                                        const termoBusca = filtroBuscaInput.value.toLowerCase();
-                                        const tipoOrdenacao = ordenacaoClientesSelect.value;
-                                        let todosClientes = await Cliente.listarTodos();
+        async function carregarClientes() {
+            const termoBusca = filtroBuscaInput.value.toLowerCase();
+            const tipoOrdenacao = ordenacaoClientesSelect.value;
+            let todosClientes = await Cliente.listarTodos();
 
-                                        // 1. Filtrar
-                                        const clientesFiltrados = todosClientes.filter(cli => {
-                                            const nomeMatch = cli.nome.toLowerCase().includes(termoBusca);
-                                            const telefoneMatch = cli.telefone.includes(termoBusca);
-                                            return nomeMatch || telefoneMatch;
-                                        });
+            // 1. Filtrar
+            const clientesFiltrados = todosClientes.filter(cli => {
+                const nomeMatch = cli.nome.toLowerCase().includes(termoBusca);
+                const telefoneMatch = cli.telefone.includes(termoBusca);
+                return nomeMatch || telefoneMatch;
+            });
 
-                                        // 2. Ordenar
-                                        clientesFiltrados.sort((a, b) => {
-                                            const match = tipoOrdenacao.match(/([a-zA-Z]+)(Asc|Desc)/);
-                                            const key = match[1];
-                                            const direction = match[2];
-                                            const order = direction === 'Asc' ? 1 : -1;
+            // 2. Ordenar
+            clientesFiltrados.sort((a, b) => {
+                const match = tipoOrdenacao.match(/([a-zA-Z]+)(Asc|Desc)/);
+                const key = match[1];
+                const direction = match[2];
+                const order = direction === 'Asc' ? 1 : -1;
 
-                                            const valA = key === 'nome' ? a[key].toLowerCase() : a[key];
-                                            const valB = key === 'nome' ? b[key].toLowerCase() : b[key];
+                const valA = key === 'nome' ? a[key].toLowerCase() : a[key];
+                const valB = key === 'nome' ? b[key].toLowerCase() : b[key];
 
-                                            if (valA < valB) return -1 * order;
-                                            if (valA > valB) return 1 * order;
-                                            return 0;
-                                        });
+                if (valA < valB) return -1 * order;
+                if (valA > valB) return 1 * order;
+                return 0;
+            });
 
-                                        tabela.innerHTML = '';
-                                        clientesFiltrados.forEach(cli => {
-                                            const pais = countriesList.find(p => String(p.dial) === String(cli.codPais));
-                                            const bandeira = pais ? `<img src="https://flagcdn.com/w20/${pais.code}.png" alt="${pais.name}">` : '🤷';
-                                            const linkWhats = `https://wa.me/${cli.codPais}${cli.telefone}`;
-                                            const iconWhats = `
+            tabela.innerHTML = '';
+            clientesFiltrados.forEach(cli => {
+                const pais = countriesList.find(p => String(p.dial) === String(cli.codPais));
+                const bandeira = pais ? `<img src="https://flagcdn.com/w20/${pais.code}.png" alt="${pais.name}">` : '🤷';
+                const linkWhats = `https://wa.me/${cli.codPais}${cli.telefone}`;
+                const iconWhats = `
                     <a href="${linkWhats}" target="_blank" class="whatsapp-icon" title="Conversar no WhatsApp">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M16.04 2.003a13.89 13.89 0 0 0-11.823 21.43L2 30l6.72-2.177A13.89 13.89 0 1 0 16.04 2.003zm.01 25.12a11.27 11.27 0 0 1-5.74-1.59l-.41-.25-3.99 1.3 1.31-3.88-.27-.4a11.27 11.27 0 1 1 9.1 4.82zm6.25-8.46c-.34-.17-2.04-1.01-2.36-1.12-.32-.12-.55-.17-.78.17s-.89 1.12-1.09 1.35c-.2.22-.4.25-.74.08s-1.43-.52-2.73-1.67a10.12 10.12 0 0 1-1.86-2.32c-.2-.34 0-.52.15-.69.15-.17.34-.43.52-.65.17-.22.23-.37.34-.62.11-.25.06-.47-.03-.65-.09-.17-.78-1.88-1.07-2.56-.28-.68-.57-.58-.78-.59h-.66a1.28 1.28 0 0 0-.93.43c-.32.35-1.22 1.19-1.22 2.9s1.25 3.37 1.43 3.61c.18.25 2.45 3.74 5.93 5.25.83.36 1.48.57 1.98.73.83.27 1.59.23 2.19.14.67-.1 2.04-.83 2.33-1.63.29-.8.29-1.49.2-1.63-.09-.14-.31-.22-.65-.39z" /></svg>
                     </a>`;
 
-                                            const row = document.createElement('tr');
-                                            row.innerHTML = `
+                const row = document.createElement('tr');
+                row.innerHTML = `
                     <td class="td-country">${bandeira}</td>
                     <td>${cli.id}</td>
                     <td>${cli.nome}</td>
@@ -485,103 +329,103 @@
                         <button class="action-btn" onclick="editarCliente(${cli.id})" title="Editar">✏️</button>
                         <button class="action-btn" onclick="excluirCliente(${cli.id})" title="Excluir">🗑️</button>
                     </td>`;
-                                            tabela.appendChild(row);
-                                        });
-                                    }
+                tabela.appendChild(row);
+            });
+        }
 
-                                    async function salvarCliente(e) {
-                                        e.preventDefault();
-                                        let clienteData = { id: document.getElementById('clienteId').value ? parseInt(document.getElementById('clienteId').value) : null };
-                                        campos.forEach(c => clienteData[c] = document.getElementById(c).value);
+        async function salvarCliente(e) {
+            e.preventDefault();
+            let clienteData = { id: document.getElementById('clienteId').value ? parseInt(document.getElementById('clienteId').value) : null };
+            campos.forEach(c => clienteData[c] = document.getElementById(c).value);
 
-                                        const todosClientes = await Cliente.listarTodos();
-                                        const isEditing = !!clienteData.id;
+            const todosClientes = await Cliente.listarTodos();
+            const isEditing = !!clienteData.id;
 
-                                        const duplicadoTel = todosClientes.find(c =>
-                                            c.telefone === clienteData.telefone &&
-                                            c.codPais === clienteData.codPais &&
-                                            c.id !== clienteData.id
-                                        );
-                                        const duplicadoPlataforma = clienteData.codigoPlataforma && todosClientes.find(c =>
-                                            c.codigoPlataforma === clienteData.codigoPlataforma &&
-                                            c.id !== clienteData.id
-                                        );
+            const duplicadoTel = todosClientes.find(c =>
+                c.telefone === clienteData.telefone &&
+                c.codPais === clienteData.codPais &&
+                c.id !== clienteData.id
+            );
+            const duplicadoPlataforma = clienteData.codigoPlataforma && todosClientes.find(c =>
+                c.codigoPlataforma === clienteData.codigoPlataforma &&
+                c.id !== clienteData.id
+            );
 
-                                        if (duplicadoTel) {
-                                            Toast.warning(`⚠️ O telefone +${clienteData.codPais} ${clienteData.telefone} já está cadastrado (Cód interno: ${duplicadoTel.id}).`);
-                                            return;
-                                        }
-                                        if (duplicadoPlataforma) {
-                                            Toast.warning(`⚠️ O código de plataforma "${clienteData.codigoPlataforma}" já está cadastrado (Cód interno: ${duplicadoPlataforma.id}).`);
-                                            return;
-                                        }
+            if (duplicadoTel) {
+                Toast.warning(`⚠️ O telefone +${clienteData.codPais} ${clienteData.telefone} já está cadastrado (Cód interno: ${duplicadoTel.id}).`);
+                return;
+            }
+            if (duplicadoPlataforma) {
+                Toast.warning(`⚠️ O código de plataforma "${clienteData.codigoPlataforma}" já está cadastrado (Cód interno: ${duplicadoPlataforma.id}).`);
+                return;
+            }
 
-                                        try {
-                                            await Cliente.salvar(clienteData);
-                                            Toast.success("Hóspede salvo com sucesso!");
-                                            resetAndToggleForm();
-                                            await carregarClientes();
-                                        } catch (error) {
-                                            Toast.error("Erro ao salvar cliente: " + error.message);
-                                        }
-                                    }
+            try {
+                await Cliente.salvar(clienteData);
+                Toast.success("Hóspede salvo com sucesso!");
+                resetAndToggleForm();
+                await carregarClientes();
+            } catch (error) {
+                Toast.error("Erro ao salvar cliente: " + error.message);
+            }
+        }
 
-                                    async function editarCliente(id) {
-                                        const cli = await Cliente.buscarPorId(id);
-                                        if (cli) {
-                                            campos.forEach(c => {
-                                                const element = document.getElementById(c);
-                                                if (element) element.value = cli[c] || '';
-                                            });
-                                            document.getElementById('clienteId').value = cli.id;
-                                            document.getElementById('codigoInterno').value = cli.id;
-                                            document.getElementById('dataCadastro').value = cli.dataCadastro ? formatarData(cli.dataCadastro) : '';
-                                            atualizarBandeira(cli.codPais);
+        async function editarCliente(id) {
+            const cli = await Cliente.buscarPorId(id);
+            if (cli) {
+                campos.forEach(c => {
+                    const element = document.getElementById(c);
+                    if (element) element.value = cli[c] || '';
+                });
+                document.getElementById('clienteId').value = cli.id;
+                document.getElementById('codigoInterno').value = cli.id;
+                document.getElementById('dataCadastro').value = cli.dataCadastro ? formatarData(cli.dataCadastro) : '';
+                atualizarBandeira(cli.codPais);
 
-                                            cadastroClienteCard.style.display = 'block';
-                                            btnToggleForm.textContent = '✖️ Fechar Formulário';
-                                            window.scrollTo(0, 0);
-                                        }
-                                    }
+                cadastroClienteCard.style.display = 'block';
+                btnToggleForm.textContent = '✖️ Fechar Formulário';
+                window.scrollTo(0, 0);
+            }
+        }
 
-                                    async function excluirCliente(id) {
-                                        if (confirm('Excluir este hóspede?')) {
-                                            try {
-                                                await Cliente.excluir(id);
-                                                Toast.success("Hóspede excluído com sucesso!");
-                                                await carregarClientes();
-                                            } catch (error) {
-                                                Toast.error("Erro ao excluir: " + error.message);
-                                            }
-                                        }
-                                    }
+        async function excluirCliente(id) {
+            if (confirm('Excluir este hóspede?')) {
+                try {
+                    await Cliente.excluir(id);
+                    Toast.success("Hóspede excluído com sucesso!");
+                    await carregarClientes();
+                } catch (error) {
+                    Toast.error("Erro ao excluir: " + error.message);
+                }
+            }
+        }
 
-                                    function resetAndToggleForm() {
-                                        const isFormVisible = cadastroClienteCard.style.display === 'block';
-                                        if (!isFormVisible) {
-                                            // Se o formulário está fechado, abre e limpa
-                                            form.reset();
-                                            document.getElementById('clienteId').value = '';
-                                            document.getElementById('codigoInterno').value = '';
-                                            document.getElementById('dataCadastro').value = '';
-                                            document.getElementById('codPais').value = 55;
-                                            atualizarBandeira(55);
-                                            cadastroClienteCard.style.display = 'block';
-                                            btnToggleForm.textContent = '✖️ Fechar Formulário';
-                                        } else {
-                                            // Se o formulário está aberto, apenas fecha
-                                            cadastroClienteCard.style.display = 'none';
-                                            btnToggleForm.textContent = '➕ Criar Novo Hóspede';
-                                        }
-                                    }
+        function resetAndToggleForm() {
+            const isFormVisible = cadastroClienteCard.style.display === 'block';
+            if (!isFormVisible) {
+                // Se o formulário está fechado, abre e limpa
+                form.reset();
+                document.getElementById('clienteId').value = '';
+                document.getElementById('codigoInterno').value = '';
+                document.getElementById('dataCadastro').value = '';
+                document.getElementById('codPais').value = 55;
+                atualizarBandeira(55);
+                cadastroClienteCard.style.display = 'block';
+                btnToggleForm.textContent = '✖️ Fechar Formulário';
+            } else {
+                // Se o formulário está aberto, apenas fecha
+                cadastroClienteCard.style.display = 'none';
+                btnToggleForm.textContent = '➕ Criar Novo Hóspede';
+            }
+        }
 
-                                    form.addEventListener('submit', salvarCliente);
-                                    btnToggleForm.addEventListener('click', resetAndToggleForm);
-                                    btnCancelarCadastro.addEventListener('click', resetAndToggleForm);
-                                    filtroBuscaInput.addEventListener('input', carregarClientes);
-                                    ordenacaoClientesSelect.addEventListener('change', carregarClientes);
-                                    window.addEventListener('DOMContentLoaded', carregarClientes);
-                                </script>
-                            </body>
+        form.addEventListener('submit', salvarCliente);
+        btnToggleForm.addEventListener('click', resetAndToggleForm);
+        btnCancelarCadastro.addEventListener('click', resetAndToggleForm);
+        filtroBuscaInput.addEventListener('input', carregarClientes);
+        ordenacaoClientesSelect.addEventListener('change', carregarClientes);
+        window.addEventListener('DOMContentLoaded', carregarClientes);
+    </script>
+</body>
 
-                            </html>
+</html>
