@@ -200,11 +200,28 @@ document.addEventListener('DOMContentLoaded', () => {
             wizardModal.style.display = 'flex';
             setTimeout(() => wizardModal.style.opacity = '1', 10);
             currentStep = 1;
-            reservaState = { imovelId: null, hospedesIds: [], checkin: null, checkout: null, numPets: 0 };
+
+            // Default Dates
+            const today = new Date();
+            const checkoutDate = new Date();
+            checkoutDate.setDate(today.getDate() + 3);
+
+            const formatDate = (date) => date.toISOString().split('T')[0];
+            const checkinVal = formatDate(today);
+            const checkoutVal = formatDate(checkoutDate);
+
+            reservaState = {
+                imovelId: null,
+                hospedesIds: [],
+                checkin: checkinVal,
+                checkout: checkoutVal,
+                numPets: 0
+            };
+
             if (numPetsSlider) numPetsSlider.value = 0;
             if (numPetsDisplay) numPetsDisplay.textContent = '0';
-            if (checkinInput) checkinInput.value = '';
-            if (checkoutInput) checkoutInput.value = '';
+            if (checkinInput) checkinInput.value = checkinVal;
+            if (checkoutInput) checkoutInput.value = checkoutVal;
             if (guestSearchInput) guestSearchInput.value = '';
             document.querySelectorAll('.property-card.selected').forEach(c => c.classList.remove('selected'));
             document.querySelectorAll('.guest-list-item input:checked').forEach(c => c.checked = false);
@@ -316,6 +333,38 @@ document.addEventListener('DOMContentLoaded', () => {
     async function saveReservation() {
         if (!reservaState.imovelId || reservaState.hospedesIds.length === 0 || !reservaState.checkin || !reservaState.checkout) {
             Toast.error('Preencha todos os campos: Imóvel, Hóspedes e Período.');
+            return;
+        }
+
+        // Validação de Conflito de Datas
+        try {
+            // Busca todas as reservas existentes
+            const reservasExistentes = await Reserva.listarTodos();
+
+            // Filtra reservas do mesmo imóvel
+            const reservasImovel = reservasExistentes.filter(r => r.imovelId == reservaState.imovelId);
+
+            const newCheckin = new Date(reservaState.checkin);
+            const newCheckout = new Date(reservaState.checkout);
+
+            // Verifica conflitos
+            const temConflito = reservasImovel.some(reserva => {
+                const existingCheckin = new Date(reserva.checkin);
+                const existingCheckout = new Date(reserva.checkout);
+
+                // Lógica de sobreposição: (StartA < EndB) && (EndA > StartB)
+                // Isso permite que StartA == EndB (Checkin no dia do Checkout) e vice-versa
+                return (newCheckin < existingCheckout) && (newCheckout > existingCheckin);
+            });
+
+            if (temConflito) {
+                Toast.error('Já existe uma reserva para este imóvel nas datas selecionadas.');
+                return;
+            }
+
+        } catch (error) {
+            console.error("Erro ao validar conflitos:", error);
+            Toast.error("Erro ao validar disponibilidade do imóvel.");
             return;
         }
 
