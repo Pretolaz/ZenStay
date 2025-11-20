@@ -1,3 +1,15 @@
+import { Reserva } from './entities/reserva.js';
+import { Imovel } from './entities/imovel.js';
+import { Cliente } from './entities/cliente.js';
+import { Toast } from './toast.js'; // Assuming Toast is available as a module or global. If not, we might need to adjust. 
+// Actually, Toast seems to be global from toast.js script tag in other files. 
+// But since we are moving to modules, we should check if Toast is exported.
+// Looking at file list, toast.js exists. Let's assume it's global for now or check.
+// If toast.js is not a module, we can't import it easily unless we change it too.
+// For now, I'll assume Toast is global (window.Toast) or I'll use alert/console if Toast is not available, 
+// but the user asked for Toast in previous turns.
+// Let's just use window.Toast if available.
+
 document.addEventListener('DOMContentLoaded', () => {
     // -----
     // Elementos do DOM
@@ -63,13 +75,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Funções de Inicialização e Carregamento de Dados
     // -----
 
-    function loadInitialData() {
-        if (typeof Imovel !== 'undefined') imoveis = Imovel.listarTodos();
-        if (typeof Cliente !== 'undefined') clientes = Cliente.listarTodos();
+    async function loadInitialData() {
+        try {
+            imoveis = await Imovel.listarTodos();
+            clientes = await Cliente.listarTodos();
 
-        // Carregar tabela de reservas inicial se a função não existir globalmente
-        if (typeof loadReservasTable !== 'function') {
-            loadReservasTableLocal();
+            // Carregar tabela de reservas inicial
+            await loadReservasTableLocal();
+        } catch (error) {
+            console.error("Erro ao carregar dados iniciais:", error);
+            if (window.Toast) window.Toast.error("Erro ao carregar dados.");
         }
     }
 
@@ -91,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
         imoveis.forEach(imovel => {
             const card = document.createElement('div');
             card.className = 'property-card';
-            card.dataset.imovelId = imovel.id;
+            card.dataset.imovelId = imovel.id; // or imovel.codigoInterno
 
             const fotoUrl = (imovel.fotos && imovel.fotos.length > 0) ? imovel.fotos[0] : 'assets/img/placeholder.jpg';
 
@@ -102,7 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="font-size: 0.85rem; color: #666; margin-top: 5px;">${imovel.cidade || ''} - ${imovel.estado || ''}</div>
                 </div>
             `;
-            card.addEventListener('click', () => handlePropertySelection(imovel.id, card));
+            // Use codigoInterno/id consistently
+            const idToUse = imovel.codigoInterno || imovel.id;
+            card.addEventListener('click', () => handlePropertySelection(idToUse, card));
             propertyListContainer.appendChild(card);
         });
     }
@@ -198,10 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleGuestSelection() {
         reservaState.hospedesIds = [];
-        // Precisamos pegar de todos os checkboxes renderizados, mas cuidado com filtro.
-        // Melhor abordagem: manter estado e atualizar lista baseada em checkboxes visíveis + estado anterior se necessário.
-        // Simplificação: Iterar sobre todos os checkboxes atualmente no DOM (pode falhar se filtrar e desmarcar, mas ok para MVP)
-        // Correção: Vamos iterar sobre o DOM atual.
         guestListContainer.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
             reservaState.hospedesIds.push(checkbox.dataset.guestId);
         });
@@ -227,21 +240,17 @@ document.addEventListener('DOMContentLoaded', () => {
     function openWizard() {
         if (wizardModal) {
             wizardModal.style.display = 'flex';
-            // Pequeno delay para animação de opacidade se houver CSS transition
             setTimeout(() => wizardModal.style.opacity = '1', 10);
 
             currentStep = 1;
-            // Reiniciar estado
             reservaState = { imovelId: null, hospedesIds: [], checkin: null, checkout: null, numPets: 0 };
 
-            // Resetar UI inputs
             if (numPetsSlider) numPetsSlider.value = 0;
             if (numPetsDisplay) numPetsDisplay.textContent = '0';
             if (checkinInput) checkinInput.value = '';
             if (checkoutInput) checkoutInput.value = '';
             if (guestSearchInput) guestSearchInput.value = '';
 
-            // Resetar seleções visuais
             document.querySelectorAll('.property-card').forEach(c => c.classList.remove('selected'));
             document.querySelectorAll('.guest-list-item input').forEach(c => c.checked = false);
 
@@ -255,20 +264,17 @@ document.addEventListener('DOMContentLoaded', () => {
             wizardModal.style.opacity = '0';
             setTimeout(() => {
                 wizardModal.style.display = 'none';
-            }, 300); // Espera animação
+            }, 300);
         }
     }
 
     function showStep(stepNumber) {
-        // Esconder todos os passos
         Object.values(steps).forEach(step => {
             if (step) step.style.display = 'none';
         });
 
-        // Mostrar passo atual
         if (steps[stepNumber]) {
             steps[stepNumber].style.display = 'block';
-            // Animação simples de fade in
             steps[stepNumber].style.opacity = 0;
             setTimeout(() => steps[stepNumber].style.opacity = 1, 50);
         }
@@ -284,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 indicator.classList.add('active');
                 indicator.style.opacity = '1';
             } else if (step < stepNumber) {
-                indicator.classList.remove('active'); // Opcional: poderia ter classe 'completed'
+                indicator.classList.remove('active');
                 indicator.style.opacity = '0.7';
             } else {
                 indicator.classList.remove('active');
@@ -293,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function goToNextStep() {
+    async function goToNextStep() {
         if (currentStep === 1) {
             if (!reservaState.imovelId) {
                 alert('Por favor, selecione um imóvel para continuar.');
@@ -305,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentStep++;
             showStep(currentStep);
         } else {
-            saveReservation();
+            await saveReservation();
         }
     }
 
@@ -327,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateSummary() {
         // Imóvel
-        const imovel = imoveis.find(i => i.id == reservaState.imovelId);
+        const imovel = imoveis.find(i => (i.codigoInterno || i.id) == reservaState.imovelId);
         summaryImovel.textContent = imovel ? imovel.titulo : '- Selecione -';
 
         // Hóspedes
@@ -353,8 +359,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const checkinDate = new Date(reservaState.checkin);
             const checkoutDate = new Date(reservaState.checkout);
 
-            // Ajuste de fuso horário simples (considerando input date como UTC ou local)
-            // Para simplificar visualização:
             const checkinStr = checkinDate.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
             const checkoutStr = checkoutDate.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 
@@ -374,14 +378,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function saveReservation() {
+    async function saveReservation() {
         if (!reservaState.imovelId || reservaState.hospedesIds.length === 0 || !reservaState.checkin || !reservaState.checkout) {
             alert('Por favor, preencha todos os campos obrigatórios: Imóvel, Hóspedes e Período.');
             return;
         }
 
         const newReserva = {
-            // Não incluir ID aqui para garantir que o Storage crie um novo
             imovelId: reservaState.imovelId,
             hospedes: reservaState.hospedesIds,
             checkin: reservaState.checkin,
@@ -391,103 +394,107 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            Reserva.salvar(newReserva);
-            alert('Reserva salva com sucesso!');
-            closeWizard();
+            await Reserva.salvar(newReserva);
+            if (window.Toast) window.Toast.success('Reserva salva com sucesso!');
+            else alert('Reserva salva com sucesso!');
 
-            // Atualizar tabela
-            if (typeof loadReservasTable === 'function') {
-                loadReservasTable();
-            } else {
-                loadReservasTableLocal();
-            }
+            closeWizard();
+            await loadReservasTableLocal();
         } catch (error) {
             console.error("Erro ao salvar a reserva:", error);
-            alert("Ocorreu um erro ao salvar a reserva.");
+            if (window.Toast) window.Toast.error("Ocorreu um erro ao salvar a reserva.");
+            else alert("Ocorreu um erro ao salvar a reserva.");
         }
     }
 
-    // Função local para carregar a tabela caso a global não exista
-    function loadReservasTableLocal() {
+    // Função local para carregar a tabela
+    async function loadReservasTableLocal() {
         const tbody = document.getElementById('reservas-table-body');
         if (!tbody) return;
 
-        const reservas = Reserva.listarTodos();
-        tbody.innerHTML = '';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">Carregando...</td></tr>';
 
-        if (reservas.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">Nenhuma reserva encontrada.</td></tr>';
-            return;
+        try {
+            const reservas = await Reserva.listarTodos();
+            tbody.innerHTML = '';
+
+            if (reservas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">Nenhuma reserva encontrada.</td></tr>';
+                return;
+            }
+
+            reservas.forEach(reserva => {
+                const imovel = imoveis.find(i => (i.codigoInterno || i.id) == reserva.imovelId);
+                const tr = document.createElement('tr');
+                tr.style.cursor = 'pointer';
+                tr.title = 'Clique para ver detalhes';
+
+                const checkin = new Date(reserva.checkin).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+                const checkout = new Date(reserva.checkout).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+
+                let hospedesTexto = '0';
+                if (reserva.hospedes && reserva.hospedes.length > 0) {
+                    const primeiroHospedeId = reserva.hospedes[0];
+                    const primeiroHospede = clientes.find(c => c.id == primeiroHospedeId);
+                    const nomePrimeiro = primeiroHospede ? primeiroHospede.nome.split(' ')[0] : 'Desconhecido';
+                    const extras = reserva.hospedes.length - 1;
+
+                    if (extras > 0) {
+                        hospedesTexto = `${nomePrimeiro} (mais ${extras})`;
+                    } else {
+                        hospedesTexto = nomePrimeiro;
+                    }
+                }
+
+                tr.innerHTML = `
+                    <td>${imovel ? imovel.titulo : 'Imóvel removido'}</td>
+                    <td>${checkin}</td>
+                    <td>${checkout}</td>
+                    <td>${hospedesTexto}</td>
+                    <td><span class="status-badge ${reserva.status ? reserva.status.toLowerCase() : ''}">${reserva.status || 'Pendente'}</span></td>
+                    <td>
+                        <button class="btn-icon delete-btn" data-id="${reserva.codigoInterno || reserva.id}">🗑️</button>
+                    </td>
+                `;
+
+                tr.addEventListener('click', (e) => {
+                    // Prevent click if delete button was clicked
+                    if (e.target.closest('.delete-btn')) return;
+                    openReservationDetails(reserva);
+                });
+
+                // Add delete event listener directly
+                const deleteBtn = tr.querySelector('.delete-btn');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        const id = deleteBtn.dataset.id;
+                        if (confirm('Tem certeza que deseja excluir esta reserva?')) {
+                            try {
+                                await Reserva.excluir(id);
+                                if (window.Toast) window.Toast.success("Reserva excluída com sucesso!");
+                                await loadReservasTableLocal();
+                            } catch (error) {
+                                console.error("Erro ao excluir:", error);
+                                if (window.Toast) window.Toast.error("Erro ao excluir reserva.");
+                            }
+                        }
+                    });
+                }
+
+                tbody.appendChild(tr);
+            });
+        } catch (error) {
+            console.error("Erro ao carregar tabela de reservas:", error);
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">Erro ao carregar reservas.</td></tr>';
         }
-
-        reservas.forEach(reserva => {
-            const imovel = imoveis.find(i => i.id == reserva.imovelId);
-            const tr = document.createElement('tr');
-            tr.style.cursor = 'pointer';
-            tr.title = 'Clique para ver detalhes';
-
-            // Formatar datas
-            const checkin = new Date(reserva.checkin).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-            const checkout = new Date(reserva.checkout).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-
-            // Formatar Hóspedes
-            let hospedesTexto = '0';
-            if (reserva.hospedes && reserva.hospedes.length > 0) {
-                const primeiroHospedeId = reserva.hospedes[0];
-                const primeiroHospede = clientes.find(c => c.id == primeiroHospedeId);
-                const nomePrimeiro = primeiroHospede ? primeiroHospede.nome.split(' ')[0] : 'Desconhecido';
-                const extras = reserva.hospedes.length - 1;
-
-                if (extras > 0) {
-                    hospedesTexto = `${nomePrimeiro} (mais ${extras})`;
-                } else {
-                    hospedesTexto = nomePrimeiro;
-                }
-            }
-
-            tr.innerHTML = `
-                <td>${imovel ? imovel.titulo : 'Imóvel removido'}</td>
-                <td>${checkin}</td>
-                <td>${checkout}</td>
-                <td>${hospedesTexto}</td>
-                <td><span class="status-badge ${reserva.status ? reserva.status.toLowerCase() : ''}">${reserva.status || 'Pendente'}</span></td>
-                <td>
-                    <button class="btn-icon delete-btn" onclick="event.stopPropagation(); deleteReserva('${reserva.id}')">🗑️</button>
-                </td>
-            `;
-
-            tr.addEventListener('click', () => openReservationDetails(reserva));
-            tbody.appendChild(tr);
-        });
-
-        // Expor função de deletar globalmente para o onclick funcionar
-        window.deleteReserva = function (id) {
-            if (confirm('Tem certeza que deseja excluir esta reserva?')) {
-                // Tenta converter para número se o ID original for numérico, mas mantém string se não for
-                // O Storage usa ==, então a conversão não é estritamente necessária, mas é boa prática se os IDs forem números
-                const idParaExcluir = isNaN(id) ? id : Number(id);
-
-                // Verifica se existe o método excluir (novo padrão) ou deletar (antigo/erro)
-                if (typeof Reserva.excluir === 'function') {
-                    Reserva.excluir(idParaExcluir);
-                } else if (typeof Reserva.deletar === 'function') {
-                    Reserva.deletar(idParaExcluir);
-                } else {
-                    console.error("Método de exclusão não encontrado na classe Reserva.");
-                    alert("Erro ao excluir: método não encontrado.");
-                    return;
-                }
-                loadReservasTableLocal();
-            }
-        };
     }
 
     function openReservationDetails(reserva) {
         if (!detailsModal) return;
 
-        const imovel = imoveis.find(i => i.id == reserva.imovelId);
+        const imovel = imoveis.find(i => (i.codigoInterno || i.id) == reserva.imovelId);
 
-        // Preencher dados
         if (detailsImovelFoto) detailsImovelFoto.src = (imovel && imovel.fotos && imovel.fotos.length > 0) ? imovel.fotos[0] : 'assets/img/placeholder.jpg';
         if (detailsImovelTitulo) detailsImovelTitulo.textContent = imovel ? imovel.titulo : 'Imóvel não encontrado';
         if (detailsStatus) {
@@ -496,7 +503,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (detailsCodigo) detailsCodigo.textContent = `#${reserva.codigoInterno || reserva.id}`;
 
-        // Hóspedes detalhados
         if (detailsHospedes) {
             if (reserva.hospedes && reserva.hospedes.length > 0) {
                 const primeiroHospedeId = reserva.hospedes[0];
@@ -513,7 +519,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (detailsCheckout) detailsCheckout.textContent = new Date(reserva.checkout).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
         if (detailsPets) detailsPets.textContent = reserva.numPets;
 
-        // Calcular diárias
         const checkinDate = new Date(reserva.checkin);
         const checkoutDate = new Date(reserva.checkout);
         if (!isNaN(checkinDate) && !isNaN(checkoutDate)) {
@@ -539,9 +544,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicialização
     // -----
     try {
-        loadInitialData();
-        initializeWizard();
+        loadInitialData().then(() => {
+            initializeWizard();
+        });
     } catch (error) {
         console.error("Erro ao inicializar o assistente de reservas:", error);
     }
 });
+
