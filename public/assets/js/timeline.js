@@ -1,24 +1,20 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Adferre o início para garantir que o Firestore esteja pronto
-    setTimeout(initTimeline, 500); 
+    initTimeline();
 });
 
 async function initTimeline() {
     const timelineView = document.getElementById('timeline-view');
     if (!timelineView) return;
 
-    // Depende do `db` do firebase-config.js e das classes de entidade
-    // Certifique-se de que eles estão disponíveis no escopo global
-    if (typeof db === 'undefined' || typeof Imovel === 'undefined' || typeof Reserva === 'undefined' || typeof Cliente === 'undefined') {
-        console.error("Firestore (db) ou classes de entidade (Imovel, Reserva, Cliente) não estão definidas. A timeline não pode ser carregada.");
-        return;
-    }
+    // As classes Imovel, Reserva e Cliente já devem estar disponíveis via window
+    // pois este script é um módulo e roda após os módulos de entidade.
+
 
     try {
         const imoveis = await Imovel.listarTodos();
         const reservas = await Reserva.listarTodos();
         const clientes = await Cliente.listarTodos();
-        
+
         renderTimeline(timelineView, imoveis, reservas, clientes);
     } catch (error) {
         console.error("Erro ao carregar dados para a timeline:", error);
@@ -99,7 +95,7 @@ function createTimelineRow(imovel, reservas, days, timelineStart, clientes) {
     reservas.forEach(reserva => {
         const checkin = new Date(reserva.checkin);
         const checkout = new Date(reserva.checkout);
-        
+
         // Normaliza as datas para ignorar a hora
         checkin.setHours(0, 0, 0, 0);
         checkout.setHours(0, 0, 0, 0);
@@ -113,7 +109,7 @@ function createTimelineRow(imovel, reservas, days, timelineStart, clientes) {
 
         const startDayIndex = Math.max(0, (checkin - timelineStart) / (1000 * 60 * 60 * 24));
         const endDayIndex = Math.min(days.length, (checkout - timelineStart) / (1000 * 60 * 60 * 24));
-        
+
         const duration = endDayIndex - startDayIndex;
 
         if (duration <= 0) return;
@@ -130,7 +126,7 @@ function createTimelineRow(imovel, reservas, days, timelineStart, clientes) {
         reservaBar.className = 'reserva-bar';
         reservaBar.textContent = nomeHospede;
         reservaBar.title = `Reserva: ${nomeHospede}\nCheck-in: ${reserva.checkin}\nCheck-out: ${reserva.checkout}`;
-        
+
         // Posiciona a barra na grade
         reservaBar.style.gridColumnStart = Math.floor(startDayIndex) + 1;
         reservaBar.style.gridColumnEnd = `span ${Math.ceil(duration)}`;
