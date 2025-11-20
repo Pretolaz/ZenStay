@@ -133,76 +133,181 @@
 
                         <button type="submit" class="btn">💾 Salvar Imóvel</button>
                     </form>
+                </div>
 
-                    <form id="formObjeto">
-                        <div class="form-row" style="margin-bottom: 15px;">
-                            <div class="input-group" style="flex: 1;">
-                                <span>🏠</span>
-                                <select id="selectImovelObjetos"
-                                    style="flex: 1; border: none; background: transparent; color: var(--text); padding: 10px 5px;"
-                                    required>
-                                    <option value="">Selecione um Imóvel</option>
-                                </select>
-                            </div>
-                            <div class="input-group" style="flex: 1; margin-left: 10px;">
-                                <span>🚪</span>
-                                <select id="selectComodoObjetos"
-                                    style="flex: 1; border: none; background: transparent; color: var(--text); padding: 10px 5px;"
-                                    required>
-                                    <option value="">Selecione um Cômodo</option>
-                                </select>
-                            </div>
-                        </div>
+                <div id="imoveisCardsContainer"></div>
+            </div>
+        </section>
 
-                        <input type="hidden" id="objetoId">
-                        <input type="hidden" id="objetoComodoId">
+        <!-- Seção de Gerenciamento de Cômodos -->
+        <section class="dashboard" id="comodos-imovel-section" style="display: none;">
+            <div class="card"
+                style="flex: 1 1 100%; background: transparent; box-shadow: none; padding: 0; border: none;">
 
+                <!-- Header & Filter -->
+                <div class="imoveis-header-actions">
+                    <div class="section-title">
+                        <span>🚪</span> Gerenciar Cômodos
+                    </div>
+                    <div class="filter-group" style="flex: 1; max-width: 400px; margin-left: auto; margin-right: 20px;">
+                        <select id="selectImovelComodos" class="modern-select"
+                            style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text);">
+                            <option value="">Selecione um Imóvel para gerenciar</option>
+                        </select>
+                    </div>
+                    <button id="btnNovoComodo"
+                        style="display: none; background: linear-gradient(135deg, var(--accent), var(--hover-accent)); color: #fff; border: none; padding: 12px 28px; border-radius: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 191, 166, 0.3);">
+                        <span>➕</span> Novo Cômodo
+                    </button>
+                </div>
+
+                <!-- Form (Hidden by default) -->
+                <div id="formComodoContainer"
+                    style="display: none; background: var(--card); border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                    <h3
+                        style="margin-bottom: 20px; color: var(--accent); display: flex; align-items: center; gap: 10px;">
+                        <span id="formTitleComodo">➕ Adicionar Cômodo</span></h3>
+                    <form id="formComodo">
+                        <input type="hidden" id="comodoId">
                         <div class="form-row">
-                            <div class="input-group">
+                            <div class="input-group" style="flex: 0 0 150px;">
                                 <span>#️⃣</span>
-                                <input type="number" id="codigoObjeto" placeholder="Código (auto)" readonly>
+                                <input type="number" id="codigoComodo" placeholder="Auto" readonly
+                                    style="background: rgba(255,255,255,0.05);">
                             </div>
-                            <div class="input-group">
-                                <span>📦</span>
-                                <select id="tipoObjeto" required>
-                                    <option value="">Selecione o Tipo</option>
-                                    <option value="Móvel">Móvel</option>
-                                    <option value="Utensílio">Utensílio</option>
+                            <div class="input-group" style="flex: 2;">
+                                <span>📝</span>
+                                <input type="text" id="nomeComodo" placeholder="Nome do cômodo (ex: Suíte Master)"
+                                    required>
+                            </div>
+                            <div class="input-group" style="flex: 1;">
+                                <span>✨</span>
+                                <select id="iconeComodo" required>
+                                    <option value="">Ícone</option>
+                                    <option value="🛋️">🛋️ Sala</option>
+                                    <option value="🛏️">🛏️ Quarto</option>
+                                    <option value="🚽">🚽 Banheiro</option>
+                                    <option value="🍽️">🍽️ Cozinha</option>
+                                    <option value="🧺">🧺 Lavanderia</option>
+                                    <option value="🚪">🚪 Corredor</option>
+                                    <option value="🌅">🌅 Varanda</option>
+                                    <option value="🏊">🏊 Piscina</option>
+                                    <option value="🌳">🌳 Jardim</option>
+                                    <option value="🚗">🚗 Garagem</option>
+                                    <option value="💻">💻 Escritório</option>
+                                    <option value="📺">📺 Sala de TV</option>
+                                    <option value="💡">💡 Outro</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="form-row">
-                            <div class="input-group">
-                                <span>🛋️</span>
-                                <input type="text" id="nomeObjeto" placeholder="Nome do Objeto" required>
-                            </div>
-                            <div class="input-group">
-                                <span>🔢</span>
-                                <input type="number" id="quantidadeObjeto" placeholder="Quantidade" min="1" required>
-                            </div>
+                        <div class="form-actions"
+                            style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                            <button type="button" class="btn btn-secondary" id="cancelarComodo">❌ Cancelar</button>
+                            <button type="submit" class="btn">💾 Salvar</button>
                         </div>
-                        <button type="submit" class="btn">➕ Adicionar Objeto</button>
-                        <button type="button" class="btn btn-secondary" id="cancelarObjeto">❌ Cancelar</button>
                     </form>
                 </div>
 
-                <div class="card" style="flex: 1 1 100%;">
-                    <h3>📋 Inventário Geral de Objetos</h3>
-                    <table id="tabelaObjetos">
-                        <thead>
-                            <tr>
-                                <th data-sort-key="codigo">Cód. <span></span></th>
-                                <th data-sort-key="imovelApelido">Imóvel <span></span></th>
-                                <th data-sort-key="comodoNome">Cômodo <span></span></th>
-                                <th data-sort-key="tipo">Tipo <span></span></th>
-                                <th data-sort-key="nome">Nome <span></span></th>
-                                <th data-sort-key="quantidade">Qtd. <span></span></th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                <!-- Empty State -->
+                <div id="emptyStateComodos"
+                    style="text-align: center; padding: 50px; color: var(--text); opacity: 0.7;">
+                    <p style="font-size: 1.2rem;">👆 Selecione um imóvel acima para gerenciar seus cômodos.</p>
                 </div>
+
+                <!-- List/Table -->
+                <div id="listaComodosContainer" style="display: none;">
+                    <div class="card" style="padding: 0; overflow: hidden;">
+                        <table id="tabelaComodos" style="width: 100%; border-collapse: collapse;">
+                            <thead style="background: rgba(0,0,0,0.2);">
+                                <tr>
+                                    <th style="padding: 15px; text-align: left; color: var(--accent);">Ícone</th>
+                                    <th style="padding: 15px; text-align: left; color: var(--accent);">Nome</th>
+                                    <th style="padding: 15px; text-align: left; color: var(--accent);">Cód.</th>
+                                    <th style="padding: 15px; text-align: right; color: var(--accent);">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Seção de Gerenciamento de Objetos (Inventário) -->
+        <section class="dashboard" id="inventario-objetos-section" style="display: none;">
+            <div class="card" style="flex: 1 1 100%;">
+                <h3>➕ Adicionar/Editar Objeto</h3>
+
+                <form id="formObjeto">
+                    <div class="form-row" style="margin-bottom: 15px;">
+                        <div class="input-group" style="flex: 1;">
+                            <span>🏠</span>
+                            <select id="selectImovelObjetos"
+                                style="flex: 1; border: none; background: transparent; color: var(--text); padding: 10px 5px;"
+                                required>
+                                <option value="">Selecione um Imóvel</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="flex: 1; margin-left: 10px;">
+                            <span>🚪</span>
+                            <select id="selectComodoObjetos"
+                                style="flex: 1; border: none; background: transparent; color: var(--text); padding: 10px 5px;"
+                                required>
+                                <option value="">Selecione um Cômodo</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="objetoId">
+                    <input type="hidden" id="objetoComodoId">
+
+                    <div class="form-row">
+                        <div class="input-group">
+                            <span>#️⃣</span>
+                            <input type="number" id="codigoObjeto" placeholder="Código (auto)" readonly>
+                        </div>
+                        <div class="input-group">
+                            <span>📦</span>
+                            <select id="tipoObjeto" required>
+                                <option value="">Selecione o Tipo</option>
+                                <option value="Móvel">Móvel</option>
+                                <option value="Utensílio">Utensílio</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <span>🛋️</span>
+                            <input type="text" id="nomeObjeto" placeholder="Nome do Objeto" required>
+                        </div>
+                        <div class="input-group">
+                            <span>🔢</span>
+                            <input type="number" id="quantidadeObjeto" placeholder="Quantidade" min="1" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">➕ Adicionar Objeto</button>
+                    <button type="button" class="btn btn-secondary" id="cancelarObjeto">❌ Cancelar</button>
+                </form>
+            </div>
+
+            <div class="card" style="flex: 1 1 100%;">
+                <h3>📋 Inventário Geral de Objetos</h3>
+                <table id="tabelaObjetos">
+                    <thead>
+                        <tr>
+                            <th data-sort-key="codigo">Cód. <span></span></th>
+                            <th data-sort-key="imovelApelido">Imóvel <span></span></th>
+                            <th data-sort-key="comodoNome">Cômodo <span></span></th>
+                            <th data-sort-key="tipo">Tipo <span></span></th>
+                            <th data-sort-key="nome">Nome <span></span></th>
+                            <th data-sort-key="quantidade">Qtd. <span></span></th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </section>
 
         <!-- Modal de visualização do Imóvel -->
@@ -363,28 +468,29 @@
             const hash = window.location.hash;
 
             // Esconde todas as seções
-            gerenciarImoveisSection.style.display = 'none';
-            comodosImovelSection.style.display = 'none';
-            inventarioObjetosSection.style.display = 'none';
+            if (gerenciarImoveisSection) gerenciarImoveisSection.style.display = 'none';
+            if (comodosImovelSection) comodosImovelSection.style.display = 'none';
+            if (inventarioObjetosSection) inventarioObjetosSection.style.display = 'none';
 
             let currentSectionTitle = '🏡 Gerenciar Imóveis';
 
             if (hash === '#comodos') {
-                comodosImovelSection.style.display = 'flex';
+                if (comodosImovelSection) comodosImovelSection.style.display = 'flex';
                 currentSectionTitle = '🚪 Gerenciar Cômodos';
                 if (window.inicializarComodos) window.inicializarComodos();
 
             } else if (hash === '#inventario') {
-                inventarioObjetosSection.style.display = 'flex';
+                if (inventarioObjetosSection) inventarioObjetosSection.style.display = 'flex';
                 currentSectionTitle = '📦 Inventário de Objetos';
                 if (window.inicializarInventario) window.inicializarInventario();
 
             } else {
-                gerenciarImoveisSection.style.display = 'flex';
+                if (gerenciarImoveisSection) gerenciarImoveisSection.style.display = 'flex';
                 if (window.carregarCardsDeImoveis) window.carregarCardsDeImoveis();
             }
 
-            document.getElementById('main-title').textContent = currentSectionTitle;
+            const mainTitle = document.getElementById('main-title');
+            if (mainTitle) mainTitle.textContent = currentSectionTitle;
             setActiveSidebarLink();
         }
 
