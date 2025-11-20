@@ -296,3 +296,107 @@
         gap: 15px;
     }
 }
+
+/* =========================================
+   Comodos Section Styles
+   ========================================= */
+
+.modern-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a0a0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.modern-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0, 191, 166, 0.2);
+    outline: none;
+}
+
+.modern-table-container {
+    background: var(--card);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border);
+}
+
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.modern-table th {
+    text-align: left;
+    padding: 16px 20px;
+    font-weight: 600;
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.2);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.modern-table td {
+    padding: 16px 20px;
+    color: var(--text);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    vertical-align: middle;
+}
+
+.modern-table tr:last-child td {
+    border-bottom: none;
+}
+
+.modern-table tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.action-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    color: var(--text);
+    opacity: 0.7;
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.action-btn.delete-btn:hover {
+    color: #ff4d4d;
+    background: rgba(255, 77, 77, 0.1);
+}
+
+.action-btn.edit-btn:hover {
+    color: var(--accent);
+    background: rgba(0, 191, 166, 0.1);
+}
+
+/* Empty State Animation */
+#emptyStateComodos {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
