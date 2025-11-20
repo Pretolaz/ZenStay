@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZenStay | Inventário</title>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/imoveis.css">
+    <link rel="stylesheet" href="assets/css/toast.css">
+    <link rel="stylesheet" href="theme/dark.css" id="theme-style">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- Sidebar dinâmica -->
+    <div id="sidebar"></div>
+
+    <main class="content">
+        <header class="header">
+            <button class="menu-toggle" id="header-menu-toggle">☰</button>
+            <h1 id="main-title">📦 Inventário de Objetos</h1>
+            <button id="toggle-theme">🌓</button>
+        </header>
+
+        <!-- Seção de Gerenciamento de Objetos (Inventário) -->
+        <section class="dashboard" id="inventario-objetos-section" style="display: flex;">
+            <!-- Container do Formulário -->
+            <div id="formObjetoContainer" class="card"
+                style="flex: 1 1 100%; margin-bottom: 30px; display: block; background: var(--card); border-radius: 20px; padding: 30px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                <h3 id="formTitleObjeto"
+                    style="margin-bottom: 20px; color: var(--accent); display: flex; align-items: center; gap: 10px;">
+                    ➕ Adicionar Objeto
+                </h3>
+                <form id="formObjeto" style="display: flex; flex-wrap: wrap; gap: 30px;">
+                    <!-- Coluna da Esquerda: Detalhes do Objeto -->
+                    <div class="form-column" style="flex: 1; min-width: 300px;">
+                        <input type="hidden" id="objetoId">
+                        <input type="hidden" id="objetoComodoId">
+
+                        <div class="input-group" style="margin-bottom: 15px;">
+                            <span>🏠</span>
+                            <select id="selectImovelObjetos" class="modern-select" required>
+                                <option value="">Selecione um Imóvel</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="margin-bottom: 15px;">
+                            <span>🚪</span>
+                            <select id="selectComodoObjetos" class="modern-select" required>
+                                <option value="">Selecione um Cômodo</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="margin-bottom: 15px;">
+                            <span>📦</span>
+                            <select id="tipoObjeto" class="modern-select" required>
+                                <option value="">Selecione o Tipo</option>
+                                <option value="Móvel">Móvel</option>
+                                <option value="Utensílio">Utensílio</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="margin-bottom: 15px;">
+                            <span>🛋️</span>
+                            <input type="text" id="nomeObjeto" placeholder="Nome do Objeto" required>
+                        </div>
+                        <div class="input-group">
+                            <span>🔢</span>
+                            <input type="number" id="quantidadeObjeto" placeholder="Quantidade" min="1" required>
+                        </div>
+                    </div>
+
+                    <!-- Coluna da Direita: Upload de Imagem -->
+                    <div class="form-column" style="flex: 1; min-width: 300px; text-align: center;">
+                        <div class="image-upload-container">
+                            <img id="previewObjeto" src="https://placehold.co/300x200?text=Sem+Imagem"
+                                alt="Pré-visualização do Objeto">
+                            <div class="image-upload-actions">
+                                <label for="fotoObjeto" class="btn btn-secondary">
+                                    <span>📁</span> Anexar
+                                </label>
+                                <input type="file" id="fotoObjeto" accept="image/*" style="display: none;">
+                                <button type="button" id="btnCamera" class="btn btn-secondary">
+                                    <span>📷</span> Tirar Foto
+                                </button>
+                            </div>
+                        </div>
+                        <video id="cameraStream" autoplay playsinline
+                            style="display: none; width: 100%; border-radius: 10px;"></video>
+                        <canvas id="cameraCanvas" style="display: none;"></canvas>
+                        <button type="button" id="btnCapture" class="btn"
+                            style="display: none; margin-top: 10px;">Capturar Imagem</button>
+                    </div>
+
+                    <!-- Ações do Formulário -->
+                    <div class="form-actions"
+                        style="width: 100%; margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn btn-secondary" id="cancelarObjeto">❌ Cancelar</button>
+                        <button type="submit" class="btn">💾 Salvar Objeto</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Container da Tabela -->
+            <div class="card" style="flex: 1 1 100%;">
+                <div class="imoveis-header-actions" style="margin-bottom: 20px;">
+                    <h3 style="color: var(--text);">📋 Inventário Geral</h3>
+                </div>
+                <div class="modern-table-container">
+                    <table id="tabelaObjetos" class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Imagem</th>
+                                <th data-sort-key="id">Cód. <span></span></th>
+                                <th data-sort-key="imovelTitulo">Imóvel <span></span></th>
+                                <th data-sort-key="comodoNome">Cômodo <span></span></th>
+                                <th data-sort-key="tipo">Tipo <span></span></th>
+                                <th data-sort-key="nome">Nome <span></span></th>
+                                <th data-sort-key="quantidade">Qtd. <span></span></th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Scripts Essenciais -->
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/toast.js"></script>
+
+    <!-- Scripts de Lógica de Página -->
+    <script type="module" src="assets/js/objetos-comodo.js"></script>
+
+    <!-- Script de Inicialização e Navegação -->
+    <script>
+        // Lógica para marcar o link ativo na sidebar
+        const setActiveSidebarLink = () => {
+            const path = window.location.pathname.split("/").pop();
+
+            document.querySelectorAll(".sidebar a").forEach(link => {
+                link.classList.remove("active");
+                const linkHref = link.getAttribute("href");
+
+                if (linkHref === path) {
+                    link.classList.add("active");
+                    const parentSubmenu = link.closest('.has-submenu');
+                    if (parentSubmenu) {
+                        const submenuElement = parentSubmenu.querySelector('.submenu');
+                        const arrowElement = parentSubmenu.querySelector('.arrow');
+                        if (submenuElement) submenuElement.style.display = 'block';
+                        if (arrowElement) arrowElement.textContent = '▼';
+                        parentSubmenu.classList.add('expanded');
+                    }
+                }
+            });
+        };
+
+        // Carrega a sidebar e depois inicializa a lógica da página
+        fetch("assets/components/sidebar.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("sidebar").innerHTML = html;
+
+                // Configura os toggles da sidebar e o comportamento responsivo
+                setupSidebarToggles();
+
+                // Adiciona listeners para os links da sidebar
+                document.querySelector('.sidebar').addEventListener('click', handleSidebarClick);
+
+                // Define o link ativo inicial na sidebar
+                setActiveSidebarLink();
+            });
+
+        function setupSidebarToggles() {
+            const body = document.body;
+            const loadedSidebarElement = document.querySelector('.sidebar');
+            const menuToggleBtnInSidebar = document.getElementById('menu-toggle');
+            const headerMenuToggleButton = document.getElementById('header-menu-toggle');
+
+            function toggleSidebar() {
+                body.classList.toggle('sidebar-open-mobile');
+            }
+
+            if (menuToggleBtnInSidebar) menuToggleBtnInSidebar.addEventListener('click', (e) => { e.stopPropagation(); toggleSidebar(); });
+            if (headerMenuToggleButton) headerMenuToggleButton.addEventListener('click', (e) => { e.stopPropagation(); toggleSidebar(); });
+
+            document.addEventListener('click', (e) => {
+                if (body.classList.contains('sidebar-open-mobile') && !loadedSidebarElement.contains(e.target) && !headerMenuToggleButton.contains(e.target)) {
+                    toggleSidebar();
+                }
+            });
+        }
+
+        function handleSidebarClick(e) {
+            const submenuToggle = e.target.closest('.submenu-toggle');
+            if (submenuToggle) {
+                e.preventDefault();
+                const parentLi = submenuToggle.closest('.has-submenu');
+                const submenu = parentLi.querySelector('.submenu');
+                const arrow = submenuToggle.querySelector('.arrow');
+
+                if (submenu && arrow) {
+                    const isExpanded = submenu.style.display === 'block';
+                    submenu.style.display = isExpanded ? 'none' : 'block';
+                    arrow.textContent = isExpanded ? '▶' : '▼';
+                    parentLi.classList.toggle('expanded', !isExpanded);
+                }
+            }
+
+            let clickedLink = e.target.closest("a");
+            if (clickedLink) {
+                document.querySelectorAll(".sidebar a").forEach(link => link.classList.remove("active"));
+                clickedLink.classList.add("active");
+                const parentSubmenuItem = clickedLink.closest('.has-submenu');
+                if (parentSubmenuItem) {
+                    parentSubmenuItem.querySelector('.submenu-toggle')?.classList.add('active');
+                }
+                if (window.innerWidth <= 768 && !clickedLink.classList.contains('submenu-toggle')) {
+                    document.body.classList.remove('sidebar-open-mobile');
+                }
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768 && document.body.classList.contains('sidebar-open-mobile')) {
+                document.body.classList.remove('sidebar-open-mobile');
+            }
+        });
+    </script>
+
+</body>
+
+</html>
