@@ -2,13 +2,12 @@ document.addEventListener('DOMContentLoaded', () => {
     initTimeline();
 });
 
+// Expose refresh function globally
+window.refreshTimeline = initTimeline;
+
 async function initTimeline() {
     const timelineView = document.getElementById('timeline-view');
     if (!timelineView) return;
-
-    // As classes Imovel, Reserva e Cliente já devem estar disponíveis via window
-    // pois este script é um módulo e roda após os módulos de entidade.
-
 
     try {
         const imoveis = await Imovel.listarTodos();
@@ -25,22 +24,28 @@ async function initTimeline() {
 function renderTimeline(container, imoveis, reservas, clientes) {
     container.innerHTML = ''; // Limpa o conteúdo anterior
 
+    // Define 'today' normalized to start of day
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+
     const daysToShow = 30;
-    const days = getDaysArray(today, daysToShow); // Exibe 30 dias a partir de hoje
+    const days = getDaysArray(today, daysToShow);
+    const columnWidth = 50; // px (number for calc)
+    const totalWidth = daysToShow * columnWidth;
 
     // Renderiza o cabeçalho
-    const header = createTimelineHeader(days);
+    const header = createTimelineHeader(days, columnWidth);
     container.appendChild(header);
 
     // Renderiza o corpo com as linhas dos imóveis
     const body = document.createElement('div');
     body.className = 'timeline-body';
+    // Force body to have at least the width of the grid to prevent shrinking
+    body.style.minWidth = `${totalWidth + 200}px`; // +200 for the sticky column
 
     imoveis.forEach(imovel => {
         const imovelReservas = reservas.filter(r => r.imovelId == imovel.id);
-        const row = createTimelineRow(imovel, imovelReservas, days, today, clientes);
+        const row = createTimelineRow(imovel, imovelReservas, days, today, clientes, columnWidth);
         body.appendChild(row);
     });
 
@@ -57,9 +62,18 @@ function getDaysArray(start, count) {
     return days;
 }
 
-function createTimelineHeader(days) {
+// Helper to calculate difference in days between two dates (ignoring time/DST)
+function diffDays(d1, d2) {
+    const u1 = Date.UTC(d1.getFullYear(), d1.getMonth(), d1.getDate());
+    const u2 = Date.UTC(d2.getFullYear(), d2.getMonth(), d2.getDate());
+    return Math.floor((u2 - u1) / (1000 * 60 * 60 * 24));
+}
+
+function createTimelineHeader(days, columnWidth) {
     const header = document.createElement('div');
     header.className = 'timeline-header';
+    // Ensure header also doesn't shrink
+    header.style.minWidth = `${(days.length * columnWidth) + 200}px`;
 
     const imoveisHeader = document.createElement('div');
     imoveisHeader.className = 'timeline-imoveis-header';
@@ -68,6 +82,8 @@ function createTimelineHeader(days) {
 
     const daysContainer = document.createElement('div');
     daysContainer.className = 'timeline-days';
+    // Aplica grid com largura fixa
+    daysContainer.style.gridTemplateColumns = `repeat(${days.length}, ${columnWidth}px)`;
 
     days.forEach(day => {
         const dayEl = document.createElement('div');
@@ -86,7 +102,7 @@ function createTimelineHeader(days) {
         // Destaque para hoje
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        if (day.getTime() === today.getTime()) {
+        if (diffDays(today, day) === 0) {
             dayEl.style.backgroundColor = 'var(--accent)';
             dayEl.style.color = '#fff';
             dayEl.style.fontWeight = 'bold';
@@ -99,7 +115,7 @@ function createTimelineHeader(days) {
     return header;
 }
 
-function createTimelineRow(imovel, reservas, days, timelineStart, clientes) {
+function createTimelineRow(imovel, reservas, days, timelineStart, clientes, columnWidth) {
     const row = document.createElement('div');
     row.className = 'timeline-row';
 
@@ -110,35 +126,30 @@ function createTimelineRow(imovel, reservas, days, timelineStart, clientes) {
 
     const reservasCell = document.createElement('div');
     reservasCell.className = 'timeline-reservas-cell';
-    // Define o grid template dinamicamente com base no número de dias
-    reservasCell.style.gridTemplateColumns = `repeat(${days.length}, 1fr)`;
-    // Ajusta o background size para coincidir com as colunas
-    reservasCell.style.backgroundSize = `calc(100% / ${days.length}) 100%`;
+    // Define o grid template com largura fixa
+    reservasCell.style.gridTemplateColumns = `repeat(${days.length}, ${columnWidth}px)`;
+    // Ajusta o background size para coincidir com as colunas fixas
+    reservasCell.style.backgroundSize = `${columnWidth}px 100%`;
 
     reservas.forEach(reserva => {
-        const checkin = new Date(reserva.checkin);
-        const checkout = new Date(reserva.checkout);
+        // Parse das datas (assumindo formato YYYY-MM-DD)
+        const parseDate = (dateStr) => {
+            const parts = dateStr.split('-');
+            // Cria data local explicitamente 00:00:00
+            return new Date(parts[0], parts[1] - 1, parts[2]);
+        };
 
-        // Normaliza as datas para ignorar a hora (UTC safety check might be needed depending on input)
-        // Assumindo input YYYY-MM-DD local
-        const checkinNorm = new Date(checkin.getFullYear(), checkin.getMonth(), checkin.getDate());
-        const checkoutNorm = new Date(checkout.getFullYear(), checkout.getMonth(), checkout.getDate());
+        const checkinNorm = parseDate(reserva.checkin);
+        const checkoutNorm = parseDate(reserva.checkout);
 
-        const timelineEnd = new Date(days[days.length - 1]);
-        timelineEnd.setHours(23, 59, 59, 999);
+        // Usar diffDays para cálculo seguro de dias
+        const startDayIndex = diffDays(timelineStart, checkinNorm);
+        const endDayIndex = diffDays(timelineStart, checkoutNorm);
 
-        // Verifica se a reserva está no range da timeline
-        if (checkoutNorm < timelineStart || checkinNorm > timelineEnd) {
+        // Se a reserva termina antes do início da timeline ou começa depois do fim
+        if (endDayIndex < 0 || startDayIndex >= days.length) {
             return;
         }
-
-        // Calcula índices baseados em dias (0-indexed)
-        // Diferença em milissegundos
-        const diffStart = checkinNorm - timelineStart;
-        const startDayIndex = Math.floor(diffStart / (1000 * 60 * 60 * 24));
-
-        const diffEnd = checkoutNorm - timelineStart;
-        const endDayIndex = Math.floor(diffEnd / (1000 * 60 * 60 * 24));
 
         // Ajusta para limites da timeline
         const visibleStart = Math.max(0, startDayIndex);
@@ -146,11 +157,6 @@ function createTimelineRow(imovel, reservas, days, timelineStart, clientes) {
 
         // Duração em dias (noites)
         let duration = visibleEnd - visibleStart;
-
-        // Se a duração for 0 (checkin e checkout no mesmo dia visual ou erro), força 1 para visibilidade mínima se estiver dentro do range
-        if (duration <= 0 && visibleStart < days.length && visibleEnd > 0) {
-            // duration = 1; // Opcional: decidir se mostra algo para day-use
-        }
 
         if (duration <= 0) return;
 
@@ -182,8 +188,6 @@ function createTimelineRow(imovel, reservas, days, timelineStart, clientes) {
         reservaBar.title = `${nomeHospede}\nCheck-in: ${checkinStr}\nCheck-out: ${checkoutStr}`;
 
         // Posiciona a barra na grade
-        // Grid lines são 1-based. 
-        // Se startDayIndex é 0 (primeiro dia), gridColumnStart é 1.
         reservaBar.style.gridColumnStart = visibleStart + 1;
         reservaBar.style.gridColumnEnd = `span ${duration}`;
 

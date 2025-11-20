@@ -37,14 +37,13 @@
 }
 
 .timeline-days {
-    display: flex;
+    display: grid;
+    /* O template columns será definido via JS para garantir sincronia */
     flex-grow: 1;
 }
 
 .timeline-day {
-    flex: 1;
-    min-width: 40px;
-    /* Largura mínima para garantir legibilidade */
+    /* Removido flex: 1 e min-width, agora controlado pelo grid */
     padding: 5px;
     text-align: center;
     border-right: 1px solid var(--border);
@@ -55,44 +54,8 @@
     justify-content: center;
     align-items: center;
     background-color: var(--background);
-}
-
-.timeline-day span.day-number {
-    font-size: 1.1rem;
-    font-weight: bold;
-}
-
-.timeline-body {
-    display: flex;
-    flex-direction: column;
-}
-
-.timeline-row {
-    display: flex;
-    border-bottom: 1px solid var(--border);
-    height: 50px;
-    /* Altura fixa para as linhas */
-}
-
-.timeline-row:last-child {
-    border-bottom: none;
-}
-
-.timeline-imovel-cell {
-    flex: 0 0 200px;
-    padding: 0 15px;
-    border-right: 1px solid var(--border);
-    font-weight: 500;
-    font-size: 0.9rem;
-    background-color: var(--card);
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    position: sticky;
-    left: 0;
-    z-index: 5;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
-    /* Sombra sutil na coluna fixa */
+    /* Altura total da célula do header */
+    height: 100%;
 }
 
 .timeline-reservas-cell {
@@ -103,8 +66,7 @@
     background-color: rgba(76, 175, 80, 0.15);
     /* Verde suave para indicar 'Livre' */
     background-image: linear-gradient(to right, var(--border) 1px, transparent 1px);
-    background-size: calc(100% / 30) 100%;
-    /* Grid vertical */
+    /* O background-size será definido inline no JS */
 }
 
 /* Ajuste para o modo escuro se necessário, mas o rgba funciona bem em ambos */

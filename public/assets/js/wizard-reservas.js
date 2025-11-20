@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handlePetSelection() {
         reservaState.numPets = parseInt(numPetsSlider.value);
-        if(numPetsDisplay) numPetsDisplay.textContent = reservaState.numPets;
+        if (numPetsDisplay) numPetsDisplay.textContent = reservaState.numPets;
         updateSummary();
     }
 
@@ -270,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateSummary() {
         const imovel = imoveis.find(i => i.id == reservaState.imovelId);
-        if(summaryImovel) summaryImovel.textContent = imovel ? imovel.titulo : '- Selecione -';
+        if (summaryImovel) summaryImovel.textContent = imovel ? imovel.titulo : '- Selecione -';
 
         if (summaryHospedes) {
             summaryHospedes.innerHTML = '';
@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        if(summaryPets) summaryPets.textContent = reservaState.numPets > 0 ? `${reservaState.numPets} pet(s)` : 'Não';
+        if (summaryPets) summaryPets.textContent = reservaState.numPets > 0 ? `${reservaState.numPets} pet(s)` : 'Não';
 
         if (summaryPeriodo && summaryDiarias) {
             if (reservaState.checkin && reservaState.checkout) {
@@ -334,6 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
             Toast.success('Reserva salva com sucesso!');
             closeWizard();
             await loadReservasTableLocal(); // Recarrega a tabela
+            if (window.refreshTimeline) window.refreshTimeline(); // Atualiza a timeline
         } catch (error) {
             console.error("Erro ao salvar a reserva:", error);
             Toast.error("Ocorreu um erro ao salvar a reserva.");
@@ -394,6 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         await Reserva.excluir(id);
                         Toast.success('Reserva excluída com sucesso.');
                         await loadReservasTableLocal(); // Recarrega
+                        if (window.refreshTimeline) window.refreshTimeline(); // Atualiza a timeline
                     } catch (error) {
                         console.error('Erro ao excluir reserva:', error);
                         Toast.error('Falha ao excluir reserva.');
