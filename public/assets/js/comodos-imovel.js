@@ -12,15 +12,15 @@ const selectImovelComodos = document.getElementById('selectImovelComodos');
 
 let currentImovel = null; // Armazena a instância completa do imóvel selecionado
 
-function inicializarComodos() {
-    popularSelectImoveisComodos();
+async function inicializarComodos() {
+    await popularSelectImoveisComodos();
     selectImovelComodos.addEventListener('change', handleImovelSelectionChangeComodos);
     formComodo.addEventListener('submit', salvarComodo);
     if (cancelarComodoBtn) {
         cancelarComodoBtn.addEventListener('click', resetFormComodo);
     }
-    
-    const todosImoveis = Imovel.listarTodos();
+
+    const todosImoveis = await Imovel.listarTodos();
     if (todosImoveis.length > 0) {
         const primeiroImovel = todosImoveis[0];
         selectImovelComodos.value = primeiroImovel.id;
@@ -28,25 +28,25 @@ function inicializarComodos() {
     }
 }
 
-function popularSelectImoveisComodos() {
-    const todosImoveis = Imovel.listarTodos();
+async function popularSelectImoveisComodos() {
+    const todosImoveis = await Imovel.listarTodos();
     selectImovelComodos.innerHTML = '<option value="">Selecione um Imóvel</option>';
     todosImoveis.forEach(imovel => {
         const option = document.createElement('option');
-        option.value = imovel.id; // CORREÇÃO: Usar id
-        option.textContent = imovel.titulo; // CORREÇÃO: Usar titulo
+        option.value = imovel.id;
+        option.textContent = imovel.titulo;
         selectImovelComodos.appendChild(option);
     });
 }
 
-function handleImovelSelectionChangeComodos() {
+async function handleImovelSelectionChangeComodos() {
     const imovelId = selectImovelComodos.value;
     if (imovelId) {
-        const imovelData = Imovel.listarTodos().find(i => i.id == imovelId); // CORREÇÃO: Buscar por id
+        const todosImoveis = await Imovel.listarTodos();
+        const imovelData = todosImoveis.find(i => i.id == imovelId);
         if (imovelData) {
-            // CORREÇÃO: Usar o construtor moderno que aceita um objeto
-            currentImovel = new Imovel(imovelData);
-            imovelApelidoComodos.textContent = currentImovel.titulo; // CORREÇÃO: Usar titulo
+            currentImovel = new Imovel(imovelData); // Ensure it's an instance
+            imovelApelidoComodos.textContent = currentImovel.titulo;
             carregarComodosDoImovel();
         }
     } else {
@@ -62,7 +62,6 @@ function carregarComodosDoImovel() {
     if (currentImovel && currentImovel.comodos) {
         currentImovel.comodos.forEach(comodo => {
             const row = document.createElement('tr');
-            // CORREÇÃO: Usar comodo.id e currentImovel.titulo
             row.innerHTML = `
                 <td>${comodo.id}</td>
                 <td>${currentImovel.titulo}</td>
@@ -78,11 +77,11 @@ function carregarComodosDoImovel() {
     }
 }
 
-function salvarComodo(e) {
+async function salvarComodo(e) {
     e.preventDefault();
 
     if (!currentImovel) {
-        alert('Por favor, selecione um imóvel para adicionar ou editar um cômodo.');
+        Toast.warning('Por favor, selecione um imóvel para adicionar ou editar um cômodo.');
         return;
     }
 
@@ -90,23 +89,28 @@ function salvarComodo(e) {
     const nome = nomeComodoInput.value;
     const icone = iconeComodoInput.value;
 
-    if (comodoId) {
-        currentImovel.editarComodo(comodoId, nome, icone);
-    } else {
-        currentImovel.adicionarComodo(nome, icone);
+    try {
+        if (comodoId) {
+            await currentImovel.editarComodo(comodoId, nome, icone);
+            Toast.success("Cômodo atualizado com sucesso!");
+        } else {
+            await currentImovel.adicionarComodo(nome, icone);
+            Toast.success("Cômodo adicionado com sucesso!");
+        }
+
+        carregarComodosDoImovel();
+        resetFormComodo();
+    } catch (error) {
+        Toast.error("Erro ao salvar cômodo: " + error.message);
     }
-    
-    carregarComodosDoImovel();
-    resetFormComodo();
 }
 
 function editarComodo(comodoId) {
     if (currentImovel) {
-        // CORREÇÃO: Buscar comodo por id
         const comodo = currentImovel.comodos.find(c => c.id === comodoId);
         if (comodo) {
             comodoIdInput.value = comodo.id;
-            if(codigoComodoInput) codigoComodoInput.value = comodo.id; // Atualiza campo de exibição do código
+            if (codigoComodoInput) codigoComodoInput.value = comodo.id;
             nomeComodoInput.value = comodo.nome;
             iconeComodoInput.value = comodo.icone;
             document.querySelector('#formComodo button[type="submit"]').textContent = '💾 Salvar Cômodo';
@@ -115,12 +119,16 @@ function editarComodo(comodoId) {
     }
 }
 
-function excluirComodo(comodoId) {
+async function excluirComodo(comodoId) {
     if (confirm('Tem certeza que deseja excluir este cômodo? Todos os objetos dentro dele também serão perdidos.')) {
         if (currentImovel) {
-            // CORREÇÃO: Chamar remoção por id
-            currentImovel.removerComodo(comodoId);
-            carregarComodosDoImovel();
+            try {
+                await currentImovel.removerComodo(comodoId);
+                Toast.success("Cômodo excluído com sucesso!");
+                carregarComodosDoImovel();
+            } catch (error) {
+                Toast.error("Erro ao excluir cômodo: " + error.message);
+            }
         }
     }
 }
@@ -128,7 +136,7 @@ function excluirComodo(comodoId) {
 function resetFormComodo() {
     formComodo.reset();
     comodoIdInput.value = '';
-    if(codigoComodoInput) codigoComodoInput.value = '';
+    if (codigoComodoInput) codigoComodoInput.value = '';
     document.querySelector('#formComodo button[type="submit"]').textContent = '➕ Adicionar Cômodo';
 }
 
@@ -138,3 +146,4 @@ window.inicializarComodos = inicializarComodos;
 window.editarComodo = editarComodo;
 window.excluirComodo = excluirComodo;
 window.currentImovelComodos = () => currentImovel;
+window.addEventListener('DOMContentLoaded', inicializarComodos);

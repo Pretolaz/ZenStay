@@ -1,14 +1,14 @@
 // assets/js/objetos-comodo.js
 
 // Escopo do módulo para as variáveis principais
-let tabelaObjetosBody, formObjeto, objetoIdInput, codigoObjetoInput, 
-    tipoObjetoInput, nomeObjetoInput, quantidadeObjetoInput, 
+let tabelaObjetosBody, formObjeto, objetoIdInput, codigoObjetoInput,
+    tipoObjetoInput, nomeObjetoInput, quantidadeObjetoInput,
     cancelarObjetoBtn, selectImovelObjetos, selectComodoObjetos;
 
 let allObjects = [];
 let sortState = { key: 'id', ascending: true };
 
-function inicializarInventario() {
+async function inicializarInventario() {
     // Atribuição de elementos do DOM
     tabelaObjetosBody = document.querySelector('#tabelaObjetos tbody');
     formObjeto = document.getElementById('formObjeto');
@@ -30,32 +30,37 @@ function inicializarInventario() {
     });
 
     // Inicialização da UI
-    popularSelectImoveisObjetos();
-    loadAndRenderAllObjects();
+    await popularSelectImoveisObjetos();
+    await loadAndRenderAllObjects();
     resetFormObjeto();
 }
 
-function loadAndRenderAllObjects() {
-    const imoveis = Imovel.listarTodos();
-    allObjects = [];
-    imoveis.forEach(imovel => {
-        if (imovel.comodos) {
-            imovel.comodos.forEach(comodo => {
-                if (comodo.objetos) {
-                    comodo.objetos.forEach(objeto => {
-                        allObjects.push({
-                            ...objeto,
-                            imovelId: imovel.id, // CORREÇÃO
-                            imovelTitulo: imovel.titulo, // CORREÇÃO
-                            comodoId: comodo.id, // CORREÇÃO
-                            comodoNome: comodo.nome
+async function loadAndRenderAllObjects() {
+    try {
+        const imoveis = await Imovel.listarTodos();
+        allObjects = [];
+        imoveis.forEach(imovel => {
+            if (imovel.comodos) {
+                imovel.comodos.forEach(comodo => {
+                    if (comodo.objetos) {
+                        comodo.objetos.forEach(objeto => {
+                            allObjects.push({
+                                ...objeto,
+                                imovelId: imovel.id,
+                                imovelTitulo: imovel.titulo,
+                                comodoId: comodo.id,
+                                comodoNome: comodo.nome
+                            });
                         });
-                    });
-                }
-            });
-        }
-    });
-    renderTable();
+                    }
+                });
+            }
+        });
+        renderTable();
+    } catch (error) {
+        console.error("Erro ao carregar objetos:", error);
+        Toast.error("Erro ao carregar inventário.");
+    }
 }
 
 function handleSort(key) {
@@ -82,7 +87,6 @@ function renderTable() {
     tabelaObjetosBody.innerHTML = '';
     sortedObjects.forEach(obj => {
         const row = document.createElement('tr');
-        // CORREÇÃO: Usar `id` do objeto e `imovelTitulo`
         row.innerHTML = `
             <td>${obj.id}</td>
             <td>${obj.imovelTitulo}</td>
@@ -105,92 +109,119 @@ function renderTable() {
     }
 }
 
-function popularSelectImoveisObjetos() {
-    selectImovelObjetos.innerHTML = '<option value="">Selecione um Imóvel</option>';
-    Imovel.listarTodos().forEach(imovel => {
-        const option = document.createElement('option');
-        option.value = imovel.id; // CORREÇÃO
-        option.textContent = imovel.titulo; // CORREÇÃO
-        selectImovelObjetos.appendChild(option);
-    });
-}
-
-function popularSelectComodosObjetos(imovelId) {
-    selectComodoObjetos.innerHTML = '<option value="">Selecione um Cômodo</option>';
-    if (!imovelId) return;
-    const imovel = Imovel.listarTodos().find(i => i.id == imovelId); // CORREÇÃO
-    if (imovel && imovel.comodos) {
-        imovel.comodos.forEach(comodo => {
+async function popularSelectImoveisObjetos() {
+    try {
+        const imoveis = await Imovel.listarTodos();
+        selectImovelObjetos.innerHTML = '<option value="">Selecione um Imóvel</option>';
+        imoveis.forEach(imovel => {
             const option = document.createElement('option');
-            option.value = comodo.id; // CORREÇÃO
-            option.textContent = comodo.nome;
-            selectComodoObjetos.appendChild(option);
+            option.value = imovel.id;
+            option.textContent = imovel.titulo;
+            selectImovelObjetos.appendChild(option);
         });
+    } catch (error) {
+        console.error("Erro ao carregar imóveis:", error);
     }
 }
 
-function salvarObjeto(e) {
+async function popularSelectComodosObjetos(imovelId) {
+    selectComodoObjetos.innerHTML = '<option value="">Selecione um Cômodo</option>';
+    if (!imovelId) return;
+    try {
+        const imoveis = await Imovel.listarTodos();
+        const imovel = imoveis.find(i => i.id == imovelId);
+        if (imovel && imovel.comodos) {
+            imovel.comodos.forEach(comodo => {
+                const option = document.createElement('option');
+                option.value = comodo.id;
+                option.textContent = comodo.nome;
+                selectComodoObjetos.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error("Erro ao carregar cômodos:", error);
+    }
+}
+
+async function salvarObjeto(e) {
     e.preventDefault();
     const imovelId = selectImovelObjetos.value;
     const comodoId = selectComodoObjetos.value;
     const objetoId = objetoIdInput.value ? parseInt(objetoIdInput.value) : null;
 
     if (!imovelId || !comodoId) {
-        alert('Por favor, selecione um imóvel e um cômodo.');
+        Toast.warning('Por favor, selecione um imóvel e um cômodo.');
         return;
     }
 
-    const imovelData = Imovel.listarTodos().find(i => i.id == imovelId); // CORREÇÃO
-    if (!imovelData) return;
+    try {
+        const imoveis = await Imovel.listarTodos();
+        const imovelData = imoveis.find(i => i.id == imovelId);
+        if (!imovelData) return;
 
-    const imovel = new Imovel(imovelData); // CORREÇÃO: Construtor moderno
-    const comodo = imovel.comodos.find(c => c.id == comodoId); // CORREÇÃO
-    if (!comodo) return;
+        const imovel = new Imovel(imovelData);
+        const comodo = imovel.comodos.find(c => c.id == comodoId);
+        if (!comodo) return;
 
-    const tipo = tipoObjetoInput.value;
-    const nome = nomeObjetoInput.value;
-    const quantidade = parseInt(quantidadeObjetoInput.value, 10);
+        const tipo = tipoObjetoInput.value;
+        const nome = nomeObjetoInput.value;
+        const quantidade = parseInt(quantidadeObjetoInput.value, 10);
 
-    imovel.salvarObjeto(comodo.id, { id: objetoId, tipo, nome, quantidade });
+        await imovel.salvarObjeto(comodo.id, { id: objetoId, tipo, nome, quantidade });
+        Toast.success("Objeto salvo com sucesso!");
 
-    loadAndRenderAllObjects();
-    resetFormObjeto();
+        await loadAndRenderAllObjects();
+        resetFormObjeto();
+    } catch (error) {
+        Toast.error("Erro ao salvar objeto: " + error.message);
+    }
 }
 
-function editarObjeto(imovelId, comodoId, objetoId) {
-    const imovelData = Imovel.listarTodos().find(i => i.id === imovelId);
-    if (!imovelData || !imovelData.comodos) return;
-    
-    const comodoData = imovelData.comodos.find(c => c.id === comodoId);
-    if (!comodoData || !comodoData.objetos) return;
+async function editarObjeto(imovelId, comodoId, objetoId) {
+    try {
+        const imoveis = await Imovel.listarTodos();
+        const imovelData = imoveis.find(i => i.id === imovelId);
+        if (!imovelData || !imovelData.comodos) return;
 
-    const objeto = comodoData.objetos.find(o => o.id === objetoId); // CORREÇÃO
-    if (!objeto) return;
+        const comodoData = imovelData.comodos.find(c => c.id === comodoId);
+        if (!comodoData || !comodoData.objetos) return;
 
-    selectImovelObjetos.value = imovelId;
-    popularSelectComodosObjetos(imovelId);
-    selectComodoObjetos.value = comodoId;
-    objetoIdInput.value = objeto.id; // CORREÇÃO
-    if (codigoObjetoInput) codigoObjetoInput.value = objeto.id; // CORREÇÃO
-    tipoObjetoInput.value = objeto.tipo;
-    nomeObjetoInput.value = objeto.nome;
-    quantidadeObjetoInput.value = objeto.quantidade;
+        const objeto = comodoData.objetos.find(o => o.id === objetoId);
+        if (!objeto) return;
 
-    document.querySelector('#formObjeto button[type="submit"]').textContent = '💾 Salvar Objeto';
-    window.scrollTo(0, 0);
+        selectImovelObjetos.value = imovelId;
+        await popularSelectComodosObjetos(imovelId); // Wait for comodos to populate
+        selectComodoObjetos.value = comodoId;
+        objetoIdInput.value = objeto.id;
+        if (codigoObjetoInput) codigoObjetoInput.value = objeto.id;
+        tipoObjetoInput.value = objeto.tipo;
+        nomeObjetoInput.value = objeto.nome;
+        quantidadeObjetoInput.value = objeto.quantidade;
+
+        document.querySelector('#formObjeto button[type="submit"]').textContent = '💾 Salvar Objeto';
+        window.scrollTo(0, 0);
+    } catch (error) {
+        console.error("Erro ao editar objeto:", error);
+    }
 }
 
-function excluirObjeto(imovelId, comodoId, objetoId) {
+async function excluirObjeto(imovelId, comodoId, objetoId) {
     if (!confirm('Tem certeza que deseja excluir este objeto?')) return;
 
-    const imovelData = Imovel.listarTodos().find(i => i.id === imovelId); // CORREÇÃO
-    if (!imovelData) return;
+    try {
+        const imoveis = await Imovel.listarTodos();
+        const imovelData = imoveis.find(i => i.id === imovelId);
+        if (!imovelData) return;
 
-    const imovel = new Imovel(imovelData); // CORREÇÃO: Construtor moderno
-    imovel.removerObjeto(comodoId, objetoId); // Método mais direto se existir
-    
-    loadAndRenderAllObjects();
-    resetFormObjeto();
+        const imovel = new Imovel(imovelData);
+        await imovel.removerObjeto(comodoId, objetoId);
+        Toast.success("Objeto excluído com sucesso!");
+
+        await loadAndRenderAllObjects();
+        resetFormObjeto();
+    } catch (error) {
+        Toast.error("Erro ao excluir objeto: " + error.message);
+    }
 }
 
 function resetFormObjeto() {

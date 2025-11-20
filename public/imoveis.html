@@ -8,7 +8,8 @@
 
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/components.css">
-    <link rel="stylesheet" href="assets/css/imoveis.css"> <!-- Novo CSS -->
+    <link rel="stylesheet" href="assets/css/imoveis.css">
+    <link rel="stylesheet" href="assets/css/toast.css">
     <link rel="stylesheet" href="theme/dark.css" id="theme-style">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
@@ -21,7 +22,6 @@
     <main class="content">
         <header class="header">
             <button class="menu-toggle" id="header-menu-toggle">☰</button>
-            <!-- Botão de menu hambúrguer no cabeçalho -->
             <h1 id="main-title">🏡 Gerenciar Imóveis</h1>
             <button id="toggle-theme">🌓</button>
         </header>
@@ -35,13 +35,11 @@
                     <div class="section-title">
                         <span>📋</span> Lista de Imóveis
                     </div>
-                    <!-- Botão para Adicionar Imóvel -->
                     <button id="adicionarImovelBtn">
                         <span>➕</span> Adicionar Imóvel
                     </button>
                 </div>
 
-                <!-- Formulário de Imóveis (Inicialmente oculto) -->
                 <div id="formImovelContainer" style="display: none;">
                     <h3>➕ Cadastrar Novo Imóvel</h3>
                     <form id="formImovel">
@@ -122,7 +120,6 @@
                             <textarea id="instrucoesChegada" placeholder="Instruções para chegar..."></textarea>
                         </div>
 
-                        <!-- Campo para a foto do imóvel e pré-visualização -->
                         <div class="form-row">
                             <div class="input-group">
                                 <span>📷</span>
@@ -138,7 +135,6 @@
                     </form>
                 </div>
 
-                <!-- Container para os cards de imóveis -->
                 <div id="imoveisCardsContainer"></div>
             </div>
         </section>
@@ -306,8 +302,8 @@
                         <p id="modalImovelCapacidadeAdulto"></p>
                         <p id="modalImovelCapacidadeCrianca"></p>
                         <p id="modalImovelAceitaPet"></p>
-                        <p id="modalImovelMoveis"></p> <!-- Novo campo para móveis -->
-                        <p id="modalImovelUtensilios"></p> <!-- Novo campo para utensílios -->
+                        <p id="modalImovelMoveis"></p>
+                        <p id="modalImovelUtensilios"></p>
                         <p id="modalImovelDescricao"></p>
                         <p id="modalImovelInstrucoesGerais"></p>
                     </div>
@@ -324,13 +320,14 @@
     <!-- Scripts Essenciais -->
     <script src="assets/js/storage.js"></script>
     <script src="assets/js/main.js"></script>
+    <script src="assets/js/toast.js"></script>
     <script src="assets/js/entities/comodo.js"></script>
-    <script src="assets/js/entities/imovel.js"></script>
+    <script type="module" src="assets/js/entities/imovel.js"></script>
 
     <!-- Scripts de Lógica de Página -->
-    <script src="assets/js/imoveis.js"></script>
-    <script src="assets/js/comodos-imovel.js"></script>
-    <script src="assets/js/objetos-comodo.js"></script>
+    <script type="module" src="assets/js/imoveis.js"></script>
+    <script type="module" src="assets/js/comodos-imovel.js"></script>
+    <script type="module" src="assets/js/objetos-comodo.js"></script>
 
     <!-- Script de Inicialização e Navegação -->
     <script>

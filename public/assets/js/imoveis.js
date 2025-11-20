@@ -17,6 +17,11 @@ const modalImovelDescricao = document.getElementById('modalImovelDescricao');
 const modalImovelSituacao = document.getElementById('modalImovelSituacao');
 const modalImovelMoveis = document.getElementById('modalImovelMoveis');
 const modalImovelUtensilios = document.getElementById('modalImovelUtensilios');
+const modalImovelCapacidadeAdulto = document.getElementById('modalImovelCapacidadeAdulto');
+const modalImovelCapacidadeCrianca = document.getElementById('modalImovelCapacidadeCrianca');
+const modalImovelAceitaPet = document.getElementById('modalImovelAceitaPet');
+const modalImovelInstrucoesGerais = document.getElementById('modalImovelInstrucoesGerais');
+
 
 let currentEditingImovel = null;
 let fotoImovelURL = '';
@@ -83,87 +88,92 @@ function calcularInventario(imovel) {
 }
 
 // Lógica para carregar e exibir os cards dos imóveis
-function carregarImoveis() {
+async function carregarImoveis() {
     if (!imoveisCardsContainer) return;
 
-    const imoveis = Imovel.listarTodos();
-    imoveisCardsContainer.innerHTML = '';
+    try {
+        const imoveis = await Imovel.listarTodos();
+        imoveisCardsContainer.innerHTML = '';
 
-    if (imoveis.length === 0) {
-        imoveisCardsContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text); opacity: 0.7;"><h3>Nenhum imóvel cadastrado</h3><p>Clique em "Adicionar Imóvel" para começar.</p></div>';
-        return;
-    }
-
-    imoveis.forEach(imovel => {
-        const card = document.createElement('div');
-        card.classList.add('imovel-card');
-
-        let statusClass = '';
-        let statusLabel = imovel.status || imovel.situacao || 'Indefinido';
-
-        switch (statusLabel) {
-            case 'Liberado':
-                statusClass = 'status-liberado';
-                break;
-            case 'Locado':
-                statusClass = 'status-locado';
-                break;
-            case 'Em limpeza':
-                statusClass = 'status-limpeza';
-                break;
-            case 'Suspenso':
-                statusClass = 'status-suspenso';
-                break;
-            case 'Inativo':
-                statusClass = 'status-inativo';
-                break;
-            default:
-                statusClass = 'status-inativo';
-                break;
+        if (imoveis.length === 0) {
+            imoveisCardsContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text); opacity: 0.7;"><h3>Nenhum imóvel cadastrado</h3><p>Clique em "Adicionar Imóvel" para começar.</p></div>';
+            return;
         }
 
-        const fotoSrc = (imovel.fotos && imovel.fotos.length > 0) ? imovel.fotos[0] : 'https://placehold.co/600x400?text=Sem+Foto';
-        const { totalMoveis, totalUtensilios } = calcularInventario(imovel);
+        imoveis.forEach(imovel => {
+            const card = document.createElement('div');
+            card.classList.add('imovel-card');
 
-        card.innerHTML = `
-            <div class="imovel-card-image-wrapper">
-                <img src="${fotoSrc}" alt="${imovel.titulo}" class="imovel-card-mini-foto">
-                <div class="imovel-status-badge ${statusClass}">
-                    ${statusLabel}
-                </div>
-            </div>
-            
-            <div class="imovel-card-content">
-                <div class="imovel-card-header">
-                    <h3 class="imovel-card-titulo">${imovel.titulo}</h3>
-                    <div class="imovel-card-subtitulo">
-                        <span>📍</span> ${imovel.endereco || 'Sem endereço'}
+            let statusClass = '';
+            let statusLabel = imovel.status || imovel.situacao || 'Indefinido';
+
+            switch (statusLabel) {
+                case 'Liberado':
+                    statusClass = 'status-liberado';
+                    break;
+                case 'Locado':
+                    statusClass = 'status-locado';
+                    break;
+                case 'Em limpeza':
+                    statusClass = 'status-limpeza';
+                    break;
+                case 'Suspenso':
+                    statusClass = 'status-suspenso';
+                    break;
+                case 'Inativo':
+                    statusClass = 'status-inativo';
+                    break;
+                default:
+                    statusClass = 'status-inativo';
+                    break;
+            }
+
+            const fotoSrc = (imovel.fotos && imovel.fotos.length > 0) ? imovel.fotos[0] : 'https://placehold.co/600x400?text=Sem+Foto';
+            const { totalMoveis, totalUtensilios } = calcularInventario(imovel);
+
+            card.innerHTML = `
+                <div class="imovel-card-image-wrapper">
+                    <img src="${fotoSrc}" alt="${imovel.titulo}" class="imovel-card-mini-foto">
+                    <div class="imovel-status-badge ${statusClass}">
+                        ${statusLabel}
                     </div>
                 </div>
                 
-                <div class="imovel-card-stats">
-                    <div class="stat-item" title="Capacidade">
-                        <span class="stat-icon">👥</span> ${imovel.capacidadeAdulto || 0} + ${imovel.capacidadeCrianca || 0}
+                <div class="imovel-card-content">
+                    <div class="imovel-card-header">
+                        <h3 class="imovel-card-titulo">${imovel.titulo}</h3>
+                        <div class="imovel-card-subtitulo">
+                            <span>📍</span> ${imovel.endereco || 'Sem endereço'}
+                        </div>
                     </div>
-                    <div class="stat-item" title="Móveis">
-                        <span class="stat-icon">🛋️</span> ${totalMoveis}
-                    </div>
-                    <div class="stat-item" title="Utensílios">
-                        <span class="stat-icon">🍽️</span> ${totalUtensilios}
-                    </div>
-                    <div class="stat-item" title="Pets">
-                        <span class="stat-icon">🐾</span> ${imovel.aceitaPet ? 'Sim' : 'Não'}
+                    
+                    <div class="imovel-card-stats">
+                        <div class="stat-item" title="Capacidade">
+                            <span class="stat-icon">👥</span> ${imovel.capacidadeAdulto || 0} + ${imovel.capacidadeCrianca || 0}
+                        </div>
+                        <div class="stat-item" title="Móveis">
+                            <span class="stat-icon">🛋️</span> ${totalMoveis}
+                        </div>
+                        <div class="stat-item" title="Utensílios">
+                            <span class="stat-icon">🍽️</span> ${totalUtensilios}
+                        </div>
+                        <div class="stat-item" title="Pets">
+                            <span class="stat-icon">🐾</span> ${imovel.aceitaPet ? 'Sim' : 'Não'}
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
 
-        card.addEventListener('click', () => {
-            abrirModal(imovel);
+            card.addEventListener('click', () => {
+                abrirModal(imovel);
+            });
+
+            imoveisCardsContainer.appendChild(card);
         });
-
-        imoveisCardsContainer.appendChild(card);
-    });
+    } catch (error) {
+        console.error("Erro ao carregar imóveis:", error);
+        Toast.error("Erro ao carregar imóveis.");
+    }
 }
 
 // Lógica para abrir o modal de visualização
@@ -175,6 +185,11 @@ function abrirModal(imovel) {
     if (modalImovelEndereco) modalImovelEndereco.textContent = `Endereço: ${imovel.endereco || ''}`;
     if (modalImovelDescricao) modalImovelDescricao.textContent = `Descrição: ${imovel.descricao || ''}`;
     if (modalImovelSituacao) modalImovelSituacao.textContent = `Situação: ${imovel.status || ''}`;
+
+    if (modalImovelCapacidadeAdulto) modalImovelCapacidadeAdulto.textContent = `Capacidade Adulto: ${imovel.capacidadeAdulto || 0}`;
+    if (modalImovelCapacidadeCrianca) modalImovelCapacidadeCrianca.textContent = `Capacidade Criança: ${imovel.capacidadeCrianca || 0}`;
+    if (modalImovelAceitaPet) modalImovelAceitaPet.textContent = `Aceita Pet: ${imovel.aceitaPet ? 'Sim' : 'Não'}`;
+    if (modalImovelInstrucoesGerais) modalImovelInstrucoesGerais.textContent = `Instruções Gerais: ${imovel.instrucoesGerais || ''}`;
 
     const { totalMoveis, totalUtensilios } = calcularInventario(imovel);
     if (modalImovelMoveis) modalImovelMoveis.textContent = `Móveis: ${totalMoveis}`;
@@ -212,23 +227,24 @@ function editarImovelModal() {
     }
 }
 
-// Lógica para excluir o imóvel (com 3 confirmações)
-function excluirImovelModal() {
+// Lógica para excluir o imóvel
+async function excluirImovelModal() {
     if (currentEditingImovel) {
-        if (confirm('Tem certeza que deseja excluir este imóvel? (1/3)')) {
-            if (confirm('Esta ação é irreversível. Confirmar exclusão? (2/3)')) {
-                if (confirm('Última chance! Deseja realmente excluir este imóvel? (3/3)')) {
-                    Imovel.excluir(currentEditingImovel.codigoInterno);
-                    fecharModal();
-                    carregarImoveis();
-                }
+        if (confirm('Tem certeza que deseja excluir este imóvel?')) {
+            try {
+                await Imovel.excluir(currentEditingImovel.codigoInterno);
+                Toast.success("Imóvel excluído com sucesso!");
+                fecharModal();
+                await carregarImoveis();
+            } catch (error) {
+                Toast.error("Erro ao excluir imóvel: " + error.message);
             }
         }
     }
 }
 
 // Lógica para salvar o imóvel
-function salvarImovel(e) {
+async function salvarImovel(e) {
     e.preventDefault();
     const imovelId = document.getElementById('imovelId').value;
 
@@ -258,12 +274,18 @@ function salvarImovel(e) {
         capacidadeCrianca: parseInt(capacidadeCrianca) || 0,
         aceitaPet: aceitaPet,
         fotos: fotoImovelURL ? [fotoImovelURL] : [],
-        comodos: currentEditingImovel ? currentEditingImovel.comodos : []
+        comodos: currentEditingImovel ? currentEditingImovel.comodos : [],
+        firestoreId: currentEditingImovel ? currentEditingImovel.firestoreId : null
     };
 
-    Imovel.salvar(imovelData);
-    ocultarFormulario();
-    carregarImoveis();
+    try {
+        await Imovel.salvar(imovelData);
+        Toast.success("Imóvel salvo com sucesso!");
+        ocultarFormulario();
+        await carregarImoveis();
+    } catch (error) {
+        Toast.error("Erro ao salvar imóvel: " + error.message);
+    }
 }
 
 // Lógica para lidar com o upload da foto e pré-visualização
