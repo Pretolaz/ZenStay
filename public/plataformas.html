@@ -8,6 +8,7 @@
 
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/toast.css">
     <link rel="stylesheet" href="theme/dark.css" id="theme-style">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -334,22 +335,6 @@
 
         async function editarPlataforma(codigoInterno) {
             try {
-                // Since we don't have a direct "get by codigoInterno" exposed easily without listing all or querying, 
-                // let's rely on the list we already have or fetch it. 
-                // But Plataforma.salvar handles updates if we pass firestoreId.
-                // Let's fetch the specific platform to be safe.
-
-                // We need to find the platform in the list or fetch it. 
-                // Since we don't have a direct "getByCodigo" static method that returns the object easily without async,
-                // let's just re-fetch or find in DOM? No, let's use the static method if we added one, or just list all and find.
-                // Actually, let's add a helper or just query.
-                // Wait, I removed `buscarPorId` in my thought process but let's see if I kept it in the file replacement...
-                // I didn't explicitly add `buscarPorId` in the new `plataforma.js` replacement! I removed it.
-                // I should have kept it or added a query method. 
-                // Let's just use `listarTodos` and find it for now, or query directly here.
-                // Better: I'll use the `tabela` data if I had it, but I don't store it globally.
-                // Let's just fetch all and find. It's not efficient for large datasets but fine for platforms.
-
                 const plataformas = await Plataforma.listarTodos();
                 const plat = plataformas.find(p => p.codigoInterno == codigoInterno);
 
