@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,40 @@
     <link rel="stylesheet" href="assets/css/components.css">
     <link rel="stylesheet" href="theme/dark.css" id="theme-style">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .logo-preview {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            border-radius: 4px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #888;
+        }
+
+        .logo-thumb {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            border-radius: 4px;
+            background: #fff;
+            padding: 2px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 
 <body>
@@ -17,26 +52,36 @@
 
     <main class="content">
         <header class="header">
-            <button class="menu-toggle" id="header-menu-toggle">☰</button> <!-- Botão de menu hambúrguer no cabeçalho -->
+            <button class="menu-toggle" id="header-menu-toggle">☰</button>
             <h1>🌐 Gerenciar Plataformas</h1>
             <button id="toggle-theme">🌓</button>
         </header>
 
         <section class="dashboard">
-            <!-- Formulário -->
-            <div class="card" style="flex: 1 1 100%;">
-                <h3>➕ Cadastrar Nova Plataforma</h3>
+
+            <div class="header-actions" style="width: 100%;">
+                <button class="btn" onclick="abrirFormulario()">➕ Cadastrar Nova Plataforma</button>
+            </div>
+
+            <!-- Formulário (Oculto por padrão) -->
+            <div class="card hidden" id="formCard" style="flex: 1 1 100%;">
+                <h3 id="formTitle">➕ Cadastrar Nova Plataforma</h3>
                 <form id="formPlataforma">
                     <input type="hidden" id="plataformaId">
+                    <input type="hidden" id="codigoInterno">
+                    <input type="hidden" id="firestoreId">
+                    <input type="hidden" id="logoBase64">
 
                     <div class="form-row">
                         <div class="input-group">
-                            <span>#️⃣</span>
-                            <input type="number" id="codigoInterno" placeholder="Código interno (auto)" readonly>
+                            <span>📝</span>
+                            <input type="text" id="nome" placeholder="Nome da plataforma (ex: Airbnb, Booking...)"
+                                required>
                         </div>
                         <div class="input-group">
-                            <span>📝</span>
-                            <input type="text" id="nome" placeholder="Nome da plataforma (ex: Airbnb, Booking...)" required>
+                            <span>🖼️</span>
+                            <input type="file" id="logoInput" accept="image/*" onchange="previewLogo()">
+                            <div id="logoPreviewContainer" style="margin-left: 10px;"></div>
                         </div>
                     </div>
 
@@ -55,7 +100,10 @@
                         <textarea id="observacao" placeholder="Observações sobre esta plataforma..."></textarea>
                     </div>
 
-                    <button type="submit" class="btn">💾 Salvar</button>
+                    <div class="form-actions" style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn btn-secondary" onclick="fecharFormulario()">Cancelar</button>
+                        <button type="submit" class="btn">💾 Salvar</button>
+                    </div>
                 </form>
             </div>
 
@@ -65,11 +113,11 @@
                 <table id="tabelaPlataformas">
                     <thead>
                         <tr>
-                            <th>Cód. Interno</th>
+                            <th style="width: 60px;">Logo</th>
                             <th>Nome</th>
                             <th>URL</th>
                             <th>Contato</th>
-                            <th>Ações</th>
+                            <th style="width: 100px;">Ações</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -79,8 +127,10 @@
     </main>
 
     <!-- Scripts -->
-    <script src="assets/js/storage.js"></script>
     <script src="assets/js/main.js"></script>
+    <script src="assets/js/toast.js"></script>
+    <!-- Import Entity Module -->
+    <script type="module" src="assets/js/entities/plataforma.js"></script>
 
     <!-- Sidebar dinâmica -->
     <script>
@@ -88,49 +138,44 @@
             .then(res => res.text())
             .then(html => {
                 document.getElementById("sidebar").innerHTML = html;
-                
+
                 const currentPage = window.location.pathname.split('/').pop();
                 const body = document.body;
                 const sidebarElement = document.querySelector('.sidebar');
-                const menuToggleButton = document.getElementById('menu-toggle'); // Menu toggle inside sidebar
-                const headerMenuToggleButton = document.getElementById('header-menu-toggle'); // Menu toggle in header
+                const menuToggleButton = document.getElementById('menu-toggle');
+                const headerMenuToggleButton = document.getElementById('header-menu-toggle');
 
                 function toggleSidebar() {
                     body.classList.toggle('sidebar-open-mobile');
                 }
 
-                // Add listener for the hamburger menu button in the sidebar (if it exists)
                 if (menuToggleButton) {
-                    menuToggleButton.addEventListener('click', function(e) {
-                        e.stopPropagation(); 
-                        toggleSidebar();
-                    });
-                }
-
-                // Add listener for the hamburger menu button in the header (for mobile)
-                if (headerMenuToggleButton) {
-                    headerMenuToggleButton.addEventListener('click', function(e) {
+                    menuToggleButton.addEventListener('click', function (e) {
                         e.stopPropagation();
                         toggleSidebar();
                     });
                 }
 
-                // Close sidebar if clicking outside of it (mobile only)
-                document.addEventListener('click', function(e) {
-                    if (body.classList.contains('sidebar-open-mobile') && 
-                        !sidebarElement.contains(e.target) && 
-                        (menuToggleButton && !menuToggleButton.contains(e.target)) && 
+                if (headerMenuToggleButton) {
+                    headerMenuToggleButton.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        toggleSidebar();
+                    });
+                }
+
+                document.addEventListener('click', function (e) {
+                    if (body.classList.contains('sidebar-open-mobile') &&
+                        !sidebarElement.contains(e.target) &&
+                        (menuToggleButton && !menuToggleButton.contains(e.target)) &&
                         (headerMenuToggleButton && !headerMenuToggleButton.contains(e.target))) {
                         toggleSidebar();
                     }
                 });
 
-                // Lógica para expandir/recolher submenus e ativar links
                 document.querySelectorAll('.sidebar a').forEach(link => {
                     const href = link.getAttribute('href');
                     const parentLi = link.closest('li');
 
-                    // Handle active state and submenu expansion
                     if (href === currentPage) {
                         link.classList.add('active');
                         const parentSubmenu = link.closest('.submenu');
@@ -141,10 +186,9 @@
                                 parentHasSubmenu.classList.add('expanded');
                             }
                         }
-                        
-                        // Prevent default behavior if clicking on the active non-submenu link
+
                         if (!parentLi.classList.contains('has-submenu')) {
-                            link.addEventListener('click', function(e) {
+                            link.addEventListener('click', function (e) {
                                 e.preventDefault();
                             });
                         }
@@ -152,17 +196,15 @@
                         link.classList.remove('active');
                     }
 
-                    // Close sidebar on mobile when a link is clicked (unless it's a submenu-toggle)
-                    link.addEventListener('click', function() {
+                    link.addEventListener('click', function () {
                         if (window.innerWidth <= 768 && !this.classList.contains('submenu-toggle')) {
                             body.classList.remove('sidebar-open-mobile');
                         }
                     });
                 });
 
-                // Lógica para expandir/recolher submenus
                 document.querySelectorAll('.submenu-toggle').forEach(item => {
-                    item.addEventListener('click', function(e) {
+                    item.addEventListener('click', function (e) {
                         e.preventDefault();
                         const parentLi = this.closest('.has-submenu');
                         parentLi.classList.toggle('expanded');
@@ -180,66 +222,175 @@
     <script>
         const tabela = document.querySelector('#tabelaPlataformas tbody');
         const form = document.getElementById('formPlataforma');
-        const campos = ['codigoInterno', 'nome', 'url', 'contato', 'observacao'];
+        const formCard = document.getElementById('formCard');
+        const formTitle = document.getElementById('formTitle');
 
-        function carregarPlataformas() {
-            const plataformas = JSON.parse(localStorage.getItem('plataformas')) || [];
-            tabela.innerHTML = '';
-            plataformas.forEach((plat, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${plat.codigoInterno}</td>
-                    <td>${plat.nome}</td>
-                    <td>${plat.url || '-'}</td>
-                    <td>${plat.contato || '-'}</td>
-                    <td>
-                        <button class="action-btn" onclick="editarPlataforma(${index})">✏️</button>
-                        <button class="action-btn" onclick="excluirPlataforma(${index})">🗑️</button>
-                    </td>`;
-                tabela.appendChild(row);
-            });
-        }
-
-        function salvarPlataforma(e) {
-            e.preventDefault();
-            const plataformas = JSON.parse(localStorage.getItem('plataformas')) || [];
-            const plat = {};
-            campos.forEach(c => plat[c] = document.getElementById(c).value);
-
-            if (!plat.codigoInterno) {
-                const lastCode = plataformas.length ? plataformas[plataformas.length - 1].codigoInterno : 700;
-                plat.codigoInterno = Number(lastCode) + 1;
-            }
-
-            const editIndex = document.getElementById('plataformaId').value;
-            if (editIndex) plataformas[editIndex] = plat;
-            else plataformas.push(plat);
-
-            localStorage.setItem('plataformas', JSON.stringify(plataformas));
-            form.reset();
-            document.getElementById('codigoInterno').value = '';
-            document.getElementById('plataformaId').value = '';
-            carregarPlataformas();
-        }
-
-        function editarPlataforma(index) {
-            const plataformas = JSON.parse(localStorage.getItem('plataformas')) || [];
-            const plat = plataformas[index];
-            campos.forEach(c => document.getElementById(c).value = plat[c] || '');
-            document.getElementById('plataformaId').value = index;
-        }
-
-        function excluirPlataforma(index) {
-            if (confirm('Excluir esta plataforma?')) {
-                const plataformas = JSON.parse(localStorage.getItem('plataformas')) || [];
-                plataformas.splice(index, 1);
-                localStorage.setItem('plataformas', JSON.stringify(plataformas));
+        // Wait for Plataforma class to be available
+        function waitForPlataforma() {
+            if (window.Plataforma) {
                 carregarPlataformas();
+            } else {
+                setTimeout(waitForPlataforma, 100);
+            }
+        }
+        window.addEventListener('DOMContentLoaded', waitForPlataforma);
+
+        async function carregarPlataformas() {
+            tabela.innerHTML = '<tr><td colspan="5" style="text-align:center;">Carregando...</td></tr>';
+            try {
+                const plataformas = await Plataforma.listarTodos();
+                tabela.innerHTML = '';
+
+                if (plataformas.length === 0) {
+                    tabela.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhuma plataforma cadastrada.</td></tr>';
+                    return;
+                }
+
+                plataformas.forEach((plat) => {
+                    const row = document.createElement('tr');
+                    const logoHtml = plat.logo
+                        ? `<img src="${plat.logo}" class="logo-thumb" alt="${plat.nome}">`
+                        : '<span style="font-size:20px;">🌐</span>';
+
+                    row.innerHTML = `
+                        <td>${logoHtml}</td>
+                        <td>${plat.nome}</td>
+                        <td>${plat.url ? `<a href="${plat.url}" target="_blank">${plat.url}</a>` : '-'}</td>
+                        <td>${plat.contato || '-'}</td>
+                        <td>
+                            <button class="action-btn" onclick="editarPlataforma('${plat.codigoInterno}')" title="Editar">✏️</button>
+                            <button class="action-btn" onclick="excluirPlataforma('${plat.codigoInterno}')" title="Excluir">🗑️</button>
+                        </td>`;
+                    tabela.appendChild(row);
+                });
+            } catch (error) {
+                console.error(error);
+                tabela.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Erro ao carregar dados.</td></tr>';
+            }
+        }
+
+        function abrirFormulario(titulo = '➕ Cadastrar Nova Plataforma') {
+            formCard.classList.remove('hidden');
+            formTitle.innerText = titulo;
+            formCard.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function fecharFormulario() {
+            formCard.classList.add('hidden');
+            form.reset();
+            document.getElementById('plataformaId').value = '';
+            document.getElementById('codigoInterno').value = '';
+            document.getElementById('firestoreId').value = '';
+            document.getElementById('logoBase64').value = '';
+            document.getElementById('logoPreviewContainer').innerHTML = '';
+        }
+
+        function previewLogo() {
+            const file = document.getElementById('logoInput').files[0];
+            const reader = new FileReader();
+            reader.onloadend = function () {
+                document.getElementById('logoBase64').value = reader.result;
+                document.getElementById('logoPreviewContainer').innerHTML = `<img src="${reader.result}" class="logo-preview">`;
+            }
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function salvarPlataforma(e) {
+            e.preventDefault();
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerText;
+            submitBtn.innerText = 'Salvando...';
+            submitBtn.disabled = true;
+
+            try {
+                const plat = {
+                    nome: document.getElementById('nome').value,
+                    url: document.getElementById('url').value,
+                    contato: document.getElementById('contato').value,
+                    observacao: document.getElementById('observacao').value,
+                    logo: document.getElementById('logoBase64').value,
+                    codigoInterno: document.getElementById('codigoInterno').value,
+                    firestoreId: document.getElementById('firestoreId').value
+                };
+
+                await Plataforma.salvar(plat);
+
+                if (window.Toast) window.Toast.show('Plataforma salva com sucesso!', 'success');
+                else alert('Plataforma salva com sucesso!');
+
+                fecharFormulario();
+                carregarPlataformas();
+            } catch (error) {
+                console.error(error);
+                if (window.Toast) window.Toast.show('Erro ao salvar plataforma.', 'error');
+                else alert('Erro ao salvar plataforma.');
+            } finally {
+                submitBtn.innerText = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+
+        async function editarPlataforma(codigoInterno) {
+            try {
+                // Since we don't have a direct "get by codigoInterno" exposed easily without listing all or querying, 
+                // let's rely on the list we already have or fetch it. 
+                // But Plataforma.salvar handles updates if we pass firestoreId.
+                // Let's fetch the specific platform to be safe.
+
+                // We need to find the platform in the list or fetch it. 
+                // Since we don't have a direct "getByCodigo" static method that returns the object easily without async,
+                // let's just re-fetch or find in DOM? No, let's use the static method if we added one, or just list all and find.
+                // Actually, let's add a helper or just query.
+                // Wait, I removed `buscarPorId` in my thought process but let's see if I kept it in the file replacement...
+                // I didn't explicitly add `buscarPorId` in the new `plataforma.js` replacement! I removed it.
+                // I should have kept it or added a query method. 
+                // Let's just use `listarTodos` and find it for now, or query directly here.
+                // Better: I'll use the `tabela` data if I had it, but I don't store it globally.
+                // Let's just fetch all and find. It's not efficient for large datasets but fine for platforms.
+
+                const plataformas = await Plataforma.listarTodos();
+                const plat = plataformas.find(p => p.codigoInterno == codigoInterno);
+
+                if (plat) {
+                    document.getElementById('nome').value = plat.nome || '';
+                    document.getElementById('url').value = plat.url || '';
+                    document.getElementById('contato').value = plat.contato || '';
+                    document.getElementById('observacao').value = plat.observacao || '';
+                    document.getElementById('codigoInterno').value = plat.codigoInterno;
+                    document.getElementById('firestoreId').value = plat.firestoreId;
+                    document.getElementById('logoBase64').value = plat.logo || '';
+
+                    if (plat.logo) {
+                        document.getElementById('logoPreviewContainer').innerHTML = `<img src="${plat.logo}" class="logo-preview">`;
+                    } else {
+                        document.getElementById('logoPreviewContainer').innerHTML = '';
+                    }
+
+                    abrirFormulario('✏️ Editar Plataforma');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Erro ao carregar dados para edição.');
+            }
+        }
+
+        async function excluirPlataforma(codigoInterno) {
+            if (confirm('Tem certeza que deseja excluir esta plataforma?')) {
+                try {
+                    await Plataforma.excluir(codigoInterno);
+                    if (window.Toast) window.Toast.show('Plataforma excluída!', 'success');
+                    carregarPlataformas();
+                } catch (error) {
+                    console.error(error);
+                    if (window.Toast) window.Toast.show('Erro ao excluir.', 'error');
+                }
             }
         }
 
         form.addEventListener('submit', salvarPlataforma);
-        window.addEventListener('DOMContentLoaded', carregarPlataformas);
     </script>
 </body>
+
 </html>
