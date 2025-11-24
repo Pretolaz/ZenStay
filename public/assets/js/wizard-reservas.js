@@ -233,6 +233,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleDateSelection() {
+        const checkinVal = checkinInput.value;
+        const checkoutVal = checkoutInput.value;
+
+        if (checkinVal && checkoutVal) {
+            const checkinDate = new Date(checkinVal);
+            const checkoutDate = new Date(checkoutVal);
+
+            if (checkinDate > checkoutDate) {
+                Toast.warning('A data de check-in não pode ser posterior à data de check-out.');
+                // Reset checkout to checkin + 1 day or just clear it? 
+                // Let's just reset checkout to checkin + 1 day for better UX
+                const nextDay = new Date(checkinDate);
+                nextDay.setDate(checkinDate.getDate() + 1);
+                checkoutInput.value = nextDay.toISOString().split('T')[0];
+                reservaState.checkout = checkoutInput.value;
+            }
+        }
+
         reservaState.checkin = checkinInput.value;
         reservaState.checkout = checkoutInput.value;
         updateSummary();
