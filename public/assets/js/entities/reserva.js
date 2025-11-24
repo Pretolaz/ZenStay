@@ -3,7 +3,7 @@ import { collection, getDocs, doc, setDoc, deleteDoc, writeBatch } from "https:/
 
 const reservasCollection = collection(db, 'reservas');
 
-class Reserva {
+export class Reserva {
     constructor({ id, codigoInterno, anfitriaoId, imovelId, plataformaId, hospedes, checkin, checkout, numHospedes, numPets, valorTotal, status, observacoes, dataCriacao }) {
         this.id = id;
         this.codigoInterno = codigoInterno || id;
@@ -36,7 +36,7 @@ class Reserva {
         try {
             // Se não tem ID, é uma nova reserva. Geramos um ID.
             const docRef = reservaData.id ? doc(reservasCollection, String(reservaData.id)) : doc(reservasCollection);
-            
+
             // Garante que o objeto a ser salvo tenha o ID
             const dataToSave = {
                 ...reservaData,

@@ -11,7 +11,7 @@ import {
     runTransaction
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-class Plataforma {
+export class Plataforma {
     constructor({ codigoInterno, nome, url, contato, observacao, logo, firestoreId }) {
         this.codigoInterno = codigoInterno;
         this.nome = nome;

@@ -13,7 +13,7 @@ import {
     runTransaction
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-class Cliente {
+export class Cliente {
     constructor({ id, codigoPlataforma, nome, email, codPais, telefone, linkChat, idioma, observacao, dataCadastro, firestoreId }) {
         this.id = id;
         this.codigoPlataforma = codigoPlataforma;

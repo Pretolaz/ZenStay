@@ -1,3 +1,11 @@
+import { Plataforma } from './entities/plataforma.js';
+import { Imovel } from './entities/imovel.js';
+import { Cliente } from './entities/cliente.js';
+import { Reserva } from './entities/reserva.js';
+// import { Toast } from './toast.js'; // Toast is global 
+// If Toast is global (from toast.js not being a module), we might need to keep using it as global or fix it.
+// Checking toast.js content next would be wise, but for now assuming it's global or I'll check it.
+
 document.addEventListener('DOMContentLoaded', () => {
     // -----
     // Elementos do DOM
@@ -70,17 +78,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // -----
 
     async function loadInitialData() {
-        if (typeof Plataforma !== 'undefined' && typeof Plataforma.listarTodos === 'function') {
-            plataformas = await (Plataforma.listarTodos().then ? Plataforma.listarTodos() : Promise.resolve(Plataforma.listarTodos()));
+        try {
+            plataformas = await Plataforma.listarTodos();
+            imoveis = await Imovel.listarTodos();
+            clientes = await Cliente.listarTodos();
+            await loadReservasTableLocal();
+        } catch (error) {
+            console.error("Erro ao carregar dados iniciais:", error);
+            if (typeof Toast !== 'undefined') Toast.error("Erro ao carregar dados.");
         }
-        if (typeof Imovel !== 'undefined' && typeof Imovel.listarTodos === 'function') {
-            imoveis = await (Imovel.listarTodos().then ? Imovel.listarTodos() : Promise.resolve(Imovel.listarTodos()));
-        }
-        if (typeof Cliente !== 'undefined' && typeof Cliente.listarTodos === 'function') {
-            clientes = await (Cliente.listarTodos().then ? Cliente.listarTodos() : Promise.resolve(Cliente.listarTodos()));
-        }
-
-        await loadReservasTableLocal();
     }
 
 
