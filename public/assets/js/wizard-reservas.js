@@ -14,9 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const steps = {
         1: document.getElementById('step-1'),
         2: document.getElementById('step-2'),
+        3: document.getElementById('step-3'),
     };
     const totalSteps = Object.keys(steps).length;
 
+    const platformListContainer = document.getElementById('wizard-platform-list');
     const propertyListContainer = document.getElementById('wizard-property-list');
     const guestListContainer = document.getElementById('wizard-hospedes-list');
     const guestSearchInput = document.getElementById('wizard-hospede-search-input');
@@ -26,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const numPetsDisplay = document.getElementById('num-pets-display');
 
     // Elementos do Resumo
+    const summaryPlataforma = document.getElementById('summary-plataforma');
     const summaryImovel = document.getElementById('summary-imovel');
     const summaryHospedes = document.getElementById('summary-hospedes');
     const summaryPets = document.getElementById('summary-pets');
@@ -49,9 +52,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Estado do Wizard
     // -----
     let currentStep = 1;
+    let plataformas = [];
     let imoveis = [];
     let clientes = [];
     let reservaState = {
+        plataformaId: null,
         imovelId: null,
         hospedesIds: [],
         checkin: null,
@@ -64,24 +69,53 @@ document.addEventListener('DOMContentLoaded', () => {
     // -----
 
     async function loadInitialData() {
-        // Adiciona um 'await' e assume que as outras classes também serão assíncronas
+        if (typeof Plataforma !== 'undefined' && typeof Plataforma.listarTodos === 'function') {
+            plataformas = await (Plataforma.listarTodos().then ? Plataforma.listarTodos() : Promise.resolve(Plataforma.listarTodos()));
+        }
         if (typeof Imovel !== 'undefined' && typeof Imovel.listarTodos === 'function') {
-            // Mocking async behavior for Imovel and Cliente if they are not async yet
             imoveis = await (Imovel.listarTodos().then ? Imovel.listarTodos() : Promise.resolve(Imovel.listarTodos()));
         }
         if (typeof Cliente !== 'undefined' && typeof Cliente.listarTodos === 'function') {
             clientes = await (Cliente.listarTodos().then ? Cliente.listarTodos() : Promise.resolve(Cliente.listarTodos()));
         }
 
-        // A função de carregar a tabela agora é assíncrona
         await loadReservasTableLocal();
     }
 
 
     function initializeWizard() {
+        loadPlatformsStep();
         loadPropertiesStep();
         loadGuestsStep();
         setupEventListeners();
+    }
+
+    function loadPlatformsStep() {
+        if (!platformListContainer) return;
+        platformListContainer.innerHTML = '';
+
+        if (plataformas.length === 0) {
+            platformListContainer.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888;">Nenhuma plataforma cadastrada.</p>';
+            return;
+        }
+
+        plataformas.forEach(plat => {
+            const card = document.createElement('div');
+            card.className = 'property-card'; // Reusing property-card style for consistency
+            card.dataset.plataformaId = plat.codigoInterno;
+
+            const logoUrl = plat.logo || 'assets/img/placeholder.jpg'; // Assuming placeholder exists or handle empty
+            const logoImg = plat.logo ? `<img src="${plat.logo}" alt="${plat.nome}" class="property-card-thumbnail" style="object-fit: contain; padding: 10px; background: #fff;">` : `<div class="property-card-thumbnail" style="display:flex;align-items:center;justify-content:center;font-size:2rem;">🌐</div>`;
+
+            card.innerHTML = `
+                ${logoImg}
+                <div class="property-card-info">
+                    <div class="property-card-name">${plat.nome}</div>
+                </div>
+            `;
+            card.addEventListener('click', () => handlePlatformSelection(plat.codigoInterno, card));
+            platformListContainer.appendChild(card);
+        });
     }
 
     function loadPropertiesStep() {
@@ -166,9 +200,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function handlePlatformSelection(plataformaId, cardElement) {
+        reservaState.plataformaId = plataformaId;
+        // Remove selected class from all platform cards
+        if (platformListContainer) {
+            platformListContainer.querySelectorAll('.property-card').forEach(card => card.classList.remove('selected'));
+        }
+        cardElement.classList.add('selected');
+        updateSummary();
+    }
+
     function handlePropertySelection(imovelId, cardElement) {
         reservaState.imovelId = imovelId;
-        document.querySelectorAll('.property-card').forEach(card => card.classList.remove('selected'));
+        // Remove selected class from all property cards
+        if (propertyListContainer) {
+            propertyListContainer.querySelectorAll('.property-card').forEach(card => card.classList.remove('selected'));
+        }
         cardElement.classList.add('selected');
         updateSummary();
     }
@@ -211,6 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const checkoutVal = formatDate(checkoutDate);
 
             reservaState = {
+                plataformaId: null,
                 imovelId: null,
                 hospedesIds: [],
                 checkin: checkinVal,
@@ -223,8 +271,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (checkinInput) checkinInput.value = checkinVal;
             if (checkoutInput) checkoutInput.value = checkoutVal;
             if (guestSearchInput) guestSearchInput.value = '';
+
+            // Clear selections
             document.querySelectorAll('.property-card.selected').forEach(c => c.classList.remove('selected'));
             document.querySelectorAll('.guest-list-item input:checked').forEach(c => c.checked = false);
+
             showStep(currentStep);
             updateSummary();
         }
@@ -257,7 +308,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function goToNextStep() {
-        if (currentStep === 1 && !reservaState.imovelId) {
+        if (currentStep === 1 && !reservaState.plataformaId) {
+            Toast.warning('Por favor, selecione uma plataforma para continuar.');
+            return;
+        }
+        if (currentStep === 2 && !reservaState.imovelId) {
             Toast.warning('Por favor, selecione um imóvel para continuar.');
             return;
         }
@@ -286,6 +341,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // -----
 
     function updateSummary() {
+        const plataforma = plataformas.find(p => p.codigoInterno == reservaState.plataformaId);
+        if (summaryPlataforma) summaryPlataforma.textContent = plataforma ? plataforma.nome : '- Selecione -';
+
         const imovel = imoveis.find(i => i.id == reservaState.imovelId);
         if (summaryImovel) summaryImovel.textContent = imovel ? imovel.titulo : '- Selecione -';
 
@@ -331,8 +389,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function saveReservation() {
-        if (!reservaState.imovelId || reservaState.hospedesIds.length === 0 || !reservaState.checkin || !reservaState.checkout) {
-            Toast.error('Preencha todos os campos: Imóvel, Hóspedes e Período.');
+        if (!reservaState.plataformaId || !reservaState.imovelId || reservaState.hospedesIds.length === 0 || !reservaState.checkin || !reservaState.checkout) {
+            Toast.error('Preencha todos os campos: Plataforma, Imóvel, Hóspedes e Período.');
             return;
         }
 
@@ -369,6 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const newReservaData = {
+            plataformaId: reservaState.plataformaId,
             imovelId: reservaState.imovelId,
             hospedes: reservaState.hospedesIds,
             checkin: reservaState.checkin,

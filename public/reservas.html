@@ -55,141 +55,9 @@
                 <tbody id="reservas-table-body">
                     <!-- Linhas da tabela serão inseridas aqui via JS -->
                 </tbody>
-            </table>
-        </section>
-
-        <!-- Wizard de Criação de Reserva (Modal Container) -->
-        <div id="reservation-wizard-modal" class="wizard-modal-overlay" style="display: none;">
-            <div class="wizard-container">
-                <!-- Painel Esquerdo: Resumo -->
-                <aside class="wizard-summary-panel">
-                    <div class="summary-header">
-                        <h3>Resumo da Reserva</h3>
-                        <p>Acompanhe os detalhes</p>
-                    </div>
-                    <div class="summary-content" id="wizard-summary-content">
-                        <div class="summary-group">
-                            <label>Imóvel Selecionado</label>
-                            <div id="summary-imovel" class="summary-value">- Selecione -</div>
-                        </div>
-
-                        <div class="summary-group">
-                            <label>Hóspedes</label>
-                            <ul id="summary-hospedes" class="summary-list">
-                                <li>- Selecione -</li>
-                            </ul>
-                        </div>
-
-                        <div class="summary-group">
-                            <label>Pets</label>
-                            <div id="summary-pets" class="summary-value">Não</div>
-                        </div>
-
-                        <div class="summary-group">
-                            <label>Período</label>
-                            <div id="summary-periodo" class="summary-value">- Defina as datas -</div>
-                        </div>
-                    </div>
-                    <div class="summary-footer">
-                        <div class="summary-stat">
-                            <span>Diárias</span>
-                            <strong id="summary-diarias">0</strong>
-                        </div>
-                    </div>
-                </aside>
-
-                <!-- Painel Direito: Conteúdo e Passos -->
-                <main class="wizard-main-content">
-                    <header class="wizard-header">
-                        <div class="step-indicator">
-                            <div class="step-item active" data-step="1">
-                                <span class="step-number">1</span>
-                                <span class="step-label">Imóvel</span>
-                            </div>
-                            <div class="step-line"></div>
-                            <div class="step-item" data-step="2">
-                                <span class="step-number">2</span>
-                                <span class="step-label">Detalhes</span>
-                            </div>
-                        </div>
-                        <button class="close-wizard-btn" id="close-wizard-btn" title="Fechar">&times;</button>
-                    </header>
-
-                    <div class="wizard-body">
-                        <!-- Etapa 1: Seleção de Imóvel -->
-                        <div id="step-1" class="wizard-step active">
-                            <h2 class="step-title">Escolha o Imóvel</h2>
-                            <p class="step-subtitle">Selecione onde o hóspede irá ficar.</p>
-                            <div class="property-grid" id="wizard-property-list">
-                                <!-- Cards injetados via JS -->
-                            </div>
-                        </div>
-
-                        <!-- Etapa 2: Detalhes da Reserva -->
-                        <div id="step-2" class="wizard-step" style="display: none;">
-                            <h2 class="step-title">Detalhes da Estadia</h2>
-                            <p class="step-subtitle">Defina hóspedes, datas e pets.</p>
-
-                            <div class="form-section">
-                                <h3>Hóspedes</h3>
-                                <div class="guest-selection-wrapper">
-                                    <input type="text" id="wizard-hospede-search-input" class="modern-input"
-                                        placeholder="Buscar hóspede...">
-                                    <div id="wizard-hospedes-list" class="guest-list-container">
-                                        <!-- Lista de hóspedes injetada via JS -->
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="checkin-date">Check-in</label>
-                                    <input type="date" id="checkin-date" class="modern-input">
-                                </div>
-                                <div class="form-group">
-                                    <label for="checkout-date">Check-out</label>
-                                    <input type="date" id="checkout-date" class="modern-input">
-                                </div>
-                            </div>
-
-                            <div class="form-section">
-                                <h3>Pets</h3>
-                                <div class="pet-slider-wrapper">
-                                    <div class="slider-header">
-                                        <span>Quantidade de Pets</span>
-                                        <span id="num-pets-display" class="highlight-badge">0</span>
-                                    </div>
-                                    <input type="range" id="num-pets-slider" min="0" max="5" value="0"
-                                        class="modern-range">
-                                    <div class="slider-labels">
-                                        <span>0</span>
-                                        <span>5</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <footer class="wizard-footer">
-                        <button id="wizard-prev-btn" class="btn btn-ghost" style="display: none;">Voltar</button>
-                        <button id="wizard-next-btn" class="btn btn-primary">Continuar</button>
-                    </footer>
-                </main>
-            </div>
-        </div>
-
-        <!-- Modal de Detalhes da Reserva (Zoom) -->
-        <div id="reservation-details-modal" class="details-modal-overlay" style="display: none;">
-            <div class="details-card">
-                <button class="close-details-btn" id="close-details-btn">&times;</button>
-                <div class="details-card-header">
-                    <div class="details-imovel-thumb">
-                        <img id="details-imovel-foto" src="" alt="Foto do Imóvel">
-                    </div>
-                    <div class="details-header-info">
-                        <h2 id="details-imovel-titulo">Título do Imóvel</h2>
-                        <span class="status-badge" id="details-status">Confirmada</span>
-                    </div>
+                <h2 id="details-imovel-titulo">Título do Imóvel</h2>
+                <span class="status-badge" id="details-status">Confirmada</span>
+                </div>
                 </div>
                 <div class="details-card-body">
                     <div class="details-row">
@@ -223,8 +91,8 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
+                </div>
+                </div>
     </main>
 
     <!-- Scripts -->
@@ -244,7 +112,7 @@
     <script src="assets/js/wizard-reservas.js"></script>
     <script type="module" src="assets/js/timeline.js"></script>
     <script src="assets/js/entities/anfitriao.js"></script>
-    <script src="assets/js/entities/plataforma.js"></script>
+    <script type="module" src="assets/js/entities/plataforma.js"></script>
 
     <!-- Sidebar dinâmica -->
     <script>
