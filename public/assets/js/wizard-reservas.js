@@ -489,7 +489,8 @@ document.addEventListener('DOMContentLoaded', () => {
             hospedes: reservaState.hospedesIds,
             checkin: reservaState.checkin,
             checkout: reservaState.checkout,
-            numPets: reservaState.numPets,
+            numPets: reservaState.hasPets ? 1 : 0,
+            numHospedes: reservaState.hospedesIds.length,
             status: 'Confirmada',
             dataCriacao: new Date().toISOString(),
         };
