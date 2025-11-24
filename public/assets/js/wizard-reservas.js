@@ -8,7 +8,437 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevBtn = document.getElementById('wizard-prev-btn');
     const nextBtn = document.getElementById('wizard-next-btn');
 
+    const steps = {
+        1: document.getElementById('step-1'),
+        2: document.getElementById('step-2'),
+        3: document.getElementById('step-3'),
+        4: document.getElementById('step-4'),
+    };
+    const totalSteps = Object.keys(steps).length;
+
+    const platformListContainer = document.getElementById('wizard-platform-list');
+    const propertyListContainer = document.getElementById('wizard-property-list');
+    const guestListContainer = document.getElementById('wizard-hospedes-list');
+    const guestSearchInput = document.getElementById('wizard-hospede-search-input');
+    const checkinInput = document.getElementById('checkin-date');
+    const checkoutInput = document.getElementById('checkout-date');
+    const hasPetsToggle = document.getElementById('has-pets-toggle');
+    const petWarningContainer = document.getElementById('pet-warning-container');
+
+    // Elementos do Resumo
+    const summaryPlataforma = document.getElementById('summary-plataforma');
+    const summaryImovel = document.getElementById('summary-imovel');
+    const summaryHospedes = document.getElementById('summary-hospedes');
+    const summaryPets = document.getElementById('summary-pets');
+    const summaryPeriodo = document.getElementById('summary-periodo');
+    const summaryDiarias = document.getElementById('summary-diarias');
+
+    // Elementos do Modal de Detalhes
+    const detailsModal = document.getElementById('reservation-details-modal');
+    const closeDetailsBtn = document.getElementById('close-details-btn');
+    const detailsImovelFoto = document.getElementById('details-imovel-foto');
+    const detailsImovelTitulo = document.getElementById('details-imovel-titulo');
+    const detailsStatus = document.getElementById('details-status');
+    const detailsCodigo = document.getElementById('details-codigo');
+    const detailsHospedes = document.getElementById('details-hospedes');
+    const detailsCheckin = document.getElementById('details-checkin');
+    const detailsCheckout = document.getElementById('details-checkout');
+    const detailsPets = document.getElementById('details-pets');
+    const detailsDiarias = document.getElementById('details-diarias');
+
     // Step Indicator Elements
+    const stepIndicators = document.querySelectorAll('.step-item');
+
+    // -----
+    // Estado do Wizard
+    // -----
+    let currentStep = 1;
+    let plataformas = [];
+    let imoveis = [];
+    let clientes = [];
+    let reservaState = {
+        plataformaId: null,
+        imovelId: null,
+        hospedesIds: [],
+        checkin: null,
+        checkout: null,
+        hasPets: false,
+    };
+
+    // -----
+    // Funções de Inicialização e Carregamento de Dados
+    // -----
+
+    async function loadInitialData() {
+        if (typeof Plataforma !== 'undefined' && typeof Plataforma.listarTodos === 'function') {
+            plataformas = await (Plataforma.listarTodos().then ? Plataforma.listarTodos() : Promise.resolve(Plataforma.listarTodos()));
+        }
+        if (typeof Imovel !== 'undefined' && typeof Imovel.listarTodos === 'function') {
+            imoveis = await (Imovel.listarTodos().then ? Imovel.listarTodos() : Promise.resolve(Imovel.listarTodos()));
+        }
+        if (typeof Cliente !== 'undefined' && typeof Cliente.listarTodos === 'function') {
+            clientes = await (Cliente.listarTodos().then ? Cliente.listarTodos() : Promise.resolve(Cliente.listarTodos()));
+        }
+
+        await loadReservasTableLocal();
+    }
+
+
+    function initializeWizard() {
+        loadPlatformsStep();
+        loadPropertiesStep();
+        loadGuestsStep();
+        setupEventListeners();
+    }
+
+    function loadPlatformsStep() {
+        if (!platformListContainer) return;
+        platformListContainer.innerHTML = '';
+
+        if (plataformas.length === 0) {
+            platformListContainer.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888;">Nenhuma plataforma cadastrada.</p>';
+            return;
+        }
+
+        plataformas.forEach(plat => {
+            const card = document.createElement('div');
+            card.className = 'property-card'; // Reusing property-card style for consistency
+            card.dataset.plataformaId = plat.codigoInterno;
+
+            const logoUrl = plat.logo || 'assets/img/placeholder.jpg'; // Assuming placeholder exists or handle empty
+            const logoImg = plat.logo ? `<img src="${plat.logo}" alt="${plat.nome}" class="property-card-thumbnail" style="object-fit: contain; padding: 10px; background: #fff;">` : `<div class="property-card-thumbnail" style="display:flex;align-items:center;justify-content:center;font-size:2rem;">🌐</div>`;
+
+            card.innerHTML = `
+                ${logoImg}
+                <div class="property-card-info">
+                    <div class="property-card-name">${plat.nome}</div>
+                </div>
+            `;
+            card.addEventListener('click', () => handlePlatformSelection(plat.codigoInterno, card));
+            platformListContainer.appendChild(card);
+        });
+    }
+
+    function loadPropertiesStep() {
+        if (!propertyListContainer) return;
+        propertyListContainer.innerHTML = '';
+
+        if (imoveis.length === 0) {
+            propertyListContainer.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888;">Nenhum imóvel cadastrado.</p>';
+            return;
+        }
+
+        imoveis.forEach(imovel => {
+            const card = document.createElement('div');
+            card.className = 'property-card';
+            card.dataset.imovelId = imovel.id;
+
+            const fotoUrl = (imovel.fotos && imovel.fotos.length > 0) ? imovel.fotos[0] : 'assets/img/placeholder.jpg';
+
+            card.innerHTML = `
+                <img src="${fotoUrl}" alt="${imovel.titulo}" class="property-card-thumbnail">
+                <div class="property-card-info">
+                    <div class="property-card-name">${imovel.titulo || 'Imóvel sem título'}</div>
+                    <div style="font-size: 0.85rem; color: #666; margin-top: 5px;">${imovel.cidade || ''} - ${imovel.estado || ''}</div>
+                </div>
+            `;
+            card.addEventListener('click', () => handlePropertySelection(imovel.id, card));
+            propertyListContainer.appendChild(card);
+        });
+    }
+
+    function loadGuestsStep() {
+        if (!guestListContainer) return;
+        renderGuestList(clientes);
+    }
+
+    function renderGuestList(listaClientes) {
+        guestListContainer.innerHTML = '';
+
+        if (listaClientes.length === 0) {
+            guestListContainer.innerHTML = '<p style="text-align: center; padding: 10px; color: #888;">Nenhum hóspede encontrado.</p>';
+            return;
+        }
+
+        listaClientes.forEach(cliente => {
+            const item = document.createElement('div');
+            item.className = 'guest-list-item';
+
+            const isChecked = reservaState.hospedesIds.includes(String(cliente.id)) ? 'checked' : '';
+
+            item.innerHTML = `
+                <input type="checkbox" id="guest-${cliente.id}" data-guest-id="${cliente.id}" ${isChecked}>
+                <label for="guest-${cliente.id}" style="cursor: pointer; flex: 1;">${cliente.nome}</label>
+            `;
+
+            const checkbox = item.querySelector('input');
+            checkbox.addEventListener('change', handleGuestSelection);
+            guestListContainer.appendChild(item);
+        });
+    }
+
+    // -----
+    // Funções de Manipulação de Eventos (Handlers)
+    // -----
+
+    function setupEventListeners() {
+        if (startWizardBtn) startWizardBtn.addEventListener('click', openWizard);
+        if (closeWizardBtn) closeWizardBtn.addEventListener('click', closeWizard);
+        if (wizardModal) wizardModal.addEventListener('click', (e) => { if (e.target === wizardModal) closeWizard(); });
+        if (closeDetailsBtn) closeDetailsBtn.addEventListener('click', closeReservationDetails);
+        if (detailsModal) detailsModal.addEventListener('click', (e) => { if (e.target === detailsModal) closeReservationDetails(); });
+        if (prevBtn) prevBtn.addEventListener('click', goToPrevStep);
+        if (nextBtn) nextBtn.addEventListener('click', goToNextStep);
+        if (hasPetsToggle) hasPetsToggle.addEventListener('change', handlePetSelection);
+        if (checkinInput) checkinInput.addEventListener('change', handleDateSelection);
+        if (checkoutInput) checkoutInput.addEventListener('change', handleDateSelection);
+        if (guestSearchInput) {
+            guestSearchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const filtered = clientes.filter(c => c.nome.toLowerCase().includes(term) || (c.telefone && c.telefone.includes(term)));
+                renderGuestList(filtered);
+            });
+        }
+    }
+
+    function handlePlatformSelection(plataformaId, cardElement) {
+        reservaState.plataformaId = plataformaId;
+        // Remove selected class from all platform cards
+        if (platformListContainer) {
+            platformListContainer.querySelectorAll('.property-card').forEach(card => card.classList.remove('selected'));
+        }
+        cardElement.classList.add('selected');
+        updateSummary();
+    }
+
+    function handlePropertySelection(imovelId, cardElement) {
+        reservaState.imovelId = imovelId;
+        // Remove selected class from all property cards
+        if (propertyListContainer) {
+            propertyListContainer.querySelectorAll('.property-card').forEach(card => card.classList.remove('selected'));
+        }
+        cardElement.classList.add('selected');
+        updateSummary();
+    }
+
+    function handleGuestSelection() {
+        reservaState.hospedesIds = Array.from(guestListContainer.querySelectorAll('input[type="checkbox"]:checked'))
+            .map(cb => cb.dataset.guestId);
+        updateSummary();
+    }
+
+    function handlePetSelection() {
+        reservaState.hasPets = hasPetsToggle.checked;
+        updateSummary();
+    }
+
+    function handleDateSelection() {
+        const checkinVal = checkinInput.value;
+        const checkoutVal = checkoutInput.value;
+
+        if (checkinVal && checkoutVal) {
+            const checkinDate = new Date(checkinVal);
+            const checkoutDate = new Date(checkoutVal);
+
+            if (checkinDate > checkoutDate) {
+                Toast.warning('A data de check-in não pode ser posterior à data de check-out.');
+                // Reset checkout to checkin + 1 day or just clear it? 
+                // Let's just reset checkout to checkin + 1 day for better UX
+                const nextDay = new Date(checkinDate);
+                nextDay.setDate(checkinDate.getDate() + 1);
+                checkoutInput.value = nextDay.toISOString().split('T')[0];
+                reservaState.checkout = checkoutInput.value;
+            }
+        }
+
+        reservaState.checkin = checkinInput.value;
+        reservaState.checkout = checkoutInput.value;
+        updateSummary();
+    }
+
+    // -----
+    // Funções de Controle do Wizard (Abrir/Fechar/Navegar)
+    // -----
+
+    function openWizard() {
+        if (wizardModal) {
+            wizardModal.style.display = 'flex';
+            setTimeout(() => wizardModal.style.opacity = '1', 10);
+            currentStep = 1;
+
+            // Default Dates
+            const today = new Date();
+            const checkoutDate = new Date();
+            checkoutDate.setDate(today.getDate() + 3);
+
+            const formatDate = (date) => date.toISOString().split('T')[0];
+            const checkinVal = formatDate(today);
+            const checkoutVal = formatDate(checkoutDate);
+
+            reservaState = {
+                plataformaId: null,
+                imovelId: null,
+                hospedesIds: [],
+                checkin: checkinVal,
+                checkout: checkoutVal,
+                hasPets: false
+            };
+
+            if (hasPetsToggle) {
+                hasPetsToggle.checked = false;
+                hasPetsToggle.disabled = false;
+            }
+            if (petWarningContainer) petWarningContainer.style.display = 'none';
+
+            if (checkinInput) checkinInput.value = checkinVal;
+            if (checkoutInput) checkoutInput.value = checkoutVal;
+            if (guestSearchInput) guestSearchInput.value = '';
+
+            // Clear selections
+            document.querySelectorAll('.property-card.selected').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('.guest-list-item input:checked').forEach(c => c.checked = false);
+
+            showStep(currentStep);
+            updateSummary();
+        }
+    }
+
+    function closeWizard() {
+        if (wizardModal) {
+            wizardModal.style.opacity = '0';
+            setTimeout(() => { wizardModal.style.display = 'none'; }, 300);
+        }
+    }
+
+    function showStep(stepNumber) {
+        Object.values(steps).forEach(step => { if (step) step.style.display = 'none'; });
+        if (steps[stepNumber]) {
+            steps[stepNumber].style.display = 'block';
+            steps[stepNumber].style.opacity = 0;
+            setTimeout(() => steps[stepNumber].style.opacity = 1, 50);
+        }
+
+        // Logic for Step 4 (Pets)
+        if (stepNumber === 4) {
+            const imovel = imoveis.find(i => i.id == reservaState.imovelId);
+            if (imovel) {
+                if (!imovel.aceitaPet) {
+                    hasPetsToggle.checked = false;
+                    hasPetsToggle.disabled = true;
+                    reservaState.hasPets = false;
+                    petWarningContainer.style.display = 'block';
+                } else {
+                    hasPetsToggle.disabled = false;
+                    petWarningContainer.style.display = 'none';
+                }
+                updateSummary();
+            }
+        }
+
+        updateWizardControls(stepNumber);
+        updateStepIndicator(stepNumber);
+    }
+
+    function updateStepIndicator(stepNumber) {
+        stepIndicators.forEach(indicator => {
+            const step = parseInt(indicator.dataset.step);
+            indicator.classList.toggle('active', step === stepNumber);
+            indicator.style.opacity = step <= stepNumber ? '1' : '0.4';
+        });
+    }
+
+    function goToNextStep() {
+        if (currentStep === 1 && !reservaState.plataformaId) {
+            Toast.warning('Por favor, selecione uma plataforma para continuar.');
+            return;
+        }
+        if (currentStep === 2 && !reservaState.imovelId) {
+            Toast.warning('Por favor, selecione um imóvel para continuar.');
+            return;
+        }
+        if (currentStep === 3) {
+            if (reservaState.hospedesIds.length === 0) {
+                Toast.warning('Por favor, selecione pelo menos um hóspede.');
+                return;
+            }
+            if (!reservaState.checkin || !reservaState.checkout) {
+                Toast.warning('Por favor, defina as datas de check-in e check-out.');
+                return;
+            }
+        }
+
+        if (currentStep < totalSteps) {
+            currentStep++;
+            showStep(currentStep);
+        } else {
+            saveReservation();
+        }
+    }
+
+    function goToPrevStep() {
+        if (currentStep > 1) {
+            currentStep--;
+            showStep(currentStep);
+        }
+    }
+
+    function updateWizardControls(stepNumber) {
+        if (prevBtn) prevBtn.style.display = stepNumber > 1 ? 'inline-block' : 'none';
+        if (nextBtn) nextBtn.textContent = stepNumber === totalSteps ? 'Salvar Reserva' : 'Continuar';
+    }
+
+    // -----
+    // Funções de Atualização da UI e Lógica de Negócio
+    // -----
+
+    function updateSummary() {
+        const plataforma = plataformas.find(p => p.codigoInterno == reservaState.plataformaId);
+        if (summaryPlataforma) summaryPlataforma.textContent = plataforma ? plataforma.nome : '- Selecione -';
+
+        const imovel = imoveis.find(i => i.id == reservaState.imovelId);
+        if (summaryImovel) summaryImovel.textContent = imovel ? imovel.titulo : '- Selecione -';
+
+        if (summaryHospedes) {
+            summaryHospedes.innerHTML = '';
+            if (reservaState.hospedesIds.length > 0) {
+                reservaState.hospedesIds.forEach(id => {
+                    const cliente = clientes.find(c => c.id == id);
+                    if (cliente) {
+                        const li = document.createElement('li');
+                        li.textContent = cliente.nome;
+                        summaryHospedes.appendChild(li);
+                    }
+                });
+            } else {
+                summaryHospedes.innerHTML = '<li>- Selecione -</li>';
+            }
+        }
+
+        if (summaryPets) summaryPets.textContent = reservaState.hasPets ? 'Sim' : 'Não';
+
+        if (summaryPeriodo && summaryDiarias) {
+            if (reservaState.checkin && reservaState.checkout) {
+                const checkinDate = new Date(reservaState.checkin);
+                const checkoutDate = new Date(reservaState.checkout);
+                const checkinStr = checkinDate.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+                const checkoutStr = checkoutDate.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+
+                if (checkoutDate > checkinDate) {
+                    summaryPeriodo.textContent = `${checkinStr} a ${checkoutStr}`;
+                    const diffTime = checkoutDate - checkinDate;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    summaryDiarias.textContent = diffDays;
+                } else {
+                    summaryPeriodo.textContent = 'Datas inválidas';
+                    summaryDiarias.textContent = '0';
+                }
+            } else {
+                summaryPeriodo.textContent = '- Defina as datas -';
+                summaryDiarias.textContent = '0';
+            }
+        }
+    }
+
     async function saveReservation() {
         if (!reservaState.plataformaId || !reservaState.imovelId || reservaState.hospedesIds.length === 0 || !reservaState.checkin || !reservaState.checkout) {
             Toast.error('Preencha todos os campos: Plataforma, Imóvel, Hóspedes e Período.');
