@@ -110,6 +110,104 @@
                             <div class="step-item active" data-step="1">
                                 <span class="step-number">1</span>
                                 <span class="step-label">Plataforma</span>
+                            </div>
+                            <div class="step-item" data-step="2">
+                                <span class="step-number">2</span>
+                                <span class="step-label">Imóvel</span>
+                            </div>
+                            <div class="step-item" data-step="3">
+                                <span class="step-number">3</span>
+                                <span class="step-label">Detalhes</span>
+                            </div>
+                            <div class="step-item" data-step="4">
+                                <span class="step-number">4</span>
+                                <span class="step-label">Pets</span>
+                            </div>
+                        </div>
+                        <button class="close-wizard-btn" id="close-wizard-btn">&times;</button>
+                    </header>
+
+                    <div class="wizard-body">
+                        <!-- Passo 1: Plataforma -->
+                        <div id="step-1" class="wizard-step">
+                            <h2 class="step-title">Escolha a Plataforma</h2>
+                            <p class="step-subtitle">Por onde a reserva foi feita?</p>
+                            <div class="property-grid" id="wizard-platform-list">
+                                <!-- Lista de Plataformas via JS -->
+                            </div>
+                        </div>
+
+                        <!-- Passo 2: Imóvel -->
+                        <div id="step-2" class="wizard-step" style="display: none;">
+                            <h2 class="step-title">Selecione o Imóvel</h2>
+                            <p class="step-subtitle">Qual imóvel foi reservado?</p>
+                            <div class="property-grid" id="wizard-property-list">
+                                <!-- Lista de Imóveis via JS -->
+                            </div>
+                        </div>
+
+                        <!-- Passo 3: Hóspedes e Datas -->
+                        <div id="step-3" class="wizard-step" style="display: none;">
+                            <h2 class="step-title">Detalhes da Reserva</h2>
+                            <p class="step-subtitle">Quem vem e quando?</p>
+
+                            <div class="form-section">
+                                <h3>👤 Hóspedes</h3>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <input type="text" id="wizard-hospede-search-input" class="modern-input"
+                                            placeholder="Buscar hóspede por nome...">
+                                    </div>
+                                </div>
+                                <div id="wizard-hospedes-list" class="guest-list-container">
+                                    <!-- Lista de Hóspedes via JS -->
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h3>📅 Período</h3>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Check-in</label>
+                                        <input type="date" id="checkin-date" class="modern-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Check-out</label>
+                                        <input type="date" id="checkout-date" class="modern-input">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Passo 4: Pets -->
+                        <div id="step-4" class="wizard-step" style="display: none;">
+                            <h2 class="step-title">Pets</h2>
+                            <p class="step-subtitle">Haverá animais de estimação?</p>
+
+                            <div class="pet-slider-wrapper"
+                                style="display: flex; align-items: center; justify-content: space-between;">
+                                <div>
+                                    <h4 style="margin: 0; font-size: 1.1rem;">Trazer Pets?</h4>
+                                    <p style="margin: 5px 0 0; color: #666; font-size: 0.9rem;">Ative se a reserva
+                                        incluir animais.</p>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="has-pets-toggle">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+
+                            <div id="pet-warning-container"
+                                style="display: none; margin-top: 20px; padding: 15px; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; border-radius: 8px;">
+                                ⚠️ <strong>Atenção:</strong> O imóvel selecionado não aceita pets.
+                            </div>
+                        </div>
+                    </div>
+
+                    <footer class="wizard-footer">
+                        <button class="btn btn-ghost" id="wizard-prev-btn" style="display: none;">Voltar</button>
+                        <button class="btn" id="wizard-next-btn">Continuar</button>
+                    </footer>
                 </main>
             </div>
         </div>
