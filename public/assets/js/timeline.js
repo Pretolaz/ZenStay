@@ -207,6 +207,17 @@ function createTimelineRow(imovel, reservas, days, timelineStart, clientes, colu
         const checkoutStr = checkoutNorm.toLocaleDateString('pt-BR');
         reservaBar.title = `${nomeHospede}\nCheck-in: ${checkinStr}\nCheck-out: ${checkoutStr}`;
 
+        // Add click event to open details
+        reservaBar.style.cursor = 'pointer';
+        reservaBar.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent bubbling if needed
+            if (typeof window.openReservationDetails === 'function') {
+                window.openReservationDetails(reserva);
+            } else {
+                console.warn('openReservationDetails function not found.');
+            }
+        });
+
         reservasCell.appendChild(reservaBar);
     });
 

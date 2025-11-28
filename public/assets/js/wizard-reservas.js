@@ -744,6 +744,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Expose globally for timeline.js
+    window.openReservationDetails = openReservationDetails;
+
     // -----
     // Inicialização
     // -----
