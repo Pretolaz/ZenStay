@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         2: document.getElementById('step-2'),
         3: document.getElementById('step-3'),
         4: document.getElementById('step-4'),
+        5: document.getElementById('step-5'),
     };
     const totalSteps = Object.keys(steps).length;
 
@@ -33,6 +34,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const hasPetsToggle = document.getElementById('has-pets-toggle');
     const petWarningContainer = document.getElementById('pet-warning-container');
 
+    // Elementos de Valores (Passo 5)
+    const valorDiariaInput = document.getElementById('valor-diaria');
+    const totalDiasDisplay = document.getElementById('total-dias-display');
+    const taxaLimpezaInput = document.getElementById('taxa-limpeza');
+    const taxasExtrasInput = document.getElementById('taxas-extras');
+    const valorDescontoInput = document.getElementById('valor-desconto');
+    const valorTotalLiquidoInput = document.getElementById('valor-total-liquido');
+
     // Elementos do Resumo
     const summaryPlataforma = document.getElementById('summary-plataforma');
     const summaryImovel = document.getElementById('summary-imovel');
@@ -40,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const summaryPets = document.getElementById('summary-pets');
     const summaryPeriodo = document.getElementById('summary-periodo');
     const summaryDiarias = document.getElementById('summary-diarias');
+    const summaryTotalValor = document.getElementById('summary-total-valor');
 
     // Elementos do Modal de Detalhes
     const detailsModal = document.getElementById('reservation-details-modal');
@@ -71,6 +81,11 @@ document.addEventListener('DOMContentLoaded', () => {
         checkin: null,
         checkout: null,
         hasPets: false,
+        valorDiaria: 0,
+        taxaLimpeza: 0,
+        taxasExtras: 0,
+        desconto: 0,
+        valorTotal: 0
     };
 
     // -----
@@ -205,6 +220,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderGuestList(filtered);
             });
         }
+
+        // Listeners para recálculo de valores
+        const valueInputs = [valorDiariaInput, taxaLimpezaInput, taxasExtrasInput, valorDescontoInput];
+        valueInputs.forEach(input => {
+            if (input) {
+                input.addEventListener('input', calculateTotalValues);
+            }
+        });
     }
 
     function handlePlatformSelection(plataformaId, cardElement) {
@@ -287,7 +310,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 hospedesIds: [],
                 checkin: checkinVal,
                 checkout: checkoutVal,
-                hasPets: false
+                hasPets: false,
+                valorDiaria: 0,
+                taxaLimpeza: 0,
+                taxasExtras: 0,
+                desconto: 0,
+                valorTotal: 0
             };
 
             if (hasPetsToggle) {
@@ -341,16 +369,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // Logic for Step 5 (Valores)
+        if (stepNumber === 5) {
+            prepareValuesStep();
+        }
+
         updateWizardControls(stepNumber);
         updateStepIndicator(stepNumber);
-    }
-
-    function updateStepIndicator(stepNumber) {
-        stepIndicators.forEach(indicator => {
-            const step = parseInt(indicator.dataset.step);
-            indicator.classList.toggle('active', step === stepNumber);
-            indicator.style.opacity = step <= stepNumber ? '1' : '0.4';
-        });
     }
 
     function goToNextStep() {
@@ -396,6 +421,64 @@ document.addEventListener('DOMContentLoaded', () => {
     // -----
     // Funções de Atualização da UI e Lógica de Negócio
     // -----
+
+    function prepareValuesStep() {
+        const imovel = imoveis.find(i => i.id == reservaState.imovelId);
+
+        // Se ainda não foi definido um valor de diária (primeira vez no passo), pega do imóvel
+        if (reservaState.valorDiaria === 0 && imovel && imovel.valorDiaria) {
+            reservaState.valorDiaria = parseFloat(imovel.valorDiaria);
+        }
+
+        // Atualiza inputs com o estado atual
+        if (valorDiariaInput) valorDiariaInput.value = reservaState.valorDiaria || 0;
+        if (taxaLimpezaInput) taxaLimpezaInput.value = reservaState.taxaLimpeza || 0;
+        if (taxasExtrasInput) taxasExtrasInput.value = reservaState.taxasExtras || 0;
+        if (valorDescontoInput) valorDescontoInput.value = reservaState.desconto || 0;
+
+        calculateTotalValues();
+    }
+
+    function calculateTotalValues() {
+        if (!reservaState.checkin || !reservaState.checkout) return;
+
+        const checkinDate = new Date(reservaState.checkin);
+        const checkoutDate = new Date(reservaState.checkout);
+
+        let diffDays = 0;
+        if (checkoutDate > checkinDate) {
+            const diffTime = checkoutDate - checkinDate;
+            diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        if (totalDiasDisplay) totalDiasDisplay.value = diffDays;
+
+        // Pega valores dos inputs
+        const vDiaria = parseFloat(valorDiariaInput.value) || 0;
+        const vLimpeza = parseFloat(taxaLimpezaInput.value) || 0;
+        const vExtras = parseFloat(taxasExtrasInput.value) || 0;
+        const vDesconto = parseFloat(valorDescontoInput.value) || 0;
+
+        // Atualiza estado
+        reservaState.valorDiaria = vDiaria;
+        reservaState.taxaLimpeza = vLimpeza;
+        reservaState.taxasExtras = vExtras;
+        reservaState.desconto = vDesconto;
+
+        // Calcula total
+        const totalBruto = (vDiaria * diffDays) + vLimpeza + vExtras;
+        const totalLiquido = Math.max(0, totalBruto - vDesconto);
+
+        reservaState.valorTotal = totalLiquido;
+
+        if (valorTotalLiquidoInput) {
+            valorTotalLiquidoInput.value = totalLiquido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        if (summaryTotalValor) {
+            summaryTotalValor.textContent = totalLiquido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+    }
 
     function updateSummary() {
         const plataforma = plataformas.find(p => p.codigoInterno == reservaState.plataformaId);
@@ -493,6 +576,12 @@ document.addEventListener('DOMContentLoaded', () => {
             numHospedes: reservaState.hospedesIds.length,
             status: 'Confirmada',
             dataCriacao: new Date().toISOString(),
+            // Valores Financeiros
+            valorDiaria: reservaState.valorDiaria,
+            taxaLimpeza: reservaState.taxaLimpeza,
+            taxasExtras: reservaState.taxasExtras,
+            desconto: reservaState.desconto,
+            valorTotal: reservaState.valorTotal
         };
 
         try {
@@ -610,6 +699,30 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 detailsDiarias.textContent = 0;
             }
+        }
+
+        // Adicionar exibição de valores no modal de detalhes se existirem
+        const detailsBody = detailsModal.querySelector('.details-card-body');
+        // Remove linha de valores anterior se existir para não duplicar
+        const existingValuesRow = detailsBody.querySelector('.details-values-row');
+        if (existingValuesRow) existingValuesRow.remove();
+
+        if (reserva.valorTotal !== undefined) {
+            const valuesRow = document.createElement('div');
+            valuesRow.className = 'details-row details-values-row';
+            valuesRow.style.marginTop = '15px';
+            valuesRow.style.paddingTop = '15px';
+            valuesRow.style.borderTop = '1px solid #eee';
+
+            const formatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+            valuesRow.innerHTML = `
+            <div class="details-group">
+                <label>Valor Total</label>
+                <p style="color: var(--primary-color); font-weight: 600;">${formatter.format(reserva.valorTotal)}</p>
+            </div>
+        `;
+            detailsBody.appendChild(valuesRow);
         }
 
         detailsModal.style.display = 'flex';

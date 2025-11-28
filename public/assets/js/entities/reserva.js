@@ -4,7 +4,7 @@ import { collection, getDocs, doc, setDoc, deleteDoc, writeBatch } from "https:/
 const reservasCollection = collection(db, 'reservas');
 
 export class Reserva {
-    constructor({ id, codigoInterno, anfitriaoId, imovelId, plataformaId, hospedes, checkin, checkout, numHospedes, numPets, valorTotal, status, observacoes, dataCriacao }) {
+    constructor({ id, codigoInterno, anfitriaoId, imovelId, plataformaId, hospedes, checkin, checkout, numHospedes, numPets, valorTotal, valorDiaria, taxaLimpeza, taxasExtras, desconto, status, observacoes, dataCriacao }) {
         this.id = id;
         this.codigoInterno = codigoInterno || id;
         this.anfitriaoId = anfitriaoId;
@@ -16,6 +16,10 @@ export class Reserva {
         this.numHospedes = numHospedes;
         this.numPets = numPets || 0;
         this.valorTotal = valorTotal;
+        this.valorDiaria = valorDiaria;
+        this.taxaLimpeza = taxaLimpeza;
+        this.taxasExtras = taxasExtras;
+        this.desconto = desconto;
         this.status = status;
         this.observacoes = observacoes;
         this.dataCriacao = dataCriacao || new Date().toISOString();

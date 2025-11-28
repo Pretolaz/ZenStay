@@ -89,45 +89,6 @@
                             <label>Pets</label>
                             <div id="summary-pets" class="summary-value">Não</div>
                         </div>
-
-                        <div class="summary-group">
-                            <label>Período</label>
-                            <div id="summary-periodo" class="summary-value">- Defina as datas -</div>
-                        </div>
-                    </div>
-                    <div class="summary-footer">
-                        <div class="summary-stat">
-                            <span>Diárias</span>
-                            <strong id="summary-diarias">0</strong>
-                        </div>
-                    </div>
-                </aside>
-
-                <!-- Painel Direito: Conteúdo e Passos -->
-                <main class="wizard-main-content">
-                    <header class="wizard-header">
-                        <div class="step-indicator">
-                            <div class="step-item active" data-step="1">
-                                <span class="step-number">1</span>
-                                <span class="step-label">Plataforma</span>
-                            </div>
-                            <div class="step-item" data-step="2">
-                                <span class="step-number">2</span>
-                                <span class="step-label">Imóvel</span>
-                            </div>
-                            <div class="step-item" data-step="3">
-                                <span class="step-number">3</span>
-                                <span class="step-label">Detalhes</span>
-                            </div>
-                            <div class="step-item" data-step="4">
-                                <span class="step-number">4</span>
-                                <span class="step-label">Pets</span>
-                            </div>
-                        </div>
-                        <button class="close-wizard-btn" id="close-wizard-btn">&times;</button>
-                    </header>
-
-                    <div class="wizard-body">
                         <!-- Passo 1: Plataforma -->
                         <div id="step-1" class="wizard-step">
                             <h2 class="step-title">Escolha a Plataforma</h2>
@@ -173,92 +134,58 @@
                                     </div>
                                     <div class="form-group">
                                         <label>Check-out</label>
-                                        <input type="date" id="checkout-date" class="modern-input">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                                        </footer>
+    </main>
+    </div>
+    </div>
 
-                        <!-- Passo 4: Pets -->
-                        <div id="step-4" class="wizard-step" style="display: none;">
-                            <h2 class="step-title">Pets</h2>
-                            <p class="step-subtitle">Haverá animais de estimação?</p>
-
-                            <div class="pet-slider-wrapper"
-                                style="display: flex; align-items: center; justify-content: space-between;">
-                                <div>
-                                    <h4 style="margin: 0; font-size: 1.1rem;">Trazer Pets?</h4>
-                                    <p style="margin: 5px 0 0; color: #666; font-size: 0.9rem;">Ative se a reserva
-                                        incluir animais.</p>
-                                </div>
-                                <label class="switch">
-                                    <input type="checkbox" id="has-pets-toggle">
-                                    <span class="slider round"></span>
-                                </label>
-                            </div>
-
-                            <div id="pet-warning-container"
-                                style="display: none; margin-top: 20px; padding: 15px; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; border-radius: 8px;">
-                                ⚠️ <strong>Atenção:</strong> O imóvel selecionado não aceita pets.
-                            </div>
-                        </div>
-                    </div>
-
-                    <footer class="wizard-footer">
-                        <button class="btn btn-ghost" id="wizard-prev-btn" style="display: none;">Voltar</button>
-                        <button class="btn" id="wizard-next-btn">Continuar</button>
-                    </footer>
-                </main>
+    <!-- Modal de Detalhes da Reserva (Zoom) -->
+    <div id="reservation-details-modal" class="details-modal-overlay" style="display: none;">
+        <div class="details-card">
+            <button class="close-details-btn" id="close-details-btn">&times;</button>
+            <div class="details-card-header">
+                <div class="details-imovel-thumb">
+                    <img id="details-imovel-foto" src="" alt="Foto do Imóvel">
+                </div>
+                <div class="details-header-info">
+                    <h2 id="details-imovel-titulo">Título do Imóvel</h2>
+                    <span class="status-badge" id="details-status">Confirmada</span>
+                </div>
             </div>
-        </div>
-
-        <!-- Modal de Detalhes da Reserva (Zoom) -->
-        <div id="reservation-details-modal" class="details-modal-overlay" style="display: none;">
-            <div class="details-card">
-                <button class="close-details-btn" id="close-details-btn">&times;</button>
-                <div class="details-card-header">
-                    <div class="details-imovel-thumb">
-                        <img id="details-imovel-foto" src="" alt="Foto do Imóvel">
+            <div class="details-card-body">
+                <div class="details-row">
+                    <div class="details-group">
+                        <label>Código</label>
+                        <p id="details-codigo">#0000</p>
                     </div>
-                    <div class="details-header-info">
-                        <h2 id="details-imovel-titulo">Título do Imóvel</h2>
-                        <span class="status-badge" id="details-status">Confirmada</span>
+                    <div class="details-group">
+                        <label>Hóspedes</label>
+                        <p id="details-hospedes">Nome (mais 0)</p>
                     </div>
                 </div>
-                <div class="details-card-body">
-                    <div class="details-row">
-                        <div class="details-group">
-                            <label>Código</label>
-                            <p id="details-codigo">#0000</p>
-                        </div>
-                        <div class="details-group">
-                            <label>Hóspedes</label>
-                            <p id="details-hospedes">Nome (mais 0)</p>
-                        </div>
+                <div class="details-row">
+                    <div class="details-group">
+                        <label>Check-in</label>
+                        <p id="details-checkin">00/00/0000</p>
                     </div>
-                    <div class="details-row">
-                        <div class="details-group">
-                            <label>Check-in</label>
-                            <p id="details-checkin">00/00/0000</p>
-                        </div>
-                        <div class="details-group">
-                            <label>Check-out</label>
-                            <p id="details-checkout">00/00/0000</p>
-                        </div>
+                    <div class="details-group">
+                        <label>Check-out</label>
+                        <p id="details-checkout">00/00/0000</p>
                     </div>
-                    <div class="details-row">
-                        <div class="details-group">
-                            <label>Pets</label>
-                            <p id="details-pets">0</p>
-                        </div>
-                        <div class="details-group">
-                            <label>Diárias</label>
-                            <p id="details-diarias">0</p>
-                        </div>
+                </div>
+                <div class="details-row">
+                    <div class="details-group">
+                        <label>Pets</label>
+                        <p id="details-pets">0</p>
+                    </div>
+                    <div class="details-group">
+                        <label>Diárias</label>
+                        <p id="details-diarias">0</p>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
     </main>
 
     <!-- Scripts -->
