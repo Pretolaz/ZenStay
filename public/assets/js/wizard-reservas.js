@@ -418,6 +418,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (nextBtn) nextBtn.textContent = stepNumber === totalSteps ? 'Salvar Reserva' : 'Continuar';
     }
 
+    function updateStepIndicator(stepNumber) {
+        stepIndicators.forEach(indicator => {
+            const step = parseInt(indicator.dataset.step);
+            indicator.classList.toggle('active', step === stepNumber);
+            indicator.style.opacity = step <= stepNumber ? '1' : '0.4';
+        });
+    }
+
     // -----
     // Funções de Atualização da UI e Lógica de Negócio
     // -----
