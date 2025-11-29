@@ -245,111 +245,183 @@
                                             min="0">
                                     </div>
                                     <div class="form-group">
-                                        <label>Valor Líquido Total (R$)</label>
-                                        <input type="text" id="valor-total-liquido" class="modern-input" readonly
-                                            style="font-weight: bold; color: var(--primary-color); font-size: 1.1rem;">
                                     </div>
                                 </div>
                             </div>
-                            <script src="assets/js/toast.js"></script>
-                            <script src="assets/js/entities/comodo.js"></script>
-                            <script type="module" src="assets/js/wizard-reservas.js"></script>
-                            <script type="module" src="assets/js/timeline.js"></script>
-                            <script src="assets/js/entities/anfitriao.js"></script>
+                        </div>
+                    </div>
 
-                            <!-- Sidebar dinâmica -->
-                            <script>
-                                const body = document.body;
+                    <footer class="wizard-footer">
+                        <button class="btn btn-ghost" id="wizard-prev-btn" style="display: none;">Voltar</button>
+                        <button class="btn" id="wizard-next-btn">Continuar</button>
+                    </footer>
+                </main>
+            </div>
+        </div>
 
-                                const setActiveSidebarLink = () => {
-                                    const path = window.location.pathname.split("/").pop();
-                                    const hash = window.location.hash;
+        <!-- Modal de Detalhes da Reserva (Zoom) -->
+        <div id="reservation-details-modal" class="details-modal-overlay" style="display: none;">
+            <div class="details-card">
+                <button class="close-details-btn" id="close-details-btn">&times;</button>
+                <div class="details-card-header">
+                    <div class="details-imovel-thumb">
+                        <img id="details-imovel-foto" src="" alt="Foto do Imóvel">
+                    </div>
+                    <div class="details-header-info">
+                        <h2 id="details-imovel-titulo">Título do Imóvel</h2>
+                        <span class="status-badge" id="details-status">Confirmada</span>
+                    </div>
+                </div>
+                <div class="details-card-body">
+                    <div class="details-row">
+                        <div class="details-group">
+                            <label>Plataforma</label>
+                            <div id="details-plataforma"
+                                style="display: flex; align-items: center; gap: 8px; font-weight: 500;">
+                                <!-- Preenchido via JS -->
+                            </div>
+                        </div>
+                        <div class="details-group">
+                            <label>Hóspedes</label>
+                            <p id="details-hospedes">Nome (mais 0)</p>
+                        </div>
+                    </div>
+                    <div class="details-row">
+                        <div class="details-group">
+                            <label>Check-in</label>
+                            <p id="details-checkin">00/00/0000</p>
+                        </div>
+                        <div class="details-group">
+                            <label>Check-out</label>
+                            <p id="details-checkout">00/00/0000</p>
+                        </div>
+                    </div>
+                    <div class="details-row">
+                        <div class="details-group">
+                            <label>Pets</label>
+                            <p id="details-pets">0</p>
+                        </div>
+                        <div class="details-group">
+                            <label>Diárias</label>
+                            <p id="details-diarias">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
-                                    document.querySelectorAll(".sidebar a").forEach(link => {
-                                        link.classList.remove("active");
-                                        const linkHref = link.getAttribute("href");
+    <!-- Scripts -->
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/js/main.js"></script>
 
-                                        if (linkHref === path + hash) {
-                                            link.classList.add("active");
-                                            const parentSubmenu = link.closest('.has-submenu');
-                                            if (parentSubmenu) {
-                                                const submenuElement = parentSubmenu.querySelector('.submenu');
-                                                const arrowElement = parentSubmenu.querySelector('.arrow');
-                                                if (submenuElement) submenuElement.style.display = 'block';
-                                                if (arrowElement) arrowElement.textContent = '▼';
-                                                const submenuToggleElement = parentSubmenu.querySelector('.submenu-toggle');
-                                                if (submenuToggleElement) submenuToggleElement.classList.add('active');
-                                            }
-                                        }
-                                    });
-                                };
+    <!-- Módulos que usam 'import' e expõem classes para o escopo global -->
+    <script type="module" src="assets/js/firebase-config.js"></script>
+    <script type="module" src="assets/js/entities/cliente.js"></script>
+    <script type="module" src="assets/js/entities/imovel.js?v=2"></script>
+    <script type="module" src="assets/js/entities/reserva.js"></script>
+    <script type="module" src="assets/js/entities/plataforma.js"></script>
 
-                                fetch("assets/components/sidebar.html")
-                                    .then(res => res.text())
-                                    .then(html => {
-                                        document.getElementById("sidebar").innerHTML = html;
+    <!-- Scripts que não são módulos e dependem das classes acima -->
+    <script src="assets/js/toast.js"></script>
+    <script src="assets/js/entities/comodo.js"></script>
+    <script type="module" src="assets/js/wizard-reservas.js"></script>
+    <script type="module" src="assets/js/timeline.js"></script>
+    <script src="assets/js/entities/anfitriao.js"></script>
 
-                                        const sidebarElement = document.querySelector('.sidebar');
-                                        const menuToggleButton = document.getElementById('menu-toggle');
-                                        const headerMenuToggleButton = document.getElementById('header-menu-toggle');
+    <!-- Sidebar dinâmica -->
+    <script>
+        const body = document.body;
 
-                                        function toggleSidebar() {
-                                            body.classList.toggle('sidebar-open-mobile');
-                                        }
+        const setActiveSidebarLink = () => {
+            const path = window.location.pathname.split("/").pop();
+            const hash = window.location.hash;
 
-                                        if (menuToggleButton) {
-                                            menuToggleButton.addEventListener('click', function (e) {
-                                                e.stopPropagation();
-                                                toggleSidebar();
-                                            });
-                                        }
+            document.querySelectorAll(".sidebar a").forEach(link => {
+                link.classList.remove("active");
+                const linkHref = link.getAttribute("href");
 
-                                        if (headerMenuToggleButton) {
-                                            headerMenuToggleButton.addEventListener('click', function (e) {
-                                                e.stopPropagation();
-                                                toggleSidebar();
-                                            });
-                                        }
+                if (linkHref === path + hash) {
+                    link.classList.add("active");
+                    const parentSubmenu = link.closest('.has-submenu');
+                    if (parentSubmenu) {
+                        const submenuElement = parentSubmenu.querySelector('.submenu');
+                        const arrowElement = parentSubmenu.querySelector('.arrow');
+                        if (submenuElement) submenuElement.style.display = 'block';
+                        if (arrowElement) arrowElement.textContent = '▼';
+                        const submenuToggleElement = parentSubmenu.querySelector('.submenu-toggle');
+                        if (submenuToggleElement) submenuToggleElement.classList.add('active');
+                    }
+                }
+            });
+        };
 
-                                        document.addEventListener('click', function (e) {
-                                            if (body.classList.contains('sidebar-open-mobile') &&
-                                                sidebarElement && !sidebarElement.contains(e.target) &&
-                                                (menuToggleButton && !menuToggleButton.contains(e.target)) &&
-                                                (headerMenuToggleButton && !headerMenuToggleButton.contains(e.target))) {
-                                                toggleSidebar();
-                                            }
-                                        });
+        fetch("assets/components/sidebar.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("sidebar").innerHTML = html;
 
-                                        document.querySelectorAll('.sidebar a').forEach(link => {
-                                            link.addEventListener('click', function () {
-                                                if (window.innerWidth <= 768 && !this.classList.contains('submenu-toggle')) {
-                                                    body.classList.remove('sidebar-open-mobile');
-                                                }
-                                            });
-                                        });
+                const sidebarElement = document.querySelector('.sidebar');
+                const menuToggleButton = document.getElementById('menu-toggle');
+                const headerMenuToggleButton = document.getElementById('header-menu-toggle');
 
-                                        document.querySelectorAll('.submenu-toggle').forEach(item => {
-                                            item.addEventListener('click', function (e) {
-                                                e.preventDefault();
-                                                const parentLi = this.closest('.has-submenu');
-                                                parentLi.classList.toggle('expanded');
-                                                const submenu = parentLi.querySelector('.submenu');
-                                                if (submenu) {
-                                                    submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
-                                                }
-                                            });
-                                        });
+                function toggleSidebar() {
+                    body.classList.toggle('sidebar-open-mobile');
+                }
 
-                                        setActiveSidebarLink();
-                                    })
-                                    .catch(err => console.error("Erro ao carregar sidebar: ", err));
+                if (menuToggleButton) {
+                    menuToggleButton.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        toggleSidebar();
+                    });
+                }
 
-                                window.addEventListener('resize', () => {
-                                    if (window.innerWidth > 768 && body.classList.contains('sidebar-open-mobile')) {
-                                        body.classList.remove('sidebar-open-mobile');
-                                    }
-                                });
-                            </script>
+                if (headerMenuToggleButton) {
+                    headerMenuToggleButton.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        toggleSidebar();
+                    });
+                }
+
+                document.addEventListener('click', function (e) {
+                    if (body.classList.contains('sidebar-open-mobile') &&
+                        sidebarElement && !sidebarElement.contains(e.target) &&
+                        (menuToggleButton && !menuToggleButton.contains(e.target)) &&
+                        (headerMenuToggleButton && !headerMenuToggleButton.contains(e.target))) {
+                        toggleSidebar();
+                    }
+                });
+
+                document.querySelectorAll('.sidebar a').forEach(link => {
+                    link.addEventListener('click', function () {
+                        if (window.innerWidth <= 768 && !this.classList.contains('submenu-toggle')) {
+                            body.classList.remove('sidebar-open-mobile');
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.submenu-toggle').forEach(item => {
+                    item.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const parentLi = this.closest('.has-submenu');
+                        parentLi.classList.toggle('expanded');
+                        const submenu = parentLi.querySelector('.submenu');
+                        if (submenu) {
+                            submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+                        }
+                    });
+                });
+
+                setActiveSidebarLink();
+            })
+            .catch(err => console.error("Erro ao carregar sidebar: ", err));
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768 && body.classList.contains('sidebar-open-mobile')) {
+                body.classList.remove('sidebar-open-mobile');
+            }
+        });
+    </script>
 </body>
 
 </html>
