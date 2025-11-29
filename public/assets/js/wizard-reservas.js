@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const detailsImovelFoto = document.getElementById('details-imovel-foto');
     const detailsImovelTitulo = document.getElementById('details-imovel-titulo');
     const detailsStatus = document.getElementById('details-status');
-    const detailsCodigo = document.getElementById('details-codigo');
+    const detailsPlataforma = document.getElementById('details-plataforma');
     const detailsHospedes = document.getElementById('details-hospedes');
     const detailsCheckin = document.getElementById('details-checkin');
     const detailsCheckout = document.getElementById('details-checkout');
@@ -681,7 +681,18 @@ document.addEventListener('DOMContentLoaded', () => {
             detailsStatus.textContent = reserva.status || 'Pendente';
             detailsStatus.className = `status-badge ${reserva.status ? reserva.status.toLowerCase() : ''}`;
         }
-        if (detailsCodigo) detailsCodigo.textContent = `#${reserva.codigoInterno || reserva.id}`;
+        if (detailsPlataforma) {
+            const plataforma = plataformas.find(p => p.codigoInterno == reserva.plataformaId);
+            if (plataforma) {
+                const logoSrc = plataforma.logo || 'assets/img/placeholder.jpg';
+                detailsPlataforma.innerHTML = `
+                    <img src="${logoSrc}" alt="${plataforma.nome}" style="width: 24px; height: 24px; object-fit: contain; border-radius: 4px;">
+                    <span>${plataforma.nome}</span>
+                `;
+            } else {
+                detailsPlataforma.textContent = 'Plataforma desconhecida';
+            }
+        }
 
         if (detailsHospedes) {
             if (reserva.hospedes && reserva.hospedes.length > 0) {
@@ -694,8 +705,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        if (detailsCheckin) detailsCheckin.textContent = new Date(reserva.checkin).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-        if (detailsCheckout) detailsCheckout.textContent = new Date(reserva.checkout).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+        if (detailsCheckin) {
+            detailsCheckin.textContent = new Date(reserva.checkin).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+            detailsCheckin.style.color = '#28a745'; // Green
+            detailsCheckin.style.fontWeight = '600';
+        }
+        if (detailsCheckout) {
+            detailsCheckout.textContent = new Date(reserva.checkout).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+            detailsCheckout.style.color = '#dc3545'; // Red
+            detailsCheckout.style.fontWeight = '600';
+        }
         if (detailsPets) detailsPets.textContent = reserva.numPets;
 
         if (detailsDiarias) {
