@@ -752,6 +752,118 @@ document.addEventListener('DOMContentLoaded', () => {
             detailsBody.appendChild(valuesRow);
         }
 
+        // Configurar botão de PDF
+        const btnGeneratePdf = document.getElementById('btn-generate-pdf');
+        if (btnGeneratePdf) {
+            btnGeneratePdf.onclick = () => {
+                // Coletar dados completos
+                const plataforma = plataformas.find(p => p.codigoInterno == reserva.plataformaId);
+                const primeiroHospede = reserva.hospedes && reserva.hospedes.length > 0 ? clientes.find(c => c.id == reserva.hospedes[0]) : null;
+                const formatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+                // Criar elemento temporário para o PDF
+                const element = document.createElement('div');
+                element.style.width = '800px'; // Largura fixa para A4
+                element.style.padding = '40px';
+                element.style.fontFamily = "'Poppins', sans-serif";
+                element.style.color = '#333';
+                element.style.background = '#fff';
+                element.style.lineHeight = '1.6';
+
+                const logoPlataforma = plataforma && plataforma.logo ? plataforma.logo : '';
+                const fotoImovel = (imovel && imovel.fotos && imovel.fotos.length > 0) ? imovel.fotos[0] : '';
+
+                element.innerHTML = `
+                    <div style="border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h1 style="margin: 0; color: #2c3e50; font-size: 24px;">Confirmação de Reserva</h1>
+                            <p style="margin: 5px 0 0; color: #7f8c8d; font-size: 14px;">Código: #${reserva.id.slice(0, 8).toUpperCase()}</p>
+                        </div>
+                        ${logoPlataforma ? `<img src="${logoPlataforma}" style="height: 40px; object-fit: contain;">` : ''}
+                    </div>
+
+                    <div style="display: flex; gap: 30px; margin-bottom: 30px;">
+                        <div style="flex: 1;">
+                            ${fotoImovel ? `<img src="${fotoImovel}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">` : ''}
+                            <h2 style="margin: 0 0 5px; color: #2c3e50; font-size: 18px;">${imovel ? imovel.titulo : 'Imóvel'}</h2>
+                            <p style="margin: 0; color: #7f8c8d; font-size: 14px;">${imovel ? imovel.endereco || 'Endereço não informado' : ''}</p>
+                        </div>
+                        <div style="flex: 1; background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                            <h3 style="margin: 0 0 15px; color: #2c3e50; font-size: 16px; border-bottom: 1px solid #e9ecef; padding-bottom: 10px;">Detalhes da Estadia</h3>
+                            
+                            <div style="margin-bottom: 15px;">
+                                <span style="display: block; font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px;">Check-in</span>
+                                <strong style="font-size: 16px; color: #28a745;">${new Date(reserva.checkin).toLocaleDateString('pt-BR')}</strong>
+                            </div>
+                            
+                            <div style="margin-bottom: 15px;">
+                                <span style="display: block; font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px;">Check-out</span>
+                                <strong style="font-size: 16px; color: #dc3545;">${new Date(reserva.checkout).toLocaleDateString('pt-BR')}</strong>
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between;">
+                                <div>
+                                    <span style="display: block; font-size: 12px; color: #7f8c8d;">Hóspedes</span>
+                                    <strong>${reserva.hospedes ? reserva.hospedes.length : 0}</strong>
+                                </div>
+                                <div>
+                                    <span style="display: block; font-size: 12px; color: #7f8c8d;">Pets</span>
+                                    <strong>${reserva.numPets || 0}</strong>
+                                </div>
+                                <div>
+                                    <span style="display: block; font-size: 12px; color: #7f8c8d;">Diárias</span>
+                                    <strong>${detailsDiarias.textContent}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="margin: 0 0 15px; color: #2c3e50; font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px;">Hóspede Principal</h3>
+                        <p style="margin: 0;"><strong>Nome:</strong> ${primeiroHospede ? primeiroHospede.nome : 'Não informado'}</p>
+                        <p style="margin: 5px 0 0;"><strong>Email:</strong> ${primeiroHospede ? primeiroHospede.email : 'Não informado'}</p>
+                        <p style="margin: 5px 0 0;"><strong>Telefone:</strong> ${primeiroHospede ? primeiroHospede.telefone : 'Não informado'}</p>
+                    </div>
+
+                    ${reserva.valorTotal !== undefined ? `
+                    <div style="background: #eef2f7; padding: 20px; border-radius: 8px; text-align: right;">
+                        <span style="font-size: 14px; color: #7f8c8d;">Valor Total da Reserva</span>
+                        <div style="font-size: 24px; color: #2c3e50; font-weight: bold; margin-top: 5px;">${formatter.format(reserva.valorTotal)}</div>
+                    </div>
+                    ` : ''}
+
+                    <div style="margin-top: 40px; text-align: center; color: #95a5a6; font-size: 12px; border-top: 1px solid #eee; padding-top: 20px;">
+                        <p>Este documento é uma confirmação de reserva gerada automaticamente pelo sistema ZenStay.</p>
+                        <p>${new Date().toLocaleString('pt-BR')}</p>
+                    </div>
+                `;
+
+                const opt = {
+                    margin: 10,
+                    filename: `Reserva_${reserva.id}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true, logging: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                // Feedback visual
+                const originalText = btnGeneratePdf.innerHTML;
+                btnGeneratePdf.innerHTML = '⏳ Gerando...';
+                btnGeneratePdf.disabled = true;
+
+                html2pdf().set(opt).from(element).save().then(() => {
+                    btnGeneratePdf.innerHTML = originalText;
+                    btnGeneratePdf.disabled = false;
+                    Toast.success('PDF gerado com sucesso!');
+                }).catch(err => {
+                    console.error('Erro ao gerar PDF:', err);
+                    btnGeneratePdf.innerHTML = originalText;
+                    btnGeneratePdf.disabled = false;
+                    Toast.error('Erro ao gerar PDF.');
+                });
+            };
+        }
+
         detailsModal.style.display = 'flex';
         setTimeout(() => detailsModal.style.opacity = '1', 10);
     }
