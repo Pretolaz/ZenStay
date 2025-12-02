@@ -142,7 +142,7 @@ function renderTable() {
             <td style="text-align: center;">${obj.quantidade}</td>
             <td class="actions-cell">
                 <button class="action-btn edit-btn" onclick="editarObjeto(${obj.imovelId}, ${obj.comodoId}, ${obj.id})" title="Editar">✏️</button>
-                <button class="action-btn delete-btn" onclick="prepararExclusao(${obj.imovelId}, ${obj.comodoId}, ${obj.id})" title="Excluir">🗑️</button>
+                <button class="action-btn d  elete-btn" onclick="prepararExclusao(${obj.imovelId}, ${obj.comodoId}, ${obj.id})" title="Excluir">🗑️</button>
             </td>
         `;
         tabelaObjetosBody.appendChild(row);
