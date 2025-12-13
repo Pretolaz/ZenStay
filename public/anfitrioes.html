@@ -298,13 +298,59 @@
                 const sb = document.getElementById("sidebar");
                 if (sb) {
                     sb.innerHTML = html;
-                    // Re-trigger visual updates if needed
-                    const evt = new Event('sidebar-loaded');
-                    document.dispatchEvent(evt);
 
-                    // Attach logic manually since we are using modules context which might isolate scopes
-                    // Actually, main.js usually handles the toggle logic if it's generic.
-                    // Let's just ensure our toggle works.
+                    // --- Sidebar Logic Restore ---
+                    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+
+                    // 1. Highlight Active Link & Expand Parent
+                    // We need to look at links inside the now-injected sidebar
+                    const links = sb.querySelectorAll('a');
+                    links.forEach(link => {
+                        const href = link.getAttribute('href');
+                        if (href === currentPage) {
+                            link.classList.add('active'); // active styles depend on your CSS, usually .active
+
+                            // Check for submenu parent
+                            const submenuItem = link.closest('.submenu');
+                            if (submenuItem) {
+                                submenuItem.style.display = 'block';
+                                const parentLi = submenuItem.closest('.has-submenu');
+                                if (parentLi) {
+                                    parentLi.classList.add('expanded');
+                                    const arrow = parentLi.querySelector('.arrow');
+                                    if (arrow) arrow.style.transform = 'rotate(90deg)';
+                                }
+                            }
+                        }
+                    });
+
+                    // 2. Setup Submenu Toggles
+                    const toggles = sb.querySelectorAll('.submenu-toggle');
+                    toggles.forEach(toggle => {
+                        toggle.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            const parentLi = toggle.closest('.has-submenu');
+                            const submenu = parentLi.querySelector('.submenu');
+                            const arrow = parentLi.querySelector('.arrow');
+
+                            if (submenu) {
+                                const isHidden = window.getComputedStyle(submenu).display === 'none';
+                                submenu.style.display = isHidden ? 'block' : 'none';
+
+                                if (isHidden) {
+                                    parentLi.classList.add('expanded');
+                                    if (arrow) arrow.style.transform = 'rotate(90deg)';
+                                } else {
+                                    parentLi.classList.remove('expanded');
+                                    if (arrow) arrow.style.transform = 'rotate(0deg)';
+                                }
+                            }
+                        });
+                    });
+                    // --- End Sidebar Logic ---
+
                     setupSidebarToggle();
                 }
             });
