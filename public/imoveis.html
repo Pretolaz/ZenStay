@@ -427,7 +427,7 @@
     <script src="assets/js/storage.js"></script>
     <script src="assets/js/main.js"></script>
     <script src="assets/js/toast.js"></script>
-    <script type="module" src="assets/js/entities/imovel.js"></script>
+    <!-- REMOVED: script type="module" src="assets/js/entities/imovel.js" -- This is imported in the module block below -->
 
     <script type="module">
         import { Imovel } from './assets/js/entities/imovel.js';
@@ -443,43 +443,7 @@
         const modalPanel = document.getElementById('modalPanel');
         const form = document.getElementById('formImovel');
 
-        // Init
-        window.addEventListener('DOMContentLoaded', async () => {
-            await carregarImoveis();
-
-            // Sidebar Logic
-            fetch("assets/components/sidebar.html")
-                .then(res => res.text())
-                .then(html => {
-                    const sb = document.getElementById('sidebar');
-                    if (sb) {
-                        sb.innerHTML = html;
-                        setupSidebarLogic();
-                    }
-                });
-        });
-
-        // Event Listeners
-        document.getElementById('filtroBusca').addEventListener('input', renderGrid);
-        document.getElementById('filtroStatus').addEventListener('change', renderGrid);
-        document.getElementById('btnNovoImovel').onclick = () => openModal();
-        document.getElementById('btnNovoImovelMobile').onclick = () => openModal();
-
-        window.previewImage = (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    currentPhotoBase64 = e.target.result;
-                    const img = document.getElementById('imgPreview');
-                    const ph = document.getElementById('uploadPlaceholder');
-                    img.src = currentPhotoBase64;
-                    img.classList.remove('hidden');
-                    ph.classList.add('opacity-0');
-                }
-                reader.readAsDataURL(file);
-            }
-        };
+        // Functions defined BEFORE usage
 
         async function carregarImoveis() {
             grid.innerHTML = '<div class="col-span-full text-center py-12"><div class="animate-spin text-4xl text-blue-500">🌀</div></div>';
@@ -492,7 +456,8 @@
             }
         }
 
-        window.renderGrid = () => {
+        // Exposed to global scope for debugging if needed, but primarily defined locally as function for hoisting/reference
+        window.renderGrid = function renderGrid() {
             const termo = document.getElementById('filtroBusca').value.toLowerCase();
             const statusFiltro = document.getElementById('filtroStatus').value;
 
@@ -510,21 +475,29 @@
             grid.innerHTML = '';
 
             if (filtrados.length === 0) {
-                if (imoveisCache.length === 0) {
-                    // Really empty
+                if (imoveisCache.length > 0) {
+                    emptyState.classList.remove('hidden');
+                    setTimeout(() => emptyState.classList.remove('opacity-0'), 10);
                 } else {
-                    // Filter empty
+                    // No properties at all yet, maybe show different empty state? using same for now
+                    emptyState.classList.remove('hidden');
+                    setTimeout(() => emptyState.classList.remove('opacity-0'), 10);
                 }
-                emptyState.classList.remove('hidden');
-                setTimeout(() => emptyState.classList.remove('opacity-0'), 10);
                 return;
             }
             emptyState.classList.add('hidden');
             emptyState.classList.add('opacity-0');
 
             filtrados.forEach(im => {
-                const fotoSrc = (im.fotos && im.fotos.length > 0) ? im.fotos[0] : 'assets/img/imovel-placeholder.png'; // Fallback
-                const statusClass = `badge-${im.status ? im.status.replace(' ', '') : 'Indefinido'}`;
+                // Determine photo source with fallback
+                let fotoSrc = 'assets/img/imovel-placeholder.png'; // Default fallback
+                if (im.fotos && im.fotos.length > 0 && im.fotos[0]) {
+                    fotoSrc = im.fotos[0];
+                }
+
+                // Handle legacy or undefined status gracefully
+                const imovelStatus = im.status || 'Indefinido';
+                const statusClass = `badge-${imovelStatus.replace(/\s+/g, '')}`;
 
                 const card = document.createElement('div');
                 card.className = 'glass-panel rounded-2xl overflow-hidden card-hoverable flex flex-col group h-full relative border border-white/40 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60';
@@ -533,7 +506,7 @@
                     <div class="relative h-48 overflow-hidden">
                         <img src="${fotoSrc}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" onerror="this.src='https://placehold.co/600x400?text=Sem+Foto'">
                         <div class="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold shadow-sm uppercase tracking-wide ${statusClass}">
-                            ${im.status || 'Indefinido'}
+                            ${imovelStatus}
                         </div>
                         <div class="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-black/60 to-transparent"></div>
                         <div class="absolute bottom-3 left-4 text-white font-bold drop-shadow-md">
@@ -573,14 +546,53 @@
                 grid.appendChild(card);
             });
         };
+        // Also assign to a local const for local usage if the window assignment doesn't hoist as expected in module (it doesn't hoist the window property itself to local scope)
+        const renderGrid = window.renderGrid;
 
-        // Modal Actions
+        // Init
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Sidebar Logic
+            fetch("assets/components/sidebar.html")
+                .then(res => res.text())
+                .then(html => {
+                    const sb = document.getElementById('sidebar');
+                    if (sb) {
+                        sb.innerHTML = html;
+                        setupSidebarLogic();
+                    }
+                });
+
+            await carregarImoveis();
+        });
+
+        // Event Listeners - now renderGrid is defined
+        document.getElementById('filtroBusca').addEventListener('input', renderGrid);
+        document.getElementById('filtroStatus').addEventListener('change', renderGrid);
+        document.getElementById('btnNovoImovel').onclick = () => openModal();
+        document.getElementById('btnNovoImovelMobile').onclick = () => openModal();
+
+        window.previewImage = (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    currentPhotoBase64 = e.target.result;
+                    const img = document.getElementById('imgPreview');
+                    const ph = document.getElementById('uploadPlaceholder');
+                    img.src = currentPhotoBase64;
+                    img.classList.remove('hidden');
+                    ph.classList.add('opacity-0');
+                }
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // ... Window exposed functions ...
+
         window.openModal = (imovel = null) => {
             const title = document.getElementById('modalTitle');
             const placeholder = document.getElementById('uploadPlaceholder');
             const imgPreview = document.getElementById('imgPreview');
-
-            // Allow clicking to get to comodos.html properly if needed, but here we just manage properties
 
             if (imovel) {
                 title.innerText = 'Editar Imóvel';
@@ -676,10 +688,8 @@
 
                 // Handle Photo
                 if (currentPhotoBase64) {
-                    data.fotos = [currentPhotoBase64]; // Replacing array for simplicity as per current logic
+                    data.fotos = [currentPhotoBase64];
                 } else if (id) {
-                    // Keep existing if not changed? The logic above resets currentPhotoBase64 on openModal unless edit.
-                    // checks cache
                     const existing = imoveisCache.find(i => i.id == id);
                     if (existing && existing.fotos) data.fotos = existing.fotos;
                 }
