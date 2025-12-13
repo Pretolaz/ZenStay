@@ -1,244 +1,533 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZenStay | Anfitriões</title>
 
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/components.css">
+    <!-- Scripts & Styles -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css"> <!-- Legacy styles for sidebar/vars -->
     <link rel="stylesheet" href="theme/dark.css" id="theme-style">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        // Mapping CSS variables (approximate for Tailwind IntelliSense feel)
+                        // In reality we will use arbitrary values or utility classes 
+                        // that play nice with the transparency.
+                        primary: 'var(--accent)',
+                        surface: 'var(--card)',
+                        background: 'var(--background)',
+                        text: 'var(--text)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom overrides to ensure compatibility with existing sidebar */
+        body {
+            background-color: var(--background);
+            color: var(--text);
+        }
+
+        /* Glassmorphism utilities */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .dark .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Input styling normalization */
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            background-color: var(--background);
+            border: 1px solid var(--border);
+            color: var(--text);
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2);
+        }
+
+        /* Hide scrollbar for grid but keep functionality */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Image Upload Preview */
+        .image-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--accent);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+        }
+    </style>
 </head>
 
-<body>
-    <!-- Sidebar dinâmica -->
-    <div id="sidebar"></div>
+<body class="overflow-x-hidden">
 
-    <main class="content">
-        <header class="header">
-            <button class="menu-toggle" id="header-menu-toggle">☰</button> <!-- Botão de menu hambúrguer no cabeçalho -->
-            <h1>🤝 Gerenciar Anfitriões</h1>
-            <button id="toggle-theme">🌓</button>
+    <!-- Sidebar Wrapper -->
+    <div id="sidebar" class="fixed inset-y-0 left-0 z-50"></div>
+
+    <!-- Main Content -->
+    <main class="content transition-all duration-300 min-h-screen flex flex-col">
+
+        <!-- Header -->
+        <header
+            class="header bg-opacity-90 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200 dark:border-gray-800">
+            <div class="flex items-center gap-4">
+                <button class="menu-toggle md:hidden text-2xl" id="header-menu-toggle">
+                    ☰
+                </button>
+                <div class="flex flex-col">
+                    <h1
+                        class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-600">
+                        Gerenciar Anfitriões
+                    </h1>
+                    <p class="text-xs text-gray-500 font-medium tracking-wide uppercase">Administração</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <button id="btnNovoAnfitriao"
+                    class="hidden sm:flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-5 py-2.5 rounded-full shadow-lg hover:shadow-blue-500/30 transition-all duration-300 transform hover:-translate-y-0.5 font-medium text-sm">
+                    <span class="text-lg">+</span> Novo Anfitrião
+                </button>
+                <button id="toggle-theme"
+                    class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-xl">
+                    🌓
+                </button>
+            </div>
         </header>
 
-        <section class="dashboard">
-            <div class="card" style="flex: 1 1 100%;">
-                <h3>📝 Cadastrar Novo Anfitrião</h3>
-                <form id="formAnfitriao">
-                    <input type="hidden" id="anfitriaoId">
+        <!-- Floating FAB for Mobile -->
+        <button id="btnNovoAnfitriaoMobile"
+            class="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full shadow-xl flex items-center justify-center text-3xl z-40 hover:scale-110 transition-transform">
+            +
+        </button>
 
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>#</span>
-                            <input type="number" id="codigoInterno" placeholder="Código interno (auto)" readonly>
-                        </div>
-                        <div class="input-group">
-                            <span>👤</span>
-                            <input type="text" id="nome" placeholder="Nome completo" required>
-                        </div>
-                    </div>
+        <!-- Content Area -->
+        <div class="p-6 md:p-10 flex-1 relative">
 
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>✉️</span>
-                            <input type="email" id="email" placeholder="E-mail (opcional)">
-                        </div>
-                        <div class="input-group">
-                            <span>📞</span>
-                            <input type="text" id="telefone" placeholder="Telefone" required>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <textarea id="observacao" placeholder="Observações sobre o anfitrião..."></textarea>
-                    </div>
-
-                    <button type="submit" class="btn">💾 Salvar</button>
-                </form>
+            <!-- Loading State -->
+            <div id="loadingState"
+                class="flex flex-col items-center justify-center h-64 text-gray-400 animate-pulse hidden">
+                <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4">
+                </div>
+                Carregando anfitriões...
             </div>
 
-            <!-- Tabela -->
-            <div class="card" style="flex: 1 1 100%;">
-                <h3>📋 Lista de Anfitriões</h3>
-                <table id="tabelaAnfitrioes">
-                    <thead>
-                        <tr>
-                            <th>Cód. Interno</th>
-                            <th>Nome</th>
-                            <th>Email</th>
-                            <th>Telefone</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+            <!-- Empty State -->
+            <div id="emptyState"
+                class="hidden flex flex-col items-center justify-center text-center py-20 opacity-0 transition-opacity duration-500">
+                <div class="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-6">
+                    <span class="text-5xl">👥</span>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Nenhum anfitrião encontrado</h3>
+                <p class="text-gray-500 max-w-sm mb-8">Comece adicionando os parceiros que gerenciam seus imóveis.</p>
+                <button onclick="openModal()" class="text-blue-500 hover:text-blue-600 font-medium">Adicionar agora
+                    &rarr;</button>
             </div>
-        </section>
+
+            <!-- Grid Layout -->
+            <div id="gridAnfitrioes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
+                <!-- Cards injected via JS -->
+            </div>
+        </div>
     </main>
 
+    <!-- Modal Form -->
+    <div id="modalAnfitriao" class="fixed inset-0 z-[60] hidden" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm transition-opacity opacity-0" id="modalBackdrop">
+        </div>
+
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+
+                <div class="relative transform overflow-hidden rounded-2xl bg-[var(--card)] text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-xl opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    id="modalPanel">
+
+                    <!-- Modal Header -->
+                    <div
+                        class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4 flex justify-between items-center text-white">
+                        <h3 class="text-lg font-semibold" id="modalTitle">Novo Anfitrião</h3>
+                        <button onclick="closeModal()"
+                            class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+                    </div>
+
+                    <!-- Modal Body -->
+                    <div class="px-6 py-6 space-y-6">
+                        <form id="formAnfitriao" onsubmit="handleSave(event)">
+                            <input type="hidden" id="anfitriaoId">
+                            <input type="hidden" id="firestoreId">
+
+                            <div class="flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+                                <!-- Image Upload Section -->
+                                <div class="flex flex-col items-center gap-3">
+                                    <div class="relative group cursor-pointer">
+                                        <img id="imgPreview"
+                                            src="https://ui-avatars.com/api/?name=Novo+Anfitriao&background=random"
+                                            class="image-preview object-cover transition-filter duration-300 group-hover:brightness-75"
+                                            alt="Foto">
+                                        <div
+                                            class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white font-medium text-sm pointer-events-none">
+                                            Alterar
+                                        </div>
+                                        <input type="file" id="fotoInput" accept="image/*"
+                                            class="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                            onchange="previewImage(this)">
+                                    </div>
+                                    <span class="text-xs text-gray-500 text-center">Clique para upload<br>(Máx
+                                        1MB)</span>
+                                </div>
+
+                                <!-- Fields -->
+                                <div class="flex-1 w-full space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-500 mb-1">Nome
+                                            Completo</label>
+                                        <input type="text" id="nome" required class="form-input"
+                                            placeholder="Ex: Maria Silva">
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-500 mb-1">Telefone /
+                                                WhatsApp</label>
+                                            <input type="tel" id="telefone" required class="form-input"
+                                                placeholder="(00) 00000-0000">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-500 mb-1">E-mail</label>
+                                            <input type="email" id="email" class="form-input"
+                                                placeholder="email@exemplo.com">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Internal Code (Readonly) -->
+                            <div>
+                                <label class="text-xs font-mono text-gray-400">Código Interno</label>
+                                <input type="text" id="codigoInterno" readonly
+                                    class="w-full bg-transparent border-none p-0 text-sm font-mono text-gray-500 focus:ring-0"
+                                    placeholder="Gerado automaticamente">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Observações</label>
+                                <textarea id="observacao" rows="3" class="form-input resize-none"
+                                    placeholder="Detalhes adicionais..."></textarea>
+                            </div>
+
+                            <div class="pt-4 flex justify-end gap-3">
+                                <button type="button" onclick="closeModal()"
+                                    class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Cancelar</button>
+                                <button type="submit" id="btnSalvar"
+                                    class="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30 transition-all flex items-center gap-2">
+                                    <span>Salvar Anfitrião</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
+    <script type="module" src="assets/js/entities/anfitriao.js"></script>
     <script src="assets/js/storage.js"></script>
+    <!-- We need to ensure sidebar JS runs, typically it's inside main or a component loader. 
+         Since we replaced the file, let's include the fetching logic quickly here or import main.js 
+         Wait, main.js expects #sidebar to exist. correct. -->
     <script src="assets/js/main.js"></script>
 
-    <!-- Sidebar dinâmica -->
-    <script>
+    <script type="module">
+        import { Anfitriao } from './assets/js/entities/anfitriao.js';
+
+        let anfitrioesList = [];
+
+        // UI References
+        const grid = document.getElementById('gridAnfitrioes');
+        const emptyState = document.getElementById('emptyState');
+        const loadingState = document.getElementById('loadingState');
+        const modal = document.getElementById('modalAnfitriao');
+        const modalBackdrop = document.getElementById('modalBackdrop');
+        const modalPanel = document.getElementById('modalPanel');
+        const form = document.getElementById('formAnfitriao');
+
+        window.addEventListener('DOMContentLoaded', init);
+
+        // Sidebar Loader (Copied logic ensuring it runs)
         fetch("assets/components/sidebar.html")
             .then(res => res.text())
             .then(html => {
-                document.getElementById("sidebar").innerHTML = html;
-                
-                const currentPage = window.location.pathname.split('/').pop();
-                const body = document.body;
-                const sidebarElement = document.querySelector('.sidebar');
-                const menuToggleButton = document.getElementById('menu-toggle'); // Menu toggle inside sidebar
-                const headerMenuToggleButton = document.getElementById('header-menu-toggle'); // Menu toggle in header
+                const sb = document.getElementById("sidebar");
+                if (sb) {
+                    sb.innerHTML = html;
+                    // Re-trigger visual updates if needed
+                    const evt = new Event('sidebar-loaded');
+                    document.dispatchEvent(evt);
 
-                function toggleSidebar() {
+                    // Attach logic manually since we are using modules context which might isolate scopes
+                    // Actually, main.js usually handles the toggle logic if it's generic.
+                    // Let's just ensure our toggle works.
+                    setupSidebarToggle();
+                }
+            });
+
+        function setupSidebarToggle() {
+            const btn = document.getElementById('header-menu-toggle');
+            const body = document.body;
+            if (btn) {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
                     body.classList.toggle('sidebar-open-mobile');
-                }
+                };
+            }
+        }
 
-                // Add listener for the hamburger menu button in the sidebar (if it exists)
-                if (menuToggleButton) {
-                    menuToggleButton.addEventListener('click', function(e) {
-                        e.stopPropagation(); 
-                        toggleSidebar();
-                    });
-                }
+        async function init() {
+            loadingState.classList.remove('hidden');
+            grid.innerHTML = '';
 
-                // Add listener for the hamburger menu button in the header (for mobile)
-                if (headerMenuToggleButton) {
-                    headerMenuToggleButton.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        toggleSidebar();
-                    });
-                }
+            try {
+                anfitrioesList = await Anfitriao.listarTodos();
+                renderCards(anfitrioesList);
+            } catch (err) {
+                console.error(err);
+                alert('Erro ao carregar dados. Verifique o console.');
+            } finally {
+                loadingState.classList.add('hidden');
+            }
 
-                // Close sidebar if clicking outside of it (mobile only)
-                document.addEventListener('click', function(e) {
-                    if (body.classList.contains('sidebar-open-mobile') && 
-                        !sidebarElement.contains(e.target) && 
-                        (menuToggleButton && !menuToggleButton.contains(e.target)) && 
-                        (headerMenuToggleButton && !headerMenuToggleButton.contains(e.target))) {
-                        toggleSidebar();
-                    }
-                });
+            // Buttons
+            document.getElementById('btnNovoAnfitriao').onclick = () => openModal();
+            document.getElementById('btnNovoAnfitriaoMobile').onclick = () => openModal();
+        }
 
-                // Logic to expand/collapse submenus and activate links
-                document.querySelectorAll('.sidebar a').forEach(link => {
-                    const href = link.getAttribute('href');
-                    const parentLi = link.closest('li');
+        function renderCards(list) {
+            grid.innerHTML = '';
+            if (list.length === 0) {
+                emptyState.classList.remove('hidden');
+                // Trigger fade in
+                setTimeout(() => emptyState.classList.remove('opacity-0'), 10);
+                return;
+            }
+            emptyState.classList.add('hidden');
+            emptyState.classList.add('opacity-0');
 
-                    // Handle active state and submenu expansion
-                    if (href === currentPage) {
-                        link.classList.add('active');
-                        const parentSubmenu = link.closest('.submenu');
-                        if (parentSubmenu) {
-                            parentSubmenu.style.display = 'block';
-                            const parentHasSubmenu = parentSubmenu.closest('.has-submenu');
-                            if (parentHasSubmenu) {
-                                parentHasSubmenu.classList.add('expanded');
-                            }
-                        }
-                        
-                        // Prevent default behavior if clicking on the active non-submenu link
-                        if (!parentLi.classList.contains('has-submenu')) {
-                            link.addEventListener('click', function(e) {
-                                e.preventDefault();
-                            });
-                        }
-                    } else {
-                        link.classList.remove('active');
-                    }
+            list.forEach(anf => {
+                const card = document.createElement('div');
+                card.className = "group relative bg-[var(--card)] rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 flex flex-col items-center text-center";
 
-                    // Close sidebar on mobile when a link is clicked (unless it's a submenu-toggle)
-                    link.addEventListener('click', function() {
-                        if (window.innerWidth <= 768 && !this.classList.contains('submenu-toggle')) {
-                            body.classList.remove('sidebar-open-mobile');
-                        }
-                    });
-                });
+                const initials = anf.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                const photoSrc = anf.foto || `https://ui-avatars.com/api/?name=${encodeURIComponent(anf.nome)}&background=random&color=fff`;
 
-                // Logic to expand/collapse submenus
-                document.querySelectorAll('.submenu-toggle').forEach(item => {
-                    item.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        const parentLi = this.closest('.has-submenu');
-                        parentLi.classList.toggle('expanded');
-                        const submenu = parentLi.querySelector('.submenu');
-                        if (submenu) {
-                            submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
-                        }
-                    });
-                });
-            })
-            .catch(err => console.error("Erro ao carregar sidebar: ", err));
-    </script>
+                card.innerHTML = `
+                    <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                         <button class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 text-blue-500 hover:bg-blue-500 hover:text-white flex items-center justify-center transition-colors"
+                            onclick="window.editarAnfitriao('${anf.codigoInterno}')" title="Editar">
+                            ✎
+                        </button>
+                        <button class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors"
+                            onclick="window.excluirAnfitriao('${anf.codigoInterno}')" title="Excluir">
+                            ✕
+                        </button>
+                    </div>
 
-    <!-- CRUD de Anfitriões -->
-    <script>
-        const tabela = document.querySelector('#tabelaAnfitrioes tbody');
-        const form = document.getElementById('formAnfitriao');
-        const campos = ['codigoInterno', 'nome', 'email', 'telefone', 'observacao'];
+                    <div class="w-24 h-24 mb-4 relative">
+                        <img src="${photoSrc}" alt="${anf.nome}" class="w-full h-full object-cover rounded-full shadow-md border-4 border-[var(--background)] group-hover:scale-105 transition-transform duration-300">
+                        <div class="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full" title="Ativo"></div>
+                    </div>
 
-        function carregarAnfitrioes() {
-            const anfitrioes = JSON.parse(localStorage.getItem('anfitrioes')) || [];
-            tabela.innerHTML = '';
-            anfitrioes.forEach((anfit, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${anfit.codigoInterno}</td>
-                    <td>${anfit.nome}</td>
-                    <td>${anfit.email || '-'}</td>
-                    <td>${anfit.telefone}</td>
-                    <td>
-                        <button class="action-btn" onclick="editarAnfitriao(${index})">✏️</button>
-                        <button class="action-btn" onclick="excluirAnfitriao(${index})">🗑️</button>
-                    </td>`;
-                tabela.appendChild(row);
+                    <h3 class="text-lg font-bold text-[var(--accent)] mb-1 leading-tight">${anf.nome}</h3>
+                    <p class="text-xs font-mono text-gray-400 mb-4">#${anf.codigoInterno}</p>
+
+                    <div class="w-full space-y-3 mt-auto">
+                        <a href="tel:${anf.telefone}" class="flex items-center justify-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-sm text-[var(--text)]">
+                            📞 ${anf.telefone}
+                        </a>
+                        ${anf.email ? `
+                        <a href="mailto:${anf.email}" class="flex items-center justify-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-sm text-[var(--text)] truncate">
+                            ✉️ ${anf.email}
+                        </a>` : ''}
+                    </div>
+                `;
+                grid.appendChild(card);
             });
         }
 
-        function salvarAnfitriao(e) {
-            e.preventDefault();
-            const anfitrioes = JSON.parse(localStorage.getItem('anfitrioes')) || [];
-            const anfit = {};
-            campos.forEach(c => anfit[c] = document.getElementById(c).value);
+        // Global handlers for HTML onclick compatibility
+        window.openModal = (anf = null) => {
+            modal.classList.remove('hidden');
+            // Animate In
+            setTimeout(() => {
+                modalBackdrop.classList.remove('opacity-0');
+                modalPanel.classList.remove('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
+                modalPanel.classList.add('opacity-100', 'translate-y-0', 'sm:scale-100');
+            }, 10);
 
-            if (!anfit.codigoInterno) {
-                const lastCode = anfitrioes.length ? anfitrioes[anfitrioes.length - 1].codigoInterno : 500;
-                anfit.codigoInterno = Number(lastCode) + 1;
-            }
-
-            const editIndex = document.getElementById('anfitriaoId').value;
-            if (editIndex) anfitrioes[editIndex] = anfit;
-            else anfitrioes.push(anfit);
-
-            localStorage.setItem('anfitrioes', JSON.stringify(anfitrioes));
+            // Reset or Fill Form
             form.reset();
-            document.getElementById('codigoInterno').value = '';
-            document.getElementById('anfitriaoId').value = '';
-            carregarAnfitrioes();
-        }
+            const preview = document.getElementById('imgPreview');
+            const title = document.getElementById('modalTitle');
 
-        function editarAnfitriao(index) {
-            const anfitrioes = JSON.parse(localStorage.getItem('anfitrioes')) || [];
-            const anfit = anfitrioes[index];
-            campos.forEach(c => document.getElementById(c).value = anfit[c] || '');
-            document.getElementById('anfitriaoId').value = index;
-        }
-
-        function excluirAnfitriao(index) {
-            if (confirm('Excluir este anfitrião?')) {
-                const anfitrioes = JSON.parse(localStorage.getItem('anfitrioes')) || [];
-                anfitrioes.splice(index, 1);
-                localStorage.setItem('anfitrioes', JSON.stringify(anfitrioes));
-                carregarAnfitrioes();
+            if (anf) {
+                title.textContent = "Editar Anfitrião";
+                document.getElementById('anfitriaoId').value = anf.codigoInterno;
+                document.getElementById('firestoreId').value = anf.firestoreId;
+                document.getElementById('nome').value = anf.nome;
+                document.getElementById('telefone').value = anf.telefone;
+                document.getElementById('email').value = anf.email || '';
+                document.getElementById('observacao').value = anf.observacao || '';
+                document.getElementById('codigoInterno').value = anf.codigoInterno;
+                preview.src = anf.foto || `https://ui-avatars.com/api/?name=${encodeURIComponent(anf.nome)}`;
+            } else {
+                title.textContent = "Novo Anfitrião";
+                document.getElementById('anfitriaoId').value = '';
+                document.getElementById('firestoreId').value = '';
+                document.getElementById('codigoInterno').value = '';
+                preview.src = "https://ui-avatars.com/api/?name=Novo+Anfitriao&background=random";
             }
-        }
+        };
 
-        form.addEventListener('submit', salvarAnfitriao);
-        window.addEventListener('DOMContentLoaded', carregarAnfitrioes);
+        window.closeModal = () => {
+            modalBackdrop.classList.add('opacity-0');
+            modalPanel.classList.remove('opacity-100', 'translate-y-0', 'sm:scale-100');
+            modalPanel.classList.add('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        };
+
+        window.editarAnfitriao = (id) => {
+            const anf = anfitrioesList.find(a => a.codigoInterno == id);
+            if (anf) window.openModal(anf);
+        };
+
+        window.excluirAnfitriao = async (id) => {
+            if (confirm(`Tem certeza que deseja excluir o anfitrião #${id}?`)) {
+                try {
+                    await Anfitriao.excluir(id);
+                    await init();
+                    // Optional: Show Toast
+                } catch (err) {
+                    alert("Erro ao excluir. Tente novamente.");
+                }
+            }
+        };
+
+        window.previewImage = (input) => {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('imgPreview').src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        };
+
+        window.handleSave = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSalvar');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<span class="animate-spin">⌛</span> Salvando...`;
+            btn.disabled = true;
+
+            try {
+                const id = document.getElementById('anfitriaoId').value;
+                const firestoreId = document.getElementById('firestoreId').value;
+                const fotoInput = document.getElementById('fotoInput');
+
+                let foto = document.getElementById('imgPreview').src;
+
+                // If the src is an avatar URL and user didn't upload new one, keep it null to generate fresh avatars
+                // But if editing, we want to keep the old one. 
+                // Let's assume if it contains 'ui-avatars' and no file selected, we don't save it as 'foto' data unless it was already saved.
+                // Better approach: Read base64 ONLY if file is selected, or use existing `foto` from object if editing.
+
+                // If editing and no new file, keep current.
+                // If new and no file, keep null.
+
+                let existingAnf = id ? anfitrioesList.find(a => a.codigoInterno == id) : null;
+                let finalFoto = existingAnf ? existingAnf.foto : null;
+
+                if (fotoInput.files.length > 0) {
+                    // Convert to base64
+                    finalFoto = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.readAsDataURL(fotoInput.files[0]);
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = error => reject(error);
+                    });
+
+                    // Rough Size Check (Base64 string len * 0.75 = bytes). Limit to ~1MB
+                    if (finalFoto.length > 1500000) {
+                        alert("A imagem é muito grande! Por favor escolha uma imagem menor que 1MB.");
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        return;
+                    }
+                }
+
+                const data = {
+                    codigoInterno: id ? parseInt(id) : null,
+                    firestoreId: firestoreId,
+                    nome: document.getElementById('nome').value,
+                    email: document.getElementById('email').value,
+                    telefone: document.getElementById('telefone').value,
+                    observacao: document.getElementById('observacao').value,
+                    foto: finalFoto
+                };
+
+                await Anfitriao.salvar(data);
+                window.closeModal();
+                await init();
+
+            } catch (err) {
+                console.error(err);
+                alert("Erro ao salvar. Verifique o console.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        };
     </script>
 </body>
+
 </html>
