@@ -6,707 +6,765 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZenStay | Imóveis</title>
 
+    <!-- Tailwind & Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- External CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/components.css">
-    <link rel="stylesheet" href="assets/css/imoveis.css">
     <link rel="stylesheet" href="assets/css/toast.css">
     <link rel="stylesheet" href="theme/dark.css" id="theme-style">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        dark: '#0f172a',
+                        surface: '#1e293b',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Glassmorphism & Base Styles */
+        body {
+            background-color: #f8fafc;
+        }
+
+        body.dark-mode {
+            background-color: #020617;
+            /* Slate 950 */
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            /* Slate 900 with opacity */
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        .input-animated {
+            transition: all 0.3s ease;
+        }
+
+        .input-animated:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.3);
+        }
+
+        .card-hoverable {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-hoverable:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Toggle Switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #3B82F6;
+        }
+
+        .toggle-checkbox:checked+.toggle-label {
+            background-color: #3B82F6;
+        }
+
+        /* Status Badges */
+        .badge-Liberado {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-Locado {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-EmLimpeza {
+            background: #fef9c3;
+            color: #854d0e;
+        }
+
+        /* "Em limpeza" fallback handled in JS */
+        .badge-Suspenso {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .badge-Inativo {
+            background: #1e293b;
+            color: #94a3b8;
+        }
+
+        body.dark-mode .badge-Liberado {
+            background: #14532d;
+            color: #dcfce7;
+            border: 1px solid #166534;
+        }
+
+        body.dark-mode .badge-Locado {
+            background: #7f1d1d;
+            color: #fecaca;
+            border: 1px solid #991b1b;
+        }
+
+        body.dark-mode .badge-EmLimpeza {
+            background: #713f12;
+            color: #fef08a;
+            border: 1px solid #854d0e;
+        }
+
+        body.dark-mode .badge-Suspenso {
+            background: #374151;
+            color: #e5e7eb;
+            border: 1px solid #4b5563;
+        }
+
+        body.dark-mode .badge-Inativo {
+            background: #0f172a;
+            color: #64748b;
+            border: 1px solid #1e293b;
+        }
+    </style>
 </head>
 
-<body>
-    <!-- Sidebar dinâmica -->
-    <div id="sidebar"></div>
+<body class="antialiased transition-colors duration-300">
 
-    <main class="content">
-        <header class="header">
-            <button class="menu-toggle" id="header-menu-toggle">☰</button>
-            <h1 id="main-title">🏡 Gerenciar Imóveis</h1>
-            <button id="toggle-theme">🌓</button>
+    <!-- Sidebar Wrapper -->
+    <div id="sidebar" class="fixed inset-y-0 left-0 z-50"></div>
+
+    <main class="content transition-all duration-300 min-h-screen flex flex-col md:ml-[220px]">
+
+        <!-- Header -->
+        <header
+            class="sticky top-0 z-40 glass-panel border-b border-gray-200/50 dark:border-gray-800/50 px-6 py-4 flex justify-between items-center mr-6 mt-6 rounded-2xl mx-4 lg:mx-8">
+            <div class="flex items-center gap-4">
+                <button class="menu-toggle md:hidden text-2xl text-slate-600 dark:text-slate-300"
+                    id="header-menu-toggle">
+                    ☰
+                </button>
+                <div>
+                    <h1
+                        class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+                        Imóveis
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Gerenciamento de Propriedades
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button id="toggle-theme"
+                    class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xl shadow-sm hover:shadow-md transition-all">
+                    🌓
+                </button>
+                <button id="btnNovoImovel"
+                    class="hidden sm:flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-blue-500/30 transition-all transform hover:-translate-y-0.5 font-medium">
+                    <span class="text-lg">+</span> Novo Imóvel
+                </button>
+            </div>
         </header>
 
-        <!-- Seção de Gerenciamento de Imóveis -->
-        <section class="dashboard" id="gerenciar-imoveis-section">
-            <div class="card"
-                style="flex: 1 1 100%; background: transparent; box-shadow: none; padding: 0; border: none;">
+        <!-- Mobile FAB -->
+        <button id="btnNovoImovelMobile"
+            class="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-2xl flex items-center justify-center text-3xl z-40 hover:scale-110 transition-transform">
+            +
+        </button>
 
-                <div class="imoveis-header-actions">
-                    <div class="section-title">
-                        <span>📋</span> Lista de Imóveis
+        <section class="p-4 lg:p-8 space-y-8 max-w-[1600px] mx-auto w-full relative">
+
+            <!-- Filters & Search -->
+            <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div class="relative w-full md:w-96">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span class="text-slate-400 text-lg">🔍</span>
                     </div>
-                    <button id="adicionarImovelBtn">
-                        <span>➕</span> Adicionar Imóvel
-                    </button>
+                    <input type="text" id="filtroBusca"
+                        class="pl-10 pr-4 py-3 w-full rounded-xl border-none ring-1 ring-slate-200 dark:ring-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 shadow-sm transition-all text-slate-600 dark:text-slate-200 placeholder-slate-400"
+                        placeholder="Buscar por nome, apelido, endereço...">
                 </div>
 
-                <div id="formImovelContainer" style="display: none;">
-                    <h3>➕ Cadastrar Novo Imóvel</h3>
-                    <form id="formImovel">
-                        <input type="hidden" id="imovelId">
+                <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+                    <select id="filtroStatus"
+                        class="px-4 py-3 rounded-xl border-none ring-1 ring-slate-200 dark:ring-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 shadow-sm cursor-pointer outline-none">
+                        <option value="">Todos os Status</option>
+                        <option value="Liberado">✅ Liberado</option>
+                        <option value="Locado">🏠 Locado</option>
+                        <option value="Em limpeza">🧹 Em limpeza</option>
+                        <option value="Suspenso">⏸️ Suspenso</option>
+                        <option value="Inativo">⛔ Inativo</option>
+                    </select>
+                </div>
+            </div>
 
-                        <div class="form-row">
-                            <div class="input-group">
-                                <span>#️⃣</span>
-                                <input type="number" id="codigo" placeholder="Código (auto)" readonly>
-                            </div>
-                            <div class="input-group">
-                                <span>🏷️</span>
-                                <input type="text" id="apelido" placeholder="Apelido do imóvel" required>
-                            </div>
+            <!-- Grid Layout for Properties -->
+            <div id="gridImoveis" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+                <!-- Cards Injected Here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState"
+                class="hidden flex flex-col items-center justify-center py-24 opacity-0 transition-opacity duration-500">
+                <div
+                    class="w-24 h-24 bg-blue-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center mb-4">
+                    <span class="text-4xl">🏠</span>
+                </div>
+                <h3 class="text-xl font-bold text-slate-700 dark:text-slate-200">Nenhum imóvel encontrado</h3>
+                <p class="text-slate-400">Tente ajustar seus filtros ou cadastre um novo imóvel.</p>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Slide-Over Modal for Create/Edit -->
+    <div id="modalImovel" class="fixed inset-0 z-[60] hidden" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity opacity-0" id="modalBackdrop">
+        </div>
+
+        <div class="fixed inset-y-0 right-0 flex max-w-full pl-0 sm:pl-10 pointer-events-none">
+            <div class="pointer-events-auto w-screen max-w-2xl transform transition ease-in-out duration-500 translate-x-full"
+                id="modalPanel">
+                <div class="flex h-full flex-col bg-white dark:bg-slate-900 shadow-2xl">
+
+                    <!-- Header -->
+                    <div
+                        class="px-6 py-6 bg-gradient-to-r from-blue-600 to-indigo-600 flex justify-between items-center shrink-0">
+                        <div>
+                            <h2 class="text-xl font-semibold text-white" id="modalTitle">Novo Imóvel</h2>
+                            <p class="text-blue-100 text-sm mt-1">Preencha os detalhes da propriedade.</p>
                         </div>
+                        <button onclick="closeModal()" type="button"
+                            class="rounded-full p-2 bg-white/20 hover:bg-white/30 text-white transition-colors focus:outline-none">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
 
-                        <div class="form-row">
-                            <div class="input-group">
-                                <span>📝</span>
-                                <input type="text" id="nome" placeholder="Nome do imóvel" required>
-                            </div>
-                            <div class="input-group">
-                                <span>🚩</span>
-                                <select id="situacao" required>
-                                    <option value="Liberado">Liberado</option>
-                                    <option value="Locado">Locado</option>
-                                    <option value="Em limpeza">Em limpeza</option>
-                                    <option value="Suspenso">Suspenso</option>
-                                    <option value="Inativo">Inativo</option>
-                                </select>
-                            </div>
-                        </div>
+                    <!-- Body (Scrollable) -->
+                    <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-8">
+                        <form id="formImovel" class="space-y-8">
+                            <input type="hidden" id="imovelId">
 
-                        <div class="form-row">
-                            <div class="input-group">
-                                <span>📍</span>
-                                <input type="text" id="endereco" placeholder="Endereço completo" required>
+                            <!-- Image Upload Section -->
+                            <div class="flex flex-col items-center gap-4">
+                                <div class="relative w-full h-64 bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden border-2 border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center group cursor-pointer transition-colors hover:border-blue-500"
+                                    onclick="document.getElementById('fotoImovel').click()">
+                                    <img id="imgPreview" src=""
+                                        class="absolute inset-0 w-full h-full object-cover hidden">
+                                    <div class="text-center p-6 group-hover:scale-105 transition-transform"
+                                        id="uploadPlaceholder">
+                                        <div
+                                            class="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+                                            📷
+                                        </div>
+                                        <p class="text-sm font-medium text-slate-600 dark:text-slate-300">Clique para
+                                            adicionar foto</p>
+                                        <p class="text-xs text-slate-400 mt-1">PNG, JPG até 5MB</p>
+                                    </div>
+                                    <input type="file" id="fotoImovel" accept="image/*" class="hidden"
+                                        onchange="previewImage(event)">
+                                </div>
                             </div>
-                            <div class="input-group">
-                                <span>🗺️</span>
-                                <input type="text" id="googleMapsLink" placeholder="Link do Google Maps">
-                            </div>
-                        </div>
 
-                        <div class="form-row">
-                            <div class="input-group">
-                                <span>👨‍👩‍👧‍👦</span>
-                                <input type="number" id="capacidadeAdulto" placeholder="Capacidade Adulto" min="0"
-                                    required>
+                            <!-- Basic Info -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Código</label>
+                                    <input type="text" id="codigo" readonly
+                                        class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl text-slate-500 text-sm p-4 font-mono"
+                                        placeholder="Automático">
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Apelido
+                                        (Interno)</label>
+                                    <input type="text" id="apelido" required
+                                        class="w-full input-animated bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-500 outline-none dark:text-white"
+                                        placeholder="Ex: Casa Praia">
+                                </div>
                             </div>
-                            <div class="input-group">
-                                <span>👶</span>
-                                <input type="number" id="capacidadeCrianca" placeholder="Capacidade Criança" min="0"
-                                    required>
-                            </div>
-                        </div>
 
-                        <div class="form-row">
-                            <div class="input-group switch-group">
-                                <span>🐾</span>
-                                <label class="switch">
-                                    <input type="checkbox" id="aceitaPet">
-                                    <span class="slider round"></span>
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nome
+                                    Público</label>
+                                <input type="text" id="nome" required
+                                    class="w-full input-animated bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-500 outline-none dark:text-white"
+                                    placeholder="Ex: Mansão Vista Mar">
+                            </div>
+
+                            <!-- Location -->
+                            <div
+                                class="space-y-4 p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                                <h3
+                                    class="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                                    📍 Localização
+                                </h3>
+                                <div>
+                                    <input type="text" id="endereco"
+                                        class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 outline-none dark:text-white text-sm"
+                                        placeholder="Endereço completo">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xl">🗺️</span>
+                                    <input type="url" id="googleMapsLink"
+                                        class="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 outline-none dark:text-white text-sm"
+                                        placeholder="Link do Google Maps">
+                                </div>
+                            </div>
+
+                            <!-- Details -->
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Status</label>
+                                    <select id="situacao"
+                                        class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 focus:ring-2 focus:ring-blue-500 outline-none dark:text-white text-sm">
+                                        <option value="Liberado">Liberado</option>
+                                        <option value="Locado">Locado</option>
+                                        <option value="Em limpeza">Em limpeza</option>
+                                        <option value="Suspenso">Suspenso</option>
+                                        <option value="Inativo">Inativo</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Adultos</label>
+                                    <input type="number" id="capacidadeAdulto" min="0"
+                                        class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 focus:ring-2 focus:ring-blue-500 outline-none dark:text-white text-sm">
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Crianças</label>
+                                    <input type="number" id="capacidadeCrianca" min="0"
+                                        class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 focus:ring-2 focus:ring-blue-500 outline-none dark:text-white text-sm">
+                                </div>
+                            </div>
+
+                            <!-- Pet Toggle -->
+                            <div
+                                class="flex items-center justify-between p-4 bg-blue-50 dark:bg-slate-800/80 rounded-xl border border-blue-100 dark:border-slate-700">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-2xl">🐾</span>
+                                    <div>
+                                        <p class="font-semibold text-slate-700 dark:text-white text-sm">Aceita Pets?</p>
+                                        <p class="text-xs text-slate-400">Permitir animais de estimação</p>
+                                    </div>
+                                </div>
+                                <label for="aceitaPet" class="relative inline-block w-12 h-6 cursor-pointer">
+                                    <input type="checkbox" id="aceitaPet" class="sr-only peer">
+                                    <div
+                                        class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600">
+                                    </div>
                                 </label>
-                                <label for="aceitaPet" style="margin-left: 10px;">Aceita Pet</label>
                             </div>
-                        </div>
 
-                        <div class="form-row">
-                            <textarea id="descricao" placeholder="Descrição da casa..."></textarea>
-                        </div>
-
-                        <div class="form-row">
-                            <textarea id="instrucoesGerais" placeholder="Instruções Gerais..."></textarea>
-                        </div>
-
-                        <div class="form-row">
-                            <textarea id="instrucoesChegada" placeholder="Instruções para chegar..."></textarea>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="input-group">
-                                <span>📷</span>
-                                <input type="file" id="fotoImovel" accept="image/*">
+                            <!-- Descriptions -->
+                            <div class="space-y-4">
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Descrição</label>
+                                    <textarea id="descricao" rows="3"
+                                        class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 outline-none dark:text-white text-sm resize-none"></textarea>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label
+                                            class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Instruções
+                                            Gerais</label>
+                                        <textarea id="instrucoesGerais" rows="3"
+                                            class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 outline-none dark:text-white text-sm resize-none"></textarea>
+                                    </div>
+                                    <div>
+                                        <label
+                                            class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Instruções
+                                            Chegada</label>
+                                        <textarea id="instrucoesChegada" rows="3"
+                                            class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 outline-none dark:text-white text-sm resize-none"></textarea>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="input-group">
-                                <img id="previewFotoImovel" src="" alt="Pré-visualização da Foto"
-                                    style="max-width: 100px; max-height: 100px; display: none; margin-top: 10px; border-radius: 5px;">
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn">💾 Salvar Imóvel</button>
-                    </form>
-                </div>
-
-                <div id="imoveisCardsContainer"></div>
-            </div>
-        </section>
-
-        <!-- Seção de Gerenciamento de Cômodos -->
-        <section class="dashboard" id="comodos-imovel-section" style="display: none;">
-            <div class="card"
-                style="flex: 1 1 100%; background: transparent; box-shadow: none; padding: 0; border: none;">
-
-                <!-- Header & Filter -->
-                <div class="imoveis-header-actions">
-                    <div class="section-title">
-                        <span>🚪</span> Gerenciar Cômodos
-                    </div>
-                    <div class="filter-group" style="flex: 1; max-width: 400px; margin-left: auto; margin-right: 20px;">
-                        <select id="selectImovelComodos" class="modern-select"
-                            style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text);">
-                            <option value="">Selecione um Imóvel para gerenciar</option>
-                        </select>
-                    </div>
-                    <button id="btnNovoComodo"
-                        style="display: none; background: linear-gradient(135deg, var(--accent), var(--hover-accent)); color: #fff; border: none; padding: 12px 28px; border-radius: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 191, 166, 0.3);">
-                        <span>➕</span> Novo Cômodo
-                    </button>
-                </div>
-
-                <!-- Form (Hidden by default) -->
-                <div id="formComodoContainer"
-                    style="display: none; background: var(--card); border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-                    <h3
-                        style="margin-bottom: 20px; color: var(--accent); display: flex; align-items: center; gap: 10px;">
-                        <span id="formTitleComodo">➕ Adicionar Cômodo</span>
-                    </h3>
-                    <form id="formComodo">
-                        <input type="hidden" id="comodoId">
-                        <div class="form-row">
-                            <div class="input-group" style="flex: 0 0 150px;">
-                                <span>#️⃣</span>
-                                <input type="number" id="codigoComodo" placeholder="Auto" readonly
-                                    style="background: rgba(255,255,255,0.05);">
-                            </div>
-                            <div class="input-group" style="flex: 2;">
-                                <span>📝</span>
-                                <input type="text" id="nomeComodo" placeholder="Nome do cômodo (ex: Suíte Master)"
-                                    required>
-                            </div>
-                            <div class="input-group" style="flex: 1;">
-                                <span>✨</span>
-                                <select id="iconeComodo" required>
-                                    <option value="">Ícone</option>
-                                    <option value="🛋️">🛋️ Sala</option>
-                                    <option value="🛏️">🛏️ Quarto</option>
-                                    <option value="🚽">🚽 Banheiro</option>
-                                    <option value="🍽️">🍽️ Cozinha</option>
-                                    <option value="🧺">🧺 Lavanderia</option>
-                                    <option value="🚪">🚪 Corredor</option>
-                                    <option value="🌅">🌅 Varanda</option>
-                                    <option value="🏊">🏊 Piscina</option>
-                                    <option value="🌳">🌳 Jardim</option>
-                                    <option value="🚗">🚗 Garagem</option>
-                                    <option value="💻">💻 Escritório</option>
-                                    <option value="📺">📺 Sala de TV</option>
-                                    <option value="💡">💡 Outro</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-actions"
-                            style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-                            <button type="button" class="btn btn-secondary" id="cancelarComodo">❌ Cancelar</button>
-                            <button type="submit" class="btn">💾 Salvar</button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Empty State -->
-                <div id="emptyStateComodos"
-                    style="text-align: center; padding: 50px; color: var(--text); opacity: 0.7;">
-                    <p style="font-size: 1.2rem;">👆 Selecione um imóvel acima para gerenciar seus cômodos.</p>
-                </div>
-
-                <!-- List/Table -->
-                <div id="listaComodosContainer" style="display: none;">
-                    <div class="card" style="padding: 0; overflow: hidden;">
-                        <table id="tabelaComodos" style="width: 100%; border-collapse: collapse;">
-                            <thead style="background: rgba(0,0,0,0.2);">
-                                <tr>
-                                    <th style="padding: 15px; text-align: left; color: var(--accent);">Ícone</th>
-                                    <th style="padding: 15px; text-align: left; color: var(--accent);">Nome</th>
-                                    <th style="padding: 15px; text-align: left; color: var(--accent);">Cód.</th>
-                                    <th style="padding: 15px; text-align: right; color: var(--accent);">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-                <button id="adicionarImovelBtn">
-                    <span>➕</span> Adicionar Imóvel
-                </button>
-            </div>
-
-            <div id="formImovelContainer" style="display: none;">
-                <h3>➕ Cadastrar Novo Imóvel</h3>
-                <form id="formImovel">
-                    <input type="hidden" id="imovelId">
-
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>#️⃣</span>
-                            <input type="number" id="codigo" placeholder="Código (auto)" readonly>
-                        </div>
-                        <div class="input-group">
-                            <span>🏷️</span>
-                            <input type="text" id="apelido" placeholder="Apelido do imóvel" required>
-                        </div>
+                        </form>
                     </div>
 
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>📝</span>
-                            <input type="text" id="nome" placeholder="Nome do imóvel" required>
-                        </div>
-                        <div class="input-group">
-                            <span>🚩</span>
-                            <select id="situacao" required>
-                                <option value="Liberado">Liberado</option>
-                                <option value="Locado">Locado</option>
-                                <option value="Em limpeza">Em limpeza</option>
-                                <option value="Suspenso">Suspenso</option>
-                                <option value="Inativo">Inativo</option>
-                            </select>
-                        </div>
+                    <!-- Footer -->
+                    <div
+                        class="border-t border-slate-200 dark:border-slate-700 px-6 py-6 bg-slate-50 dark:bg-slate-900/50 shrink-0 flex gap-3">
+                        <button type="button" onclick="closeModal()"
+                            class="flex-1 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">Cancelar</button>
+                        <button type="button" onclick="salvarImovel(event)"
+                            class="flex-1 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 text-sm font-bold shadow-lg shadow-blue-500/30 transition-all transform hover:-translate-y-0.5">Salvar
+                            Imóvel</button>
                     </div>
-
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>📍</span>
-                            <input type="text" id="endereco" placeholder="Endereço completo" required>
-                        </div>
-                        <div class="input-group">
-                            <span>🗺️</span>
-                            <input type="text" id="googleMapsLink" placeholder="Link do Google Maps">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>👨‍👩‍👧‍👦</span>
-                            <input type="number" id="capacidadeAdulto" placeholder="Capacidade Adulto" min="0" required>
-                        </div>
-                        <div class="input-group">
-                            <span>👶</span>
-                            <input type="number" id="capacidadeCrianca" placeholder="Capacidade Criança" min="0"
-                                required>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="input-group switch-group">
-                            <span>🐾</span>
-                            <label class="switch">
-                                <input type="checkbox" id="aceitaPet">
-                                <span class="slider round"></span>
-                            </label>
-                            <label for="aceitaPet" style="margin-left: 10px;">Aceita Pet</label>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <textarea id="descricao" placeholder="Descrição da casa..."></textarea>
-                    </div>
-
-                    <div class="form-row">
-                        <textarea id="instrucoesGerais" placeholder="Instruções Gerais..."></textarea>
-                    </div>
-
-                    <div class="form-row">
-                        <textarea id="instrucoesChegada" placeholder="Instruções para chegar..."></textarea>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>📷</span>
-                            <input type="file" id="fotoImovel" accept="image/*">
-                        </div>
-                        <div class="input-group">
-                            <img id="previewFotoImovel" src="" alt="Pré-visualização da Foto"
-                                style="max-width: 100px; max-height: 100px; display: none; margin-top: 10px; border-radius: 5px;">
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn">💾 Salvar Imóvel</button>
-                </form>
-            </div>
-
-            <div id="imoveisCardsContainer"></div>
-            </div>
-        </section>
-
-        <!-- Seção de Gerenciamento de Cômodos -->
-        <section class="dashboard" id="comodos-imovel-section" style="display: none;">
-            <div class="card"
-                style="flex: 1 1 100%; background: transparent; box-shadow: none; padding: 0; border: none;">
-
-                <!-- Header & Filter -->
-                <div class="imoveis-header-actions">
-                    <div class="section-title">
-                        <span>🚪</span> Gerenciar Cômodos
-                    </div>
-                    <div class="filter-group" style="flex: 1; max-width: 400px; margin-left: auto; margin-right: 20px;">
-                        <select id="selectImovelComodos" class="modern-select"
-                            style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text);">
-                            <option value="">Selecione um Imóvel para gerenciar</option>
-                        </select>
-                    </div>
-                    <button id="btnNovoComodo"
-                        style="display: none; background: linear-gradient(135deg, var(--accent), var(--hover-accent)); color: #fff; border: none; padding: 12px 28px; border-radius: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 191, 166, 0.3);">
-                        <span>➕</span> Novo Cômodo
-                    </button>
-                </div>
-
-                <!-- Form (Hidden by default) -->
-                <div id="formComodoContainer"
-                    style="display: none; background: var(--card); border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-                    <h3
-                        style="margin-bottom: 20px; color: var(--accent); display: flex; align-items: center; gap: 10px;">
-                        <span id="formTitleComodo">➕ Adicionar Cômodo</span>
-                    </h3>
-                    <form id="formComodo">
-                        <input type="hidden" id="comodoId">
-                        <div class="form-row">
-                            <div class="input-group" style="flex: 0 0 150px;">
-                                <span>#️⃣</span>
-                                <input type="number" id="codigoComodo" placeholder="Auto" readonly
-                                    style="background: rgba(255,255,255,0.05);">
-                            </div>
-                            <div class="input-group" style="flex: 2;">
-                                <span>📝</span>
-                                <input type="text" id="nomeComodo" placeholder="Nome do cômodo (ex: Suíte Master)"
-                                    required>
-                            </div>
-                            <div class="input-group" style="flex: 1;">
-                                <span>✨</span>
-                                <select id="iconeComodo" required>
-                                    <option value="">Ícone</option>
-                                    <option value="🛋️">🛋️ Sala</option>
-                                    <option value="🛏️">🛏️ Quarto</option>
-                                    <option value="🚽">🚽 Banheiro</option>
-                                    <option value="🍽️">🍽️ Cozinha</option>
-                                    <option value="🧺">🧺 Lavanderia</option>
-                                    <option value="🚪">🚪 Corredor</option>
-                                    <option value="🌅">🌅 Varanda</option>
-                                    <option value="🏊">🏊 Piscina</option>
-                                    <option value="🌳">🌳 Jardim</option>
-                                    <option value="🚗">🚗 Garagem</option>
-                                    <option value="💻">💻 Escritório</option>
-                                    <option value="📺">📺 Sala de TV</option>
-                                    <option value="💡">💡 Outro</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-actions"
-                            style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-                            <button type="button" class="btn btn-secondary" id="cancelarComodo">❌ Cancelar</button>
-                            <button type="submit" class="btn">💾 Salvar</button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Empty State -->
-                <div id="emptyStateComodos"
-                    style="text-align: center; padding: 50px; color: var(--text); opacity: 0.7;">
-                    <p style="font-size: 1.2rem;">👆 Selecione um imóvel acima para gerenciar seus cômodos.</p>
-                </div>
-
-                <!-- List/Table -->
-                <div id="listaComodosContainer" style="display: none;">
-                    <div class="card" style="padding: 0; overflow: hidden;">
-                        <table id="tabelaComodos" style="width: 100%; border-collapse: collapse;">
-                            <thead style="background: rgba(0,0,0,0.2);">
-                                <tr>
-                                    <th style="padding: 15px; text-align: left; color: var(--accent);">Ícone</th>
-                                    <th style="padding: 15px; text-align: left; color: var(--accent);">Nome</th>
-                                    <th style="padding: 15px; text-align: left; color: var(--accent);">Cód.</th>
-                                    <th style="padding: 15px; text-align: right; color: var(--accent);">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-                <button id="adicionarImovelBtn">
-                    <span>➕</span> Adicionar Imóvel
-                </button>
-            </div>
-
-            <div id="formImovelContainer" style="display: none;">
-                <h3>➕ Cadastrar Novo Imóvel</h3>
-                <form id="formImovel">
-                    <input type="hidden" id="imovelId">
-
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>#️⃣</span>
-                            <input type="number" id="codigo" placeholder="Código (auto)" readonly>
-                        </div>
-                        <div class="input-group">
-                            <span>🏷️</span>
-                            <input type="text" id="apelido" placeholder="Apelido do imóvel" required>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>📝</span>
-                            <input type="text" id="nome" placeholder="Nome do imóvel" required>
-                        </div>
-                        <div class="input-group">
-                            <span>🚩</span>
-                            <select id="situacao" required>
-                                <option value="Liberado">Liberado</option>
-                                <option value="Locado">Locado</option>
-                                <option value="Em limpeza">Em limpeza</option>
-                                <option value="Suspenso">Suspenso</option>
-                                <option value="Inativo">Inativo</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>📍</span>
-                            <input type="text" id="endereco" placeholder="Endereço completo" required>
-                        </div>
-                        <div class="input-group">
-                            <span>🗺️</span>
-                            <input type="text" id="googleMapsLink" placeholder="Link do Google Maps">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>👨‍👩‍👧‍👦</span>
-                            <input type="number" id="capacidadeAdulto" placeholder="Capacidade Adulto" min="0" required>
-                        </div>
-                        <div class="input-group">
-                            <span>👶</span>
-                            <input type="number" id="capacidadeCrianca" placeholder="Capacidade Criança" min="0"
-                                required>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="input-group switch-group">
-                            <span>🐾</span>
-                            <label class="switch">
-                                <input type="checkbox" id="aceitaPet">
-                                <span class="slider round"></span>
-                            </label>
-                            <label for="aceitaPet" style="margin-left: 10px;">Aceita Pet</label>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <textarea id="descricao" placeholder="Descrição da casa..."></textarea>
-                    </div>
-
-                    <div class="form-row">
-                        <textarea id="instrucoesGerais" placeholder="Instruções Gerais..."></textarea>
-                    </div>
-
-                    <div class="form-row">
-                        <textarea id="instrucoesChegada" placeholder="Instruções para chegar..."></textarea>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>📷</span>
-                            <input type="file" id="fotoImovel" accept="image/*">
-                        </div>
-                        <div class="input-group">
-                            <img id="previewFotoImovel" src="" alt="Pré-visualização da Foto"
-                                style="max-width: 100px; max-height: 100px; display: none; margin-top: 10px; border-radius: 5px;">
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn">💾 Salvar Imóvel</button>
-                </form>
-            </div>
-
-            <div id="imoveisCardsContainer"></div>
-            </div>
-        </section>
-
-
-
-        <!-- Modal de visualização do Imóvel -->
-        <div id="imovelModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <span class="close-button" onclick="fecharModal()">&times;</span>
-                <h3 id="modalImovelApelido"></h3>
-                <div class="modal-body-content">
-                    <div class="modal-image-container">
-                        <img id="modalImovelFoto" src="" alt="Foto do Imóvel">
-                    </div>
-                    <div class="modal-details-container">
-                        <p id="modalImovelNome"></p>
-                        <p id="modalImovelEndereco"></p>
-                        <p id="modalImovelSituacao"></p>
-                        <p id="modalImovelCapacidadeAdulto"></p>
-                        <p id="modalImovelCapacidadeCrianca"></p>
-                        <p id="modalImovelAceitaPet"></p>
-                        <p id="modalImovelMoveis"></p>
-                        <p id="modalImovelUtensilios"></p>
-                        <p id="modalImovelDescricao"></p>
-                        <p id="modalImovelInstrucoesGerais"></p>
-                    </div>
-                </div>
-                <div class="modal-actions">
-                    <button class="btn" onclick="editarImovelModal()">✏️ Editar</button>
-                    <button class="btn btn-danger" onclick="excluirImovelModal()">🗑️ Excluir</button>
                 </div>
             </div>
         </div>
+    </div>
 
-    </main>
 
-    <!-- Scripts Essenciais -->
+    <!-- Scripts -->
     <script src="assets/js/storage.js"></script>
     <script src="assets/js/main.js"></script>
     <script src="assets/js/toast.js"></script>
+    <script type="module" src="assets/js/entities/imovel.js"></script>
 
-    <!-- Scripts de Lógica de Página -->
-    <script type="module" src="assets/js/imoveis.js"></script>
+    <script type="module">
+        import { Imovel } from './assets/js/entities/imovel.js';
 
+        let imoveisCache = [];
+        let currentPhotoBase64 = null;
 
+        // UI Refs
+        const grid = document.getElementById('gridImoveis');
+        const emptyState = document.getElementById('emptyState');
+        const modal = document.getElementById('modalImovel');
+        const modalBackdrop = document.getElementById('modalBackdrop');
+        const modalPanel = document.getElementById('modalPanel');
+        const form = document.getElementById('formImovel');
 
-    <!-- Script de Inicialização e Navegação -->
-    <script>
-        // Lógica para marcar o link ativo na sidebar
-        const setActiveSidebarLink = () => {
-            const path = window.location.pathname.split("/").pop();
-            const hash = window.location.hash;
+        // Init
+        window.addEventListener('DOMContentLoaded', async () => {
+            await carregarImoveis();
 
-            document.querySelectorAll(".sidebar a").forEach(link => {
-                link.classList.remove("active");
-                const linkHref = link.getAttribute("href");
-
-                if (linkHref === path + hash) {
-                    link.classList.add("active");
-                    const parentSubmenu = link.closest('.has-submenu');
-                    if (parentSubmenu) {
-                        const submenuElement = parentSubmenu.querySelector('.submenu');
-                        const arrowElement = parentSubmenu.querySelector('.arrow');
-                        if (submenuElement) submenuElement.style.display = 'block';
-                        if (arrowElement) arrowElement.textContent = '▼';
-                        parentSubmenu.classList.add('expanded');
+            // Sidebar Logic
+            fetch("assets/components/sidebar.html")
+                .then(res => res.text())
+                .then(html => {
+                    const sb = document.getElementById('sidebar');
+                    if (sb) {
+                        sb.innerHTML = html;
+                        setupSidebarLogic();
                     }
-                } else if (linkHref.startsWith(path) && linkHref.includes('#') && path === 'imoveis.html' && hash === '') {
-                    if (linkHref === 'imoveis.html#gerenciar') {
-                        link.classList.add("active");
-                        const parentSubmenu = link.closest('.has-submenu');
-                        if (parentSubmenu) {
-                            const submenuElement = parentSubmenu.querySelector('.submenu');
-                            const arrowElement = parentSubmenu.querySelector('.arrow');
-                            if (submenuElement) submenuElement.style.display = 'block';
-                            if (arrowElement) arrowElement.textContent = '▼';
-                            parentSubmenu.classList.add('expanded');
+                });
+        });
+
+        // Event Listeners
+        document.getElementById('filtroBusca').addEventListener('input', renderGrid);
+        document.getElementById('filtroStatus').addEventListener('change', renderGrid);
+        document.getElementById('btnNovoImovel').onclick = () => openModal();
+        document.getElementById('btnNovoImovelMobile').onclick = () => openModal();
+
+        window.previewImage = (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    currentPhotoBase64 = e.target.result;
+                    const img = document.getElementById('imgPreview');
+                    const ph = document.getElementById('uploadPlaceholder');
+                    img.src = currentPhotoBase64;
+                    img.classList.remove('hidden');
+                    ph.classList.add('opacity-0');
+                }
+                reader.readAsDataURL(file);
+            }
+        };
+
+        async function carregarImoveis() {
+            grid.innerHTML = '<div class="col-span-full text-center py-12"><div class="animate-spin text-4xl text-blue-500">🌀</div></div>';
+            try {
+                imoveisCache = await Imovel.listarTodos();
+                renderGrid();
+            } catch (err) {
+                console.error(err);
+                if (window.Toast) window.Toast.error("Erro ao carregar imóveis");
+            }
+        }
+
+        window.renderGrid = () => {
+            const termo = document.getElementById('filtroBusca').value.toLowerCase();
+            const statusFiltro = document.getElementById('filtroStatus').value;
+
+            const filtrados = imoveisCache.filter(imovel => {
+                const matchTermo =
+                    (imovel.nome && imovel.nome.toLowerCase().includes(termo)) ||
+                    (imovel.titulo && imovel.titulo.toLowerCase().includes(termo)) || // apelido
+                    (imovel.endereco && imovel.endereco.toLowerCase().includes(termo));
+
+                const matchStatus = !statusFiltro || imovel.status === statusFiltro;
+
+                return matchTermo && matchStatus;
+            });
+
+            grid.innerHTML = '';
+
+            if (filtrados.length === 0) {
+                if (imoveisCache.length === 0) {
+                    // Really empty
+                } else {
+                    // Filter empty
+                }
+                emptyState.classList.remove('hidden');
+                setTimeout(() => emptyState.classList.remove('opacity-0'), 10);
+                return;
+            }
+            emptyState.classList.add('hidden');
+            emptyState.classList.add('opacity-0');
+
+            filtrados.forEach(im => {
+                const fotoSrc = (im.fotos && im.fotos.length > 0) ? im.fotos[0] : 'assets/img/imovel-placeholder.png'; // Fallback
+                const statusClass = `badge-${im.status ? im.status.replace(' ', '') : 'Indefinido'}`;
+
+                const card = document.createElement('div');
+                card.className = 'glass-panel rounded-2xl overflow-hidden card-hoverable flex flex-col group h-full relative border border-white/40 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60';
+
+                card.innerHTML = `
+                    <div class="relative h-48 overflow-hidden">
+                        <img src="${fotoSrc}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" onerror="this.src='https://placehold.co/600x400?text=Sem+Foto'">
+                        <div class="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold shadow-sm uppercase tracking-wide ${statusClass}">
+                            ${im.status || 'Indefinido'}
+                        </div>
+                        <div class="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-black/60 to-transparent"></div>
+                        <div class="absolute bottom-3 left-4 text-white font-bold drop-shadow-md">
+                            ${im.titulo || '#' + im.id}
+                        </div>
+                    </div>
+
+                    <div class="p-5 flex-1 flex flex-col gap-3">
+                        <div>
+                            <h3 class="font-bold text-lg text-slate-800 dark:text-white leading-tight mb-1">${im.nome}</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 flex items-start gap-1">
+                                <span class="mt-0.5">📍</span> <span class="line-clamp-2">${im.endereco || 'Sem endereço'}</span>
+                            </p>
+                        </div>
+
+                        <div class="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400 mt-2">
+                            <div class="flex items-center gap-1" title="Adultos">
+                                <span>👥</span> <b>${im.capacidadeAdulto || 0}</b>
+                            </div>
+                            <div class="flex items-center gap-1" title="Crianças">
+                                <span>🧸</span> <b>${im.capacidadeCrianca || 0}</b>
+                            </div>
+                            ${im.aceitaPet ? '<div class="flex items-center gap-1 text-green-600 dark:text-green-400" title="Aceita Pet"><span>🐾</span> Sim</div>' : '<div class="flex items-center gap-1 text-slate-400" title="Não aceita Pet"><span>🚫</span> Não</div>'}
+                        </div>
+                        
+                        <div class="mt-auto pt-4 flex items-center justify-between border-t border-slate-100 dark:border-slate-700/50">
+                             <a href="comodos.html" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 hover:underline">
+                                🚪 Cômodos
+                             </a>
+                             <div class="flex gap-2">
+                                <button onclick="window.editarImovel('${im.id}')" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-orange-50 dark:hover:bg-orange-900/30 text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 transition-colors" title="Editar">✏️</button>
+                                <button onclick="window.excluirImovel('${im.id}')" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors" title="Excluir">🗑️</button>
+                             </div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        };
+
+        // Modal Actions
+        window.openModal = (imovel = null) => {
+            const title = document.getElementById('modalTitle');
+            const placeholder = document.getElementById('uploadPlaceholder');
+            const imgPreview = document.getElementById('imgPreview');
+
+            // Allow clicking to get to comodos.html properly if needed, but here we just manage properties
+
+            if (imovel) {
+                title.innerText = 'Editar Imóvel';
+                document.getElementById('imovelId').value = imovel.id;
+                document.getElementById('codigo').value = imovel.codigoInterno || imovel.id;
+                document.getElementById('apelido').value = imovel.titulo || '';
+                document.getElementById('nome').value = imovel.nome || '';
+                document.getElementById('endereco').value = imovel.endereco || '';
+                document.getElementById('googleMapsLink').value = imovel.googleMapsLink || '';
+                document.getElementById('situacao').value = imovel.status || 'Liberado';
+                document.getElementById('capacidadeAdulto').value = imovel.capacidadeAdulto || 0;
+                document.getElementById('capacidadeCrianca').value = imovel.capacidadeCrianca || 0;
+                document.getElementById('aceitaPet').checked = !!imovel.aceitaPet;
+                document.getElementById('descricao').value = imovel.descricao || '';
+                document.getElementById('instrucoesGerais').value = imovel.instrucoesGerais || '';
+                document.getElementById('instrucoesChegada').value = imovel.instrucoesChegada || '';
+
+                if (imovel.fotos && imovel.fotos.length > 0) {
+                    currentPhotoBase64 = imovel.fotos[0];
+                    imgPreview.src = currentPhotoBase64;
+                    imgPreview.classList.remove('hidden');
+                    placeholder.classList.add('opacity-0');
+                } else {
+                    currentPhotoBase64 = null;
+                    imgPreview.classList.add('hidden');
+                    placeholder.classList.remove('opacity-0');
+                }
+            } else {
+                title.innerText = 'Novo Imóvel';
+                form.reset();
+                document.getElementById('imovelId').value = '';
+                document.getElementById('codigo').value = '';
+                document.getElementById('situacao').value = 'Liberado';
+                currentPhotoBase64 = null;
+                imgPreview.classList.add('hidden');
+                placeholder.classList.remove('opacity-0');
+            }
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalBackdrop.classList.remove('opacity-0');
+                modalPanel.classList.remove('translate-x-full');
+            }, 10);
+        };
+
+        window.closeModal = () => {
+            modalBackdrop.classList.add('opacity-0');
+            modalPanel.classList.add('translate-x-full');
+            setTimeout(() => modal.classList.add('hidden'), 500);
+        };
+
+        window.editarImovel = (id) => {
+            const im = imoveisCache.find(i => i.id == id);
+            if (im) openModal(im);
+        };
+
+        window.excluirImovel = async (id) => {
+            if (confirm('Tem certeza que deseja excluir este imóvel?')) {
+                try {
+                    await Imovel.excluir(id);
+                    if (window.Toast) window.Toast.success('Imóvel excluído!');
+                    await carregarImoveis();
+                } catch (e) { console.error(e); }
+            }
+        };
+
+        window.salvarImovel = async (e) => {
+            e.preventDefault();
+            const btn = e.target;
+            const originalText = btn.innerText;
+            btn.innerText = 'Salvando...';
+            btn.disabled = true;
+
+            try {
+                const id = document.getElementById('imovelId').value;
+
+                // Construct Data
+                const data = {
+                    codigoInterno: id ? parseInt(document.getElementById('codigo').value) : null,
+                    titulo: document.getElementById('apelido').value,
+                    nome: document.getElementById('nome').value,
+                    endereco: document.getElementById('endereco').value,
+                    googleMapsLink: document.getElementById('googleMapsLink').value,
+                    status: document.getElementById('situacao').value,
+                    capacidadeAdulto: parseInt(document.getElementById('capacidadeAdulto').value) || 0,
+                    capacidadeCrianca: parseInt(document.getElementById('capacidadeCrianca').value) || 0,
+                    aceitaPet: document.getElementById('aceitaPet').checked,
+                    descricao: document.getElementById('descricao').value,
+                    instrucoesGerais: document.getElementById('instrucoesGerais').value,
+                    instrucoesChegada: document.getElementById('instrucoesChegada').value,
+                    fotos: []
+                };
+
+                // Handle Photo
+                if (currentPhotoBase64) {
+                    data.fotos = [currentPhotoBase64]; // Replacing array for simplicity as per current logic
+                } else if (id) {
+                    // Keep existing if not changed? The logic above resets currentPhotoBase64 on openModal unless edit.
+                    // checks cache
+                    const existing = imoveisCache.find(i => i.id == id);
+                    if (existing && existing.fotos) data.fotos = existing.fotos;
+                }
+
+                // If editing, we need the firestore ID
+                if (id) {
+                    const existing = imoveisCache.find(i => i.id == id);
+                    if (existing) data.firestoreId = existing.firestoreId;
+                    data.id = parseInt(id);
+                }
+
+                await Imovel.salvar(data);
+                if (window.Toast) window.Toast.success('Imóvel salvo com sucesso!');
+                closeModal();
+                await carregarImoveis();
+
+            } catch (err) {
+                console.error(err);
+                if (window.Toast) window.Toast.error("Erro ao salvar: " + err.message);
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        };
+
+        // Load sidebar logic tailored for sticky positioning and content push
+        function setupSidebarLogic() {
+            const btn = document.getElementById('header-menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const body = document.body;
+
+            // Toggle sidebar for mobile
+            if (btn) {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    body.classList.toggle('sidebar-open-mobile');
+                };
+            }
+
+            // Highlight Link
+            const currentPage = 'imoveis.html'; // Hardcoded for this file
+            const links = sidebar.querySelectorAll('a');
+            links.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && href.includes('imoveis.html')) {
+                    link.classList.add('active');
+
+                    // Expand Submenu if usually collapsed
+                    const sub = link.closest('.submenu');
+                    if (sub) {
+                        sub.style.display = 'block';
+                        const p = sub.closest('.has-submenu');
+                        if (p) {
+                            p.classList.add('expanded');
+                            const arrow = p.querySelector('.arrow');
+                            if (arrow) arrow.style.transform = 'rotate(90deg)';
                         }
                     }
                 }
             });
-        };
 
-        // Carrega a sidebar e depois inicializa a lógica da página
-        fetch("assets/components/sidebar.html")
-            .then(res => res.text())
-            .then(html => {
-                document.getElementById("sidebar").innerHTML = html;
+            // Submenu Toggles
+            sidebar.querySelectorAll('.submenu-toggle').forEach(t => {
+                t.onclick = (e) => {
+                    e.preventDefault();
+                    const li = t.closest('.has-submenu');
+                    const sub = li.querySelector('.submenu');
+                    const arrow = li.querySelector('.arrow');
 
-                // Configura os toggles da sidebar e o comportamento responsivo
-                setupSidebarToggles();
-
-                // Adiciona listeners para os links da sidebar
-                document.querySelector('.sidebar').addEventListener('click', handleSidebarClick);
-
-                // Define o link ativo inicial na sidebar
-                setActiveSidebarLink();
-
-                // Dispara o evento de hashchange para carregar a seção correta
-                window.dispatchEvent(new Event('hashchange'));
-            });
-
-        function setupSidebarToggles() {
-            const body = document.body;
-            const loadedSidebarElement = document.querySelector('.sidebar');
-            const menuToggleBtnInSidebar = document.getElementById('menu-toggle');
-            const headerMenuToggleButton = document.getElementById('header-menu-toggle');
-
-            function toggleSidebar() {
-                body.classList.toggle('sidebar-open-mobile');
-            }
-
-            if (menuToggleBtnInSidebar) menuToggleBtnInSidebar.addEventListener('click', (e) => { e.stopPropagation(); toggleSidebar(); });
-            if (headerMenuToggleButton) headerMenuToggleButton.addEventListener('click', (e) => { e.stopPropagation(); toggleSidebar(); });
-
-            document.addEventListener('click', (e) => {
-                if (body.classList.contains('sidebar-open-mobile') && !loadedSidebarElement.contains(e.target) && !headerMenuToggleButton.contains(e.target)) {
-                    toggleSidebar();
+                    if (sub) {
+                        const hidden = window.getComputedStyle(sub).display === 'none';
+                        sub.style.display = hidden ? 'block' : 'none';
+                        if (hidden) {
+                            li.classList.add('expanded');
+                            if (arrow) arrow.style.transform = 'rotate(90deg)';
+                        } else {
+                            li.classList.remove('expanded');
+                            if (arrow) arrow.style.transform = 'rotate(0deg)';
+                        }
+                    }
                 }
             });
         }
 
-        function handleSidebarClick(e) {
-            const submenuToggle = e.target.closest('.submenu-toggle');
-            if (submenuToggle) {
-                e.preventDefault();
-                const parentLi = submenuToggle.closest('.has-submenu');
-                const submenu = parentLi.querySelector('.submenu');
-                const arrow = submenuToggle.querySelector('.arrow');
-
-                if (submenu && arrow) {
-                    const isExpanded = submenu.style.display === 'block';
-                    submenu.style.display = isExpanded ? 'none' : 'block';
-                    arrow.textContent = isExpanded ? '▶' : '▼';
-                    parentLi.classList.toggle('expanded', !isExpanded);
-                }
-            }
-
-            let clickedLink = e.target.closest("a");
-            if (clickedLink) {
-                document.querySelectorAll(".sidebar a").forEach(link => link.classList.remove("active"));
-                clickedLink.classList.add("active");
-                const parentSubmenuItem = clickedLink.closest('.has-submenu');
-                if (parentSubmenuItem) {
-                    parentSubmenuItem.querySelector('.submenu-toggle')?.classList.add('active');
-                }
-                if (window.innerWidth <= 768 && !clickedLink.classList.contains('submenu-toggle')) {
-                    document.body.classList.remove('sidebar-open-mobile');
-                }
-            }
-        }
-
-        // Lógica de manipulação do hash da URL para exibir a seção correta
-        function showSectionFromHash() {
-            const gerenciarImoveisSection = document.getElementById('gerenciar-imoveis-section');
-
-            // Esconde todas as seções
-            if (gerenciarImoveisSection) gerenciarImoveisSection.style.display = 'none';
-
-            let currentSectionTitle = '🏡 Gerenciar Imóveis';
-
-            if (gerenciarImoveisSection) gerenciarImoveisSection.style.display = 'flex';
-            if (window.carregarCardsDeImoveis) window.carregarCardsDeImoveis();
-
-            const mainTitle = document.getElementById('main-title');
-            if (mainTitle) mainTitle.textContent = currentSectionTitle;
-            setActiveSidebarLink();
-        }
-
-        window.addEventListener('hashchange', showSectionFromHash);
-        window.addEventListener('DOMContentLoaded', () => {
-            // A chamada inicial para showSectionFromHash será feita após a sidebar carregar
-        });
-
-        window.addEventListener('resize', () => {
-            if (window.innerWidth > 768 && document.body.classList.contains('sidebar-open-mobile')) {
-                document.body.classList.remove('sidebar-open-mobile');
-            }
-        });
     </script>
-
 </body>
 
 </html>
