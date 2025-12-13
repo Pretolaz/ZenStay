@@ -4,151 +4,333 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZenStay | Clientes</title>
+    <title>ZenStay | Hóspedes</title>
 
+    <!-- Tailwind & Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- External CSS for specific ID/Theme compatibility -->
     <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/components.css">
-    <link rel="stylesheet" href="assets/css/clientes.css">
     <link rel="stylesheet" href="assets/css/toast.css">
     <link rel="stylesheet" href="theme/dark.css" id="theme-style">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        dark: '#1e293b',
+                        surface: '#ffffff',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Modern Glass Effect */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        body.dark-mode .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        /* Smooth inputs */
+        .input-animated {
+            transition: all 0.3s ease;
+        }
+
+        .input-animated:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Card Hover */
+        .guest-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .guest-card:hover {
+            transform: translateY(-5px) scale(1.01);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Avatar Gradient */
+        .avatar-gradient {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        }
+
+        /* Flag Badge */
+        .flag-badge {
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
 
-<body>
-    <!-- Sidebar dinâmica -->
-    <div id="sidebar"></div>
+<body class="bg-gray-50 text-slate-800 antialiased transition-colors duration-300">
 
-    <main class="content">
-        <header class="header">
-            <button class="menu-toggle" id="header-menu-toggle">☰</button>
-            <!-- Botão de menu hambúrguer no cabeçalho -->
-            <h1>👨‍👩‍👧 Gerenciar Hóspedes</h1>
-            <button id="toggle-theme">🌓</button>
+    <!-- Sidebar Wrapper -->
+    <div id="sidebar" class="fixed inset-y-0 left-0 z-50"></div>
+
+    <main class="content transition-all duration-300 min-h-screen flex flex-col md:ml-[220px]">
+
+        <!-- Header -->
+        <header
+            class="sticky top-0 z-40 glass-panel border-b border-gray-200/50 dark:border-gray-800/50 px-6 py-4 flex justify-between items-center mr-6 mt-6 rounded-2xl mx-4 lg:mx-8">
+            <div class="flex items-center gap-4">
+                <button class="menu-toggle md:hidden text-2xl text-slate-600 dark:text-slate-300"
+                    id="header-menu-toggle">
+                    ☰
+                </button>
+                <div>
+                    <h1
+                        class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+                        Hóspedes
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Gestão de Clientes</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <!-- Theme Toggle handled by main.js but we style the button -->
+                <button id="toggle-theme"
+                    class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xl shadow-sm hover:shadow-md transition-all">
+                    🌓
+                </button>
+                <button id="btnNovoHospede"
+                    class="hidden sm:flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-blue-500/30 transition-all transform hover:-translate-y-0.5 font-medium">
+                    <span class="text-lg">+</span> Novo Hóspede
+                </button>
+            </div>
         </header>
 
-        <section class="dashboard">
-            <!-- Botão para Cadastrar Novo Hóspede -->
-            <div class="card" style="flex: 1 1 100%; text-align: center;">
-                <button id="btnToggleForm" class="btn">➕ Criar Novo Hóspede</button>
-            </div>
+        <!-- Mobile FAB -->
+        <button id="btnNovoHospedeMobile"
+            class="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-2xl flex items-center justify-center text-3xl z-40 hover:scale-110 transition-transform">
+            +
+        </button>
 
-            <!-- Formulário (inicialmente oculto) -->
-            <div id="cadastroClienteCard" class="card" style="flex: 1 1 100%; display: none;">
-                <h3>📝 Cadastrar Novo Hóspede</h3>
-                <div id="alerta" class="alerta-erro"></div>
+        <section class="p-4 lg:p-8 space-y-8 max-w-[1600px] mx-auto w-full">
 
-                <form id="formCliente">
-                    <input type="hidden" id="clienteId">
-
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>#</span>
-                            <input type="number" id="codigoInterno" placeholder="Código interno (auto)" readonly>
-                        </div>
-                        <div class="input-group">
-                            <span>🆔</span>
-                            <input type="text" id="codigoPlataforma" maxlength="20" placeholder="Código na plataforma">
-                        </div>
+            <!-- Stats Row (Optional Surprise) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group">
+                    <div
+                        class="absolute right-0 top-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-110">
                     </div>
-
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>👤</span>
-                            <input type="text" id="nome" placeholder="Nome completo" required>
-                        </div>
-                        <div class="input-group">
-                            <span>✉️</span>
-                            <input type="email" id="email" placeholder="E-mail (opcional)">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="input-group" style="max-width: 220px;">
-                            <span>📞</span>
-                            <input type="number" id="codPais" placeholder="55" value="55" min="1">
-                        </div>
-                        <div class="flag-display" id="flagInfo">
-                            <img src="https://flagcdn.com/w20/br.png" alt="BR">
-                            <span>Brasil</span>
-                        </div>
-                        <div class="input-group" style="flex: 2;">
-                            <span>📱</span>
-                            <input type="text" id="telefone" placeholder="Número com DDD" required>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>🔗</span>
-                            <input type="url" id="linkChat" placeholder="Link do chat (opcional)">
-                        </div>
-                        <div class="input-group">
-                            <span>🗣️</span>
-                            <select id="idioma">
-                                <option value="pt-BR" selected>🇧🇷 Português (BR)</option>
-                                <option value="en">🇬🇧 English</option>
-                                <option value="es">🇪🇸 Español</option>
-                                <option value="fr">🇫🇷 Français</option>
-                                <option value="de">🇩🇪 Deutsch</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <textarea id="observacao" placeholder="Observações sobre o hóspede..."></textarea>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="input-group">
-                            <span>📅</span>
-                            <input type="text" id="dataCadastro" placeholder="Data de Cadastro (automático)" readonly>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn">💾 Salvar</button>
-                    <button type="button" class="btn btn-secondary" id="btnCancelarCadastro">❌ Cancelar</button>
-                </form>
-            </div>
-
-            <!-- Tabela -->
-            <div class="card" style="flex: 1 1 100%;">
-                <h3>📋 Hóspedes Cadastrados</h3>
-                <div class="form-row" style="margin-bottom: 15px; align-items: center;">
-                    <div class="input-group" style="flex: 1;">
-                        <span>🔍</span>
-                        <input type="text" id="filtroBusca" placeholder="Filtrar por nome ou telefone...">
-                    </div>
-                    <div class="input-group" style="margin-left: 10px; max-width: 250px;">
-                        <span>Ordenar por:</span>
-                        <select id="ordenacaoClientes"
-                            style="flex: 1; border: none; background: transparent; color: var(--text);">
-                            <option value="idDesc" selected>Cód. Interno (Recente)</option>
-                            <option value="idAsc">Cód. Interno (Antigo)</option>
-                            <option value="nomeAsc">Nome (A-Z)</option>
-                            <option value="nomeDesc">Nome (Z-A)</option>
-                            <option value="dataCadastroDesc">Data Cadastro (Recente)</option>
-                            <option value="dataCadastroAsc">Data Cadastro (Antigo)</option>
-                        </select>
-                    </div>
+                    <p class="text-sm font-medium text-slate-400 uppercase tracking-widest mb-1">Total</p>
+                    <h3 class="text-3xl font-bold text-slate-800 dark:text-white" id="statTotal">--</h3>
                 </div>
-                <table id="tabelaClientes">
-                    <thead>
-                        <tr>
-                            <th>País</th>
-                            <th>Cód. Interno</th>
-                            <th>Nome</th>
-                            <th>Email</th>
-                            <th>Whats App</th>
-                            <th>Idioma</th>
-                            <th>Data Cadastro</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <!-- You could add more stats like "New this month" here -->
             </div>
+
+            <!-- Filters & Search -->
+            <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div class="relative w-full md:w-96">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span class="text-slate-400 text-lg">🔍</span>
+                    </div>
+                    <input type="text" id="filtroBusca"
+                        class="pl-10 pr-4 py-3 w-full rounded-xl border-none ring-1 ring-slate-200 dark:ring-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 shadow-sm transition-all text-slate-600 dark:text-slate-200 placeholder-slate-400"
+                        placeholder="Buscar por nome, telefone ou email...">
+                </div>
+
+                <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+                    <select id="ordenacaoClientes"
+                        class="px-4 py-3 rounded-xl border-none ring-1 ring-slate-200 dark:ring-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 shadow-sm cursor-pointer outline-none">
+                        <option value="idDesc">✨ Recentes</option>
+                        <option value="nomeAsc">🔤 Nome (A-Z)</option>
+                        <option value="nomeDesc">🔤 Nome (Z-A)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Grid Layout for Guests -->
+            <div id="gridClientes" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+                <!-- Cards Injected Here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState"
+                class="hidden flex flex-col items-center justify-center py-20 opacity-0 transition-opacity duration-500">
+                <div class="w-24 h-24 bg-blue-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                    <span class="text-4xl">🤷‍♂️</span>
+                </div>
+                <h3 class="text-xl font-bold text-slate-700 dark:text-slate-200">Nenhum hóspede encontrado</h3>
+                <p class="text-slate-400">Tente ajustar seus filtros de busca.</p>
+            </div>
+
         </section>
     </main>
+
+    <!-- Modal (Slide Over) -->
+    <div id="modalCliente" class="fixed inset-0 z-[60] hidden" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity opacity-0" id="modalBackdrop">
+        </div>
+
+        <div class="fixed inset-y-0 right-0 flex max-w-full pl-10 pointer-events-none">
+            <div class="pointer-events-auto w-screen max-w-md transform transition ease-in-out duration-500 translate-x-full"
+                id="modalPanel">
+                <div class="flex h-full flex-col overflow-y-scroll bg-white dark:bg-slate-900 shadow-2xl">
+
+                    <!-- Header -->
+                    <div class="px-4 py-6 sm:px-6 bg-gradient-to-r from-blue-600 to-indigo-600">
+                        <div class="flex items-start justify-between">
+                            <h2 class="text-lg font-medium text-white" id="modalTitle">Novo Hóspede</h2>
+                            <div class="ml-3 flex h-7 items-center">
+                                <button onclick="closeModal()" type="button"
+                                    class="rounded-md text-blue-200 hover:text-white focus:outline-none">
+                                    <span class="sr-only">Close panel</span>
+                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                        stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="mt-1 text-sm text-blue-100">Preencha as informações para cadastrar ou editar.</p>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="relative flex-1 px-4 py-6 sm:px-6 space-y-6">
+                        <form id="formCliente" class="space-y-6">
+                            <input type="hidden" id="clienteId">
+
+                            <!-- Avatar/Photo Placeholder -->
+                            <div class="flex justify-center">
+                                <div class="w-24 h-24 rounded-full avatar-gradient flex items-center justify-center text-3xl text-white font-bold shadow-lg"
+                                    id="avatarPreview">
+                                    👤
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label
+                                        class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Código
+                                        Interno</label>
+                                    <input type="text" id="codigoInterno" readonly
+                                        class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-slate-500 text-sm p-3"
+                                        placeholder="Auto">
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">ID
+                                        Plataforma</label>
+                                    <input type="text" id="codigoPlataforma"
+                                        class="w-full input-animated bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                        placeholder="Ex: AB123">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label
+                                    class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Nome
+                                    Completo</label>
+                                <input type="text" id="nome" required
+                                    class="w-full input-animated bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none dark:text-white"
+                                    placeholder="Nome do Hóspede">
+                            </div>
+
+                            <div class="flex gap-3">
+                                <div class="w-24">
+                                    <label
+                                        class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">DDI</label>
+                                    <div class="relative">
+                                        <input type="number" id="codPais" value="55"
+                                            class="w-full input-animated bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 pl-8 focus:ring-2 focus:ring-blue-500 outline-none dark:text-white">
+                                        <span class="absolute left-3 top-3.5 text-slate-400 text-xs">+</span>
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <label
+                                        class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Telefone
+                                        / WhatsApp</label>
+                                    <input type="tel" id="telefone" required
+                                        class="w-full input-animated bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none dark:text-white"
+                                        placeholder="(00) 00000-0000">
+                                </div>
+                            </div>
+
+                            <!-- Country Badge Preview -->
+                            <div id="flagInfo"
+                                class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-2 rounded-lg text-sm text-slate-600 dark:text-slate-300">
+                                <img src="https://flagcdn.com/w20/br.png" alt="BR"
+                                    class="w-5 h-auto rounded-sm shadow-sm">
+                                <span class="font-medium">Brasil</span>
+                            </div>
+
+                            <div>
+                                <label
+                                    class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Email</label>
+                                <input type="email" id="email"
+                                    class="w-full input-animated bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none dark:text-white"
+                                    placeholder="email@exemplo.com">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label
+                                        class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Idioma</label>
+                                    <select id="idioma"
+                                        class="w-full input-animated bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none dark:text-white">
+                                        <option value="pt-BR" selected>🇧🇷 PT-BR</option>
+                                        <option value="en">🇬🇧 EN</option>
+                                        <option value="es">🇪🇸 ES</option>
+                                        <option value="fr">🇫🇷 FR</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Link
+                                        Chat</label>
+                                    <input type="url" id="linkChat"
+                                        class="w-full input-animated bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none dark:text-white"
+                                        placeholder="https://...">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label
+                                    class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Observações</label>
+                                <textarea id="observacao" rows="3"
+                                    class="w-full input-animated bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none resize-none dark:text-white"
+                                    placeholder="Ex: Não gosta de ar condicionado muito frio..."></textarea>
+                            </div>
+
+                            <input type="hidden" id="dataCadastro">
+                        </form>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="border-t border-slate-200 dark:border-slate-700 px-4 py-6 sm:px-6">
+                        <div class="flex gap-3">
+                            <button type="button" onclick="closeModal()"
+                                class="flex-1 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none">Cancelar</button>
+                            <button type="button" onclick="salvarCliente(event)"
+                                class="flex-1 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Salvar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Scripts -->
     <script src="assets/js/storage.js"></script>
@@ -156,275 +338,322 @@
     <script src="assets/js/toast.js"></script>
     <script type="module" src="assets/js/entities/cliente.js"></script>
 
-    <!-- Sidebar dinâmica -->
-    <script>
-        fetch("assets/components/sidebar.html")
-            .then(res => res.text())
-            .then(html => {
-                document.getElementById("sidebar").innerHTML = html;
-
-                const currentPage = window.location.pathname.split('/').pop();
-                const body = document.body;
-                const sidebarElement = document.querySelector('.sidebar');
-                const menuToggleButton = document.getElementById('menu-toggle');
-                const headerMenuToggleButton = document.getElementById('header-menu-toggle');
-
-                function toggleSidebar() {
-                    body.classList.toggle('sidebar-open-mobile');
-                }
-
-                if (menuToggleButton) {
-                    menuToggleButton.addEventListener('click', function (e) {
-                        e.stopPropagation();
-                        toggleSidebar();
-                    });
-                }
-
-                if (headerMenuToggleButton) {
-                    headerMenuToggleButton.addEventListener('click', function (e) {
-                        e.stopPropagation();
-                        toggleSidebar();
-                    });
-                }
-
-                document.addEventListener('click', function (e) {
-                    if (body.classList.contains('sidebar-open-mobile') &&
-                        !sidebarElement.contains(e.target) &&
-                        (menuToggleButton && !menuToggleButton.contains(e.target)) &&
-                        (headerMenuToggleButton && !headerMenuToggleButton.contains(e.target))) {
-                        toggleSidebar();
-                    }
-                });
-
-                document.querySelectorAll('.sidebar a').forEach(link => {
-                    const href = link.getAttribute('href');
-                    if (href === currentPage) {
-                        link.classList.add('active');
-                        const parentSubmenu = link.closest('.submenu');
-                        if (parentSubmenu) {
-                            parentSubmenu.style.display = 'block';
-                            const parentHasSubmenu = parentSubmenu.closest('.has-submenu');
-                            if (parentHasSubmenu) {
-                                parentHasSubmenu.classList.add('expanded');
-                                parentHasSubmenu.querySelector('.arrow').textContent = '▼';
-                            }
-                        }
-                    }
-                    link.addEventListener('click', function () {
-                        if (window.innerWidth <= 768 && !this.classList.contains('submenu-toggle')) {
-                            body.classList.remove('sidebar-open-mobile');
-                        }
-                    });
-                });
-
-                document.querySelectorAll('.submenu-toggle').forEach(item => {
-                    item.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        const parentLi = this.closest('.has-submenu');
-                        parentLi.classList.toggle('expanded');
-                        const submenu = parentLi.querySelector('.submenu');
-                        const arrow = parentLi.querySelector('.arrow');
-                        if (submenu && arrow) {
-                            const isExpanded = submenu.style.display === 'block';
-                            submenu.style.display = isExpanded ? 'none' : 'block';
-                            arrow.textContent = isExpanded ? '▼' : '▶';
-                        }
-                    });
-                });
-            })
-            .catch(err => console.error("Erro ao carregar sidebar: ", err));
-    </script>
-
-    <!-- CRUD de Hóspedes -->
-    <script>
-        const tabela = document.querySelector('#tabelaClientes tbody');
-        const form = document.getElementById('formCliente');
-        const alerta = document.getElementById('alerta');
-        const campos = ['codigoPlataforma', 'nome', 'email', 'codPais', 'telefone', 'linkChat', 'idioma', 'observacao'];
-        const flagInfo = document.getElementById('flagInfo');
-        const codPaisInput = document.getElementById('codPais');
-        const cadastroClienteCard = document.getElementById('cadastroClienteCard');
-        const btnToggleForm = document.getElementById('btnToggleForm');
-        const btnCancelarCadastro = document.getElementById('btnCancelarCadastro');
-        const filtroBuscaInput = document.getElementById('filtroBusca');
-        const ordenacaoClientesSelect = document.getElementById('ordenacaoClientes');
+    <script type="module">
+        import { Cliente } from './assets/js/entities/cliente.js';
 
         let countriesList = [];
+        let clientesCache = [];
 
-        fetch('assets/data/countries.json')
-            .then(res => res.json())
-            .then(data => {
-                countriesList = data;
-                atualizarBandeira(codPaisInput.value || 55);
-            })
-            .catch(err => console.error('Erro ao carregar countries.json: ', err));
+        // UI Refs
+        const grid = document.getElementById('gridClientes');
+        const emptyState = document.getElementById('emptyState');
+        const modal = document.getElementById('modalCliente');
+        const modalBackdrop = document.getElementById('modalBackdrop');
+        const modalPanel = document.getElementById('modalPanel');
+        const form = document.getElementById('formCliente');
+        const codPaisInput = document.getElementById('codPais');
+        const flagInfo = document.getElementById('flagInfo');
+        const statTotal = document.getElementById('statTotal');
 
-        function atualizarBandeira(cod) {
-            const pais = countriesList.find(p => String(p.dial) === String(cod));
-            if (pais) {
-                flagInfo.innerHTML = `
-                    <img src="https://flagcdn.com/w20/${pais.code}.png" alt="${pais.name}">
-                    <span>${pais.name}</span>
-                `;
-            } else {
-                flagInfo.innerHTML = `<span>🤷 País não encontrado</span>`;
-            }
-        }
+        // Init
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadCountries();
+            await carregarClientes();
 
+            // Sidebar Logic (Specific for this rewritten file)
+            fetch("assets/components/sidebar.html")
+                .then(res => res.text())
+                .then(html => {
+                    const sb = document.getElementById('sidebar');
+                    if (sb) {
+                        sb.innerHTML = html;
+                        setupSidebarLogic();
+                    }
+                });
+        });
+
+        // Event Listeners
         codPaisInput.addEventListener('input', e => atualizarBandeira(e.target.value));
+        document.getElementById('filtroBusca').addEventListener('input', carregarClientes);
+        document.getElementById('ordenacaoClientes').addEventListener('change', carregarClientes);
+        document.getElementById('btnNovoHospede').onclick = () => openModal();
+        document.getElementById('btnNovoHospedeMobile').onclick = () => openModal();
 
-        function formatarData(dataString) {
-            if (!dataString) return '-';
-            const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
-            return new Date(dataString).toLocaleString('pt-BR', options);
+        // Data Loading
+        async function loadCountries() {
+            try {
+                const res = await fetch('assets/data/countries.json');
+                countriesList = await res.json();
+            } catch (e) { console.error("Countries Error", e); }
         }
 
         async function carregarClientes() {
-            const termoBusca = filtroBuscaInput.value.toLowerCase();
-            const tipoOrdenacao = ordenacaoClientesSelect.value;
-            let todosClientes = await Cliente.listarTodos();
-
-            // 1. Filtrar
-            const clientesFiltrados = todosClientes.filter(cli => {
-                const nomeMatch = cli.nome.toLowerCase().includes(termoBusca);
-                const telefoneMatch = cli.telefone.includes(termoBusca);
-                return nomeMatch || telefoneMatch;
-            });
-
-            // 2. Ordenar
-            clientesFiltrados.sort((a, b) => {
-                const match = tipoOrdenacao.match(/([a-zA-Z]+)(Asc|Desc)/);
-                const key = match[1];
-                const direction = match[2];
-                const order = direction === 'Asc' ? 1 : -1;
-
-                const valA = key === 'nome' ? a[key].toLowerCase() : a[key];
-                const valB = key === 'nome' ? b[key].toLowerCase() : b[key];
-
-                if (valA < valB) return -1 * order;
-                if (valA > valB) return 1 * order;
-                return 0;
-            });
-
-            tabela.innerHTML = '';
-            clientesFiltrados.forEach(cli => {
-                const pais = countriesList.find(p => String(p.dial) === String(cli.codPais));
-                const bandeira = pais ? `<img src="https://flagcdn.com/w20/${pais.code}.png" alt="${pais.name}">` : '🤷';
-                const linkWhats = `https://wa.me/${cli.codPais}${cli.telefone}`;
-                const iconWhats = `
-                    <a href="${linkWhats}" target="_blank" class="whatsapp-icon" title="Conversar no WhatsApp">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M16.04 2.003a13.89 13.89 0 0 0-11.823 21.43L2 30l6.72-2.177A13.89 13.89 0 1 0 16.04 2.003zm.01 25.12a11.27 11.27 0 0 1-5.74-1.59l-.41-.25-3.99 1.3 1.31-3.88-.27-.4a11.27 11.27 0 1 1 9.1 4.82zm6.25-8.46c-.34-.17-2.04-1.01-2.36-1.12-.32-.12-.55-.17-.78.17s-.89 1.12-1.09 1.35c-.2.22-.4.25-.74.08s-1.43-.52-2.73-1.67a10.12 10.12 0 0 1-1.86-2.32c-.2-.34 0-.52.15-.69.15-.17.34-.43.52-.65.17-.22.23-.37.34-.62.11-.25.06-.47-.03-.65-.09-.17-.78-1.88-1.07-2.56-.28-.68-.57-.58-.78-.59h-.66a1.28 1.28 0 0 0-.93.43c-.32.35-1.22 1.19-1.22 2.9s1.25 3.37 1.43 3.61c.18.25 2.45 3.74 5.93 5.25.83.36 1.48.57 1.98.73.83.27 1.59.23 2.19.14.67-.1 2.04-.83 2.33-1.63.29-.8.29-1.49.2-1.63-.09-.14-.31-.22-.65-.39z" /></svg>
-                    </a>`;
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="td-country">${bandeira}</td>
-                    <td>${cli.id}</td>
-                    <td>${cli.nome}</td>
-                    <td>${cli.email || '-'}</td>
-                    <td>+${cli.codPais} ${cli.telefone} ${iconWhats}</td>
-                    <td>${cli.idioma}</td>
-                    <td>${formatarData(cli.dataCadastro)}</td>
-                    <td>
-                        <button class="action-btn" onclick="editarCliente(${cli.id})" title="Editar">✏️</button>
-                        <button class="action-btn" onclick="excluirCliente(${cli.id})" title="Excluir">🗑️</button>
-                    </td>`;
-                tabela.appendChild(row);
-            });
-        }
-
-        async function salvarCliente(e) {
-            e.preventDefault();
-            let clienteData = { id: document.getElementById('clienteId').value ? parseInt(document.getElementById('clienteId').value) : null };
-            campos.forEach(c => clienteData[c] = document.getElementById(c).value);
-
-            const todosClientes = await Cliente.listarTodos();
-            const isEditing = !!clienteData.id;
-
-            const duplicadoTel = todosClientes.find(c =>
-                c.telefone === clienteData.telefone &&
-                c.codPais === clienteData.codPais &&
-                c.id !== clienteData.id
-            );
-            const duplicadoPlataforma = clienteData.codigoPlataforma && todosClientes.find(c =>
-                c.codigoPlataforma === clienteData.codigoPlataforma &&
-                c.id !== clienteData.id
-            );
-
-            if (duplicadoTel) {
-                Toast.warning(`⚠️ O telefone +${clienteData.codPais} ${clienteData.telefone} já está cadastrado (Cód interno: ${duplicadoTel.id}).`);
-                return;
-            }
-            if (duplicadoPlataforma) {
-                Toast.warning(`⚠️ O código de plataforma "${clienteData.codigoPlataforma}" já está cadastrado (Cód interno: ${duplicadoPlataforma.id}).`);
-                return;
-            }
+            grid.innerHTML = '<div class="col-span-full text-center py-10"><div class="animate-spin text-4xl text-blue-500">🌀</div></div>';
 
             try {
-                await Cliente.salvar(clienteData);
-                Toast.success("Hóspede salvo com sucesso!");
-                resetAndToggleForm();
-                await carregarClientes();
-            } catch (error) {
-                Toast.error("Erro ao salvar cliente: " + error.message);
+                // Fetch fresh data
+                let todos = await Cliente.listarTodos();
+                clientesCache = todos;
+                statTotal.innerText = todos.length;
+
+                // Filter
+                const termo = document.getElementById('filtroBusca').value.toLowerCase();
+                let filtrados = todos.filter(c =>
+                    (c.nome && c.nome.toLowerCase().includes(termo)) ||
+                    (c.telefone && c.telefone.includes(termo)) ||
+                    (c.email && c.email.toLowerCase().includes(termo))
+                );
+
+                // Sort
+                const ordem = document.getElementById('ordenacaoClientes').value;
+                filtrados.sort((a, b) => {
+                    if (ordem === 'idDesc') return b.id - a.id;
+                    if (ordem === 'nomeAsc') return a.nome.localeCompare(b.nome);
+                    if (ordem === 'nomeDesc') return b.nome.localeCompare(a.nome);
+                    return 0;
+                });
+
+                renderGrid(filtrados);
+
+            } catch (err) {
+                console.error(err);
+                grid.innerHTML = `<div class="col-span-full text-center text-red-500">Erro ao carregar dados.</div>`;
             }
         }
 
-        async function editarCliente(id) {
-            const cli = await Cliente.buscarPorId(id);
+        function renderGrid(clientes) {
+            grid.innerHTML = '';
+
+            if (clientes.length === 0) {
+                emptyState.classList.remove('hidden');
+                setTimeout(() => emptyState.classList.remove('opacity-0'), 10);
+                return;
+            }
+            emptyState.classList.add('hidden');
+            emptyState.classList.add('opacity-0');
+
+            clientes.forEach(cli => {
+                const pais = countriesList.find(p => String(p.dial) === String(cli.codPais));
+                const flagSrc = pais ? `https://flagcdn.com/w40/${pais.code}.png` : '';
+                const iniciais = cli.nome.substring(0, 2).toUpperCase();
+                const whatsappLink = `https://wa.me/${cli.codPais}${cli.telefone}`;
+
+                const card = document.createElement('div');
+                card.className = 'glass-panel p-5 rounded-2xl guest-card relative flex flex-col gap-4 group bg-white/40 dark:bg-slate-800/40';
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                         <div class="flex items-center gap-3">
+                             <div class="w-12 h-12 rounded-full avatar-gradient flex items-center justify-center text-white font-bold text-sm shadow-md">
+                                 ${iniciais}
+                             </div>
+                             <div>
+                                 <h3 class="font-bold text-slate-800 dark:text-white leading-tight">${cli.nome}</h3>
+                                 <div class="flex items-center gap-1.5 mt-0.5">
+                                    ${flagSrc ? `<img src="${flagSrc}" class="w-4 rounded-sm shadow-sm" title="${pais.name}">` : ''}
+                                    <span class="text-xs text-slate-500 font-mono">ID: ${cli.id}</span>
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="flex gap-2">
+                             <button onclick="window.editarCliente(${cli.id})" class="p-2 rounded-lg bg-orange-50 text-orange-500 hover:bg-orange-100 transition-colors" title="Editar">✏️</button>
+                             <button onclick="window.excluirCliente(${cli.id})" class="p-2 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors" title="Excluir">🗑️</button>
+                         </div>
+                    </div>
+
+                    <div class="flex flex-col gap-2 mt-1">
+                        <a href="${whatsappLink}" target="_blank" class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-green-500 transition-colors p-2 rounded-lg hover:bg-green-50/50">
+                            <svg class="w-4 h-4 fill-current text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                            <span>+${cli.codPais} ${cli.telefone}</span>
+                        </a>
+                        ${cli.email ?
+                        `<a href="mailto:${cli.email}" class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-blue-500 transition-colors p-2 rounded-lg hover:bg-blue-50/50">
+                            <span>📧</span> ${cli.email}
+                         </a>` : ''}
+                    </div>
+
+                    ${cli.observacao ?
+                        `<div class="mt-2 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl text-xs text-slate-500 italic border border-slate-100 dark:border-slate-800">
+                        "${cli.observacao}"
+                     </div>` : ''}
+
+                    <div class="absolute top-2 right-2 text-[10px] text-slate-300 font-mono opacity-50">
+                        ${new Date(cli.dataCadastro).toLocaleDateString()}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Action Handlers
+        window.openModal = (cli = null) => {
+            const title = document.getElementById('modalTitle');
+            const avatar = document.getElementById('avatarPreview');
+
             if (cli) {
-                campos.forEach(c => {
-                    const element = document.getElementById(c);
-                    if (element) element.value = cli[c] || '';
-                });
+                title.innerText = 'Editar Hóspede';
                 document.getElementById('clienteId').value = cli.id;
                 document.getElementById('codigoInterno').value = cli.id;
-                document.getElementById('dataCadastro').value = cli.dataCadastro ? formatarData(cli.dataCadastro) : '';
+                document.getElementById('codigoPlataforma').value = cli.codigoPlataforma || '';
+                document.getElementById('nome').value = cli.nome;
+                document.getElementById('email').value = cli.email || '';
+                document.getElementById('codPais').value = cli.codPais;
+                document.getElementById('telefone').value = cli.telefone;
+                document.getElementById('idioma').value = cli.idioma;
+                document.getElementById('linkChat').value = cli.linkChat || '';
+                document.getElementById('observacao').value = cli.observacao || '';
+                document.getElementById('dataCadastro').value = cli.dataCadastro;
+                avatar.innerText = cli.nome.substring(0, 2).toUpperCase();
                 atualizarBandeira(cli.codPais);
-
-                cadastroClienteCard.style.display = 'block';
-                btnToggleForm.textContent = '✖️ Fechar Formulário';
-                window.scrollTo(0, 0);
-            }
-        }
-
-        async function excluirCliente(id) {
-            if (confirm('Excluir este hóspede?')) {
-                try {
-                    await Cliente.excluir(id);
-                    Toast.success("Hóspede excluído com sucesso!");
-                    await carregarClientes();
-                } catch (error) {
-                    Toast.error("Erro ao excluir: " + error.message);
-                }
-            }
-        }
-
-        function resetAndToggleForm() {
-            const isFormVisible = cadastroClienteCard.style.display === 'block';
-            if (!isFormVisible) {
-                // Se o formulário está fechado, abre e limpa
+            } else {
+                title.innerText = 'Novo Hóspede';
                 form.reset();
                 document.getElementById('clienteId').value = '';
                 document.getElementById('codigoInterno').value = '';
-                document.getElementById('dataCadastro').value = '';
                 document.getElementById('codPais').value = 55;
+                document.getElementById('idioma').value = 'pt-BR';
+                avatar.innerText = '👤';
                 atualizarBandeira(55);
-                cadastroClienteCard.style.display = 'block';
-                btnToggleForm.textContent = '✖️ Fechar Formulário';
-            } else {
-                // Se o formulário está aberto, apenas fecha
-                cadastroClienteCard.style.display = 'none';
-                btnToggleForm.textContent = '➕ Criar Novo Hóspede';
             }
-        }
 
-        form.addEventListener('submit', salvarCliente);
-        btnToggleForm.addEventListener('click', resetAndToggleForm);
-        btnCancelarCadastro.addEventListener('click', resetAndToggleForm);
-        filtroBuscaInput.addEventListener('input', carregarClientes);
-        ordenacaoClientesSelect.addEventListener('change', carregarClientes);
-        window.addEventListener('DOMContentLoaded', carregarClientes);
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalBackdrop.classList.remove('opacity-0');
+                modalPanel.classList.remove('translate-x-full');
+            }, 10);
+        };
+
+        window.closeModal = () => {
+            modalBackdrop.classList.add('opacity-0');
+            modalPanel.classList.add('translate-x-full');
+            setTimeout(() => modal.classList.add('hidden'), 500);
+        };
+
+        window.editarCliente = async (id) => {
+            const cli = clientesCache.find(c => c.id == id);
+            if (cli) openModal(cli);
+        };
+
+        window.excluirCliente = async (id) => {
+            if (confirm('Tem certeza?')) {
+                try {
+                    await Cliente.excluir(id);
+                    if (window.Toast) window.Toast.success('Hóspede excluído.');
+                    await carregarClientes();
+                } catch (e) { console.error(e); }
+            }
+        };
+
+        window.salvarCliente = async (e) => {
+            e.preventDefault();
+            const btn = e.target;
+            const originalText = btn.innerText;
+            btn.innerText = 'Salvando...';
+            btn.disabled = true;
+
+            try {
+                const id = document.getElementById('clienteId').value;
+                const data = {
+                    id: id ? parseInt(id) : null,
+                    codigoPlataforma: document.getElementById('codigoPlataforma').value,
+                    nome: document.getElementById('nome').value,
+                    email: document.getElementById('email').value,
+                    codPais: document.getElementById('codPais').value,
+                    telefone: document.getElementById('telefone').value,
+                    idioma: document.getElementById('idioma').value,
+                    linkChat: document.getElementById('linkChat').value,
+                    observacao: document.getElementById('observacao').value
+                };
+
+                // Preserve original creation date if editing
+                if (id) {
+                    const existing = clientesCache.find(c => c.id == id);
+                    if (existing) data.dataCadastro = existing.dataCadastro;
+                }
+
+                await Cliente.salvar(data);
+                if (window.Toast) window.Toast.success('Salvo com sucesso!');
+                closeModal();
+                await carregarClientes();
+
+            } catch (err) {
+                if (window.Toast) window.Toast.error(err.message);
+                alert(err.message);
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        };
+
+        window.atualizarBandeira = (code) => {
+            const pais = countriesList.find(p => String(p.dial) === String(code));
+            if (pais) {
+                flagInfo.innerHTML = `
+                    <img src="https://flagcdn.com/w20/${pais.code}.png" alt="${pais.name}" class="w-5 h-auto rounded-sm shadow-sm">
+                    <span class="font-medium">${pais.name}</span>
+                `;
+            } else {
+                flagInfo.innerHTML = `<span class="text-slate-400">?</span>`;
+            }
+        };
+
+        // Sidebar Logic specific to this file layout
+        function setupSidebarLogic() {
+            const btn = document.getElementById('header-menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const body = document.body;
+
+            // Toggle sidebar for mobile
+            if (btn) {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    body.classList.toggle('sidebar-open-mobile');
+                };
+            }
+
+            // Highlight Link
+            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+            const links = sidebar.querySelectorAll('a');
+            links.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage) {
+                    link.classList.add('active');
+                    // Expand Submenu
+                    const sub = link.closest('.submenu');
+                    if (sub) {
+                        sub.style.display = 'block';
+                        const p = sub.closest('.has-submenu');
+                        if (p) {
+                            p.classList.add('expanded');
+                            const arrow = p.querySelector('.arrow');
+                            if (arrow) arrow.style.transform = 'rotate(90deg)';
+                        }
+                    }
+                }
+            });
+
+            // Submenu Toggles
+            sidebar.querySelectorAll('.submenu-toggle').forEach(t => {
+                t.onclick = (e) => {
+                    e.preventDefault();
+                    const li = t.closest('.has-submenu');
+                    const sub = li.querySelector('.submenu');
+                    const arrow = li.querySelector('.arrow');
+
+                    if (sub) {
+                        const hidden = window.getComputedStyle(sub).display === 'none';
+                        sub.style.display = hidden ? 'block' : 'none';
+                        if (hidden) {
+                            li.classList.add('expanded');
+                            if (arrow) arrow.style.transform = 'rotate(90deg)';
+                        } else {
+                            li.classList.remove('expanded');
+                            if (arrow) arrow.style.transform = 'rotate(0deg)';
+                        }
+                    }
+                }
+            });
+        }
     </script>
 </body>
 
