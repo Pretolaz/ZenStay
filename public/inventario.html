@@ -343,51 +343,7 @@
         const modalSelectImovel = document.getElementById('modalSelectImovel');
         const modalSelectComodo = document.getElementById('modalSelectComodo');
 
-        // Init
-        window.addEventListener('DOMContentLoaded', async () => {
-            // Sidebar
-            fetch("assets/components/sidebar.html")
-                .then(res => res.text())
-                .then(html => {
-                    const sb = document.getElementById('sidebar');
-                    if (sb) {
-                        sb.innerHTML = html;
-                        setupSidebarLogic();
-                    }
-                });
-
-            await loadData();
-        });
-
-        // Event Listeners
-        selectImovel.addEventListener('change', updateFilters);
-        selectComodo.addEventListener('change', renderGrid);
-        filtroBusca.addEventListener('input', renderGrid);
-
-        // Modal Select Logic
-        modalSelectImovel.addEventListener('change', () => {
-            const imovelId = modalSelectImovel.value;
-            updateModalComodos(imovelId);
-        });
-
-        document.getElementById('btnNovoObjeto').onclick = () => openModal();
-        document.getElementById('btnNovoObjetoMobile').onclick = () => openModal();
-
-        window.previewImage = (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    currentImageBase64 = e.target.result;
-                    const img = document.getElementById('imgPreview');
-                    const ph = document.getElementById('uploadPlaceholder');
-                    img.src = currentImageBase64;
-                    img.classList.remove('hidden');
-                    ph.classList.add('opacity-0');
-                }
-                reader.readAsDataURL(file);
-            }
-        };
+        // --- Functions Declaration (Hoisted) ---
 
         async function loadData() {
             try {
@@ -486,8 +442,7 @@
             }
         }
 
-        // Define function in global scope for use
-        window.renderGrid = function renderGrid() {
+        function renderGrid() {
             const imovelId = selectImovel.value;
             const comodoId = selectComodo.value;
             const term = filtroBusca.value.toLowerCase();
@@ -506,8 +461,14 @@
             grid.innerHTML = '';
 
             if (filtrados.length === 0) {
-                emptyState.classList.remove('hidden');
-                setTimeout(() => emptyState.classList.remove('opacity-0'), 10);
+                if (allObjects.length > 0) {
+                    emptyState.classList.remove('hidden');
+                    setTimeout(() => emptyState.classList.remove('opacity-0'), 10);
+                } else {
+                    // Still loading or actually empty? Handled by loadingState mostly
+                    emptyState.classList.remove('hidden');
+                    setTimeout(() => emptyState.classList.remove('opacity-0'), 10);
+                }
                 return;
             }
             emptyState.classList.add('hidden');
@@ -517,9 +478,7 @@
                 const card = document.createElement('div');
                 card.className = 'glass-panel rounded-2xl overflow-hidden card-hoverable flex flex-col group h-full relative cursor-pointer bg-white/60 dark:bg-slate-900/60 border border-white/40 dark:border-slate-700/50';
 
-                // Async load image logic could be integrated here, but for simplicity let's use placeholder or direct url if available
                 let imgSrc = 'https://placehold.co/400x300?text=Sem+Foto';
-                const hasPhoto = obj.fotoId || obj.fotoUrl;
 
                 card.innerHTML = `
                     <div class="relative h-48 overflow-hidden bg-slate-100 dark:bg-slate-800">
@@ -559,6 +518,69 @@
                     if (imgEl) imgEl.src = obj.fotoUrl;
                 }
             });
+        }
+
+        async function recuperarFotoInventario(fotoId) {
+            try {
+                const docRef = doc(db, "inventario_fotos", fotoId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    return docSnap.data().base64;
+                }
+            } catch (error) {
+                console.error("Erro foto:", error);
+            }
+            return null;
+        }
+
+        // --- Init & Event Binding ---
+        // Binding AFTER functions are defined
+
+        // Expose to window for inline HTML onclicks
+        window.renderGrid = renderGrid;
+        window.updateFilters = updateFilters;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Sidebar
+            fetch("assets/components/sidebar.html")
+                .then(res => res.text())
+                .then(html => {
+                    const sb = document.getElementById('sidebar');
+                    if (sb) {
+                        sb.innerHTML = html;
+                        setupSidebarLogic();
+                    }
+                });
+
+            await loadData();
+        });
+
+        selectImovel.addEventListener('change', updateFilters);
+        selectComodo.addEventListener('change', renderGrid);
+        filtroBusca.addEventListener('input', renderGrid);
+
+        modalSelectImovel.addEventListener('change', () => {
+            const imovelId = modalSelectImovel.value;
+            updateModalComodos(imovelId);
+        });
+
+        document.getElementById('btnNovoObjeto').onclick = () => openModal();
+        document.getElementById('btnNovoObjetoMobile').onclick = () => openModal();
+
+        window.previewImage = (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    currentImageBase64 = e.target.result;
+                    const img = document.getElementById('imgPreview');
+                    const ph = document.getElementById('uploadPlaceholder');
+                    img.src = currentImageBase64;
+                    img.classList.remove('hidden');
+                    ph.classList.add('opacity-0');
+                }
+                reader.readAsDataURL(file);
+            }
         };
 
         // --- CRUD Logic ---
@@ -583,8 +605,6 @@
                 // Image
                 currentImageBase64 = null; // Reset temp
                 if (obj.fotoId) {
-                    // We need to fetch it potentially if not in memory? 
-                    // For now, let's try to fetch or skip.
                     recuperarFotoInventario(obj.fotoId).then(b64 => {
                         if (b64) {
                             imgPreview.src = b64;
@@ -645,8 +665,8 @@
 
                         // Local update
                         allObjects = allObjects.filter(o => !(o.id == objetoId && o.imovelId == imovelId && o.comodoId == comodoId));
-                        renderGrid(); // Refresh grid without full reload if possible, or reload
-                        // Reloading data from server to be safe about sync
+                        renderGrid(); // Refresh grid
+                        // Background refresh
                         await loadData();
                     }
                 } catch (e) { console.error(e); }
@@ -698,7 +718,7 @@
 
                 if (window.Toast) window.Toast.success('Salvo com sucesso!');
                 closeModal();
-                await loadData(); // Reload all to refresh
+                await loadData();
 
             } catch (err) {
                 console.error(err);
@@ -709,21 +729,6 @@
             }
         };
 
-        // Auxiliar Image Fetcher
-        async function recuperarFotoInventario(fotoId) {
-            try {
-                const docRef = doc(db, "inventario_fotos", fotoId);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    return docSnap.data().base64;
-                }
-            } catch (error) {
-                console.error("Erro foto:", error);
-            }
-            return null;
-        }
-
-        // Load sidebar logic
         function setupSidebarLogic() {
             const btn = document.getElementById('header-menu-toggle');
             const sidebar = document.getElementById('sidebar');
