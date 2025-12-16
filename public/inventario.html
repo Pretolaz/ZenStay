@@ -6,360 +6,745 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZenStay | Inventário</title>
 
+    <!-- Tailwind & Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- External CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/components.css">
-    <link rel="stylesheet" href="assets/css/imoveis.css">
     <link rel="stylesheet" href="assets/css/toast.css">
     <link rel="stylesheet" href="theme/dark.css" id="theme-style">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <style>
-        /* Estilos específicos para o modal de detalhes */
-        .modal-image-zoom {
-            width: 100%;
-            max-height: 300px;
-            object-fit: cover;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            border: 2px solid var(--accent);
-        }
 
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-
-        .detail-label {
-            font-weight: 600;
-            color: var(--text-muted);
-        }
-
-        .detail-value {
-            font-weight: 500;
-            color: var(--text);
-        }
-
-        /* Ajuste para o botão flutuante ou no header */
-        .header-actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-    </style>
-</head>
-
-<body>
-    <!-- Sidebar dinâmica -->
-    <div id="sidebar"></div>
-
-    <main class="content">
-        <header class="header">
-            <button class="menu-toggle" id="header-menu-toggle">☰</button>
-            <h1 id="main-title">📦 Inventário de Objetos</h1>
-            <button id="toggle-theme">🌓</button>
-        </header>
-
-        <section class="dashboard" id="inventario-objetos-section" style="display: flex;">
-            <div class="card"
-                style="flex: 1 1 100%; background: transparent; box-shadow: none; padding: 0; border: none;">
-
-                <!-- Header & Filter -->
-                <div class="imoveis-header-actions">
-                    <div class="section-title">
-                        <span>📦</span> Itens do Inventário
-                    </div>
-                    <button id="btnNovoObjeto"
-                        style="background: linear-gradient(135deg, var(--accent), var(--hover-accent)); color: #fff; border: none; padding: 12px 28px; border-radius: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 191, 166, 0.3);">
-                        <span>➕</span> Novo Item
-                    </button>
-                </div>
-
-                <!-- Form (Hidden by default) -->
-                <div id="formObjetoContainer"
-                    style="display: none; background: var(--card); border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-                    <h3
-                        style="margin-bottom: 20px; color: var(--accent); display: flex; align-items: center; gap: 10px;">
-                        <span id="formTitleObjeto">➕ Adicionar Objeto</span>
-                    </h3>
-                    <form id="formObjeto">
-                        <input type="hidden" id="objetoId">
-                        <div class="form-row">
-                            <div class="input-group">
-                                <span>🏠</span>
-                                <select id="selectImovelObjetos" required>
-                                    <option value="">Selecione o Imóvel</option>
-                                </select>
-                            </div>
-                            <div class="input-group">
-                                <span>🚪</span>
-                                <select id="selectComodoObjetos" required>
-                                    <option value="">Selecione o Cômodo</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="input-group">
-                                <span>🏷️</span>
-                                <select id="tipoObjeto" required>
-                                    <option value="Móvel">Móvel</option>
-                                    <option value="Utensílio">Utensílio</option>
-                                    <option value="Eletrodoméstico">Eletrodoméstico</option>
-                                    <option value="Decoração">Decoração</option>
-                                    <option value="Outro">Outro</option>
-                                </select>
-                            </div>
-                            <div class="input-group">
-                                <span>📝</span>
-                                <input type="text" id="nomeObjeto" placeholder="Nome do objeto" required>
-                            </div>
-                            <div class="input-group">
-                                <span>🔢</span>
-                                <input type="number" id="quantidadeObjeto" placeholder="Qtd" min="1" value="1" required>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="input-group">
-                                <span>📷</span>
-                                <input type="file" id="fotoObjeto" accept="image/*">
-                                <button type="button" id="btnCamera" class="btn-icon" title="Usar Câmera">📸</button>
-                            </div>
-                            <div class="input-group" style="flex-direction: column; align-items: center;">
-                                <video id="cameraStream" autoplay playsinline
-                                    style="display: none; width: 100%; max-width: 300px; border-radius: 10px;"></video>
-                                <canvas id="cameraCanvas" style="display: none;"></canvas>
-                                <button type="button" id="btnCapture" class="btn"
-                                    style="display: none; margin-top: 10px;">Capturar Foto</button>
-                                <img id="previewObjeto" src="https://placehold.co/300x200?text=Sem+Imagem" alt="Preview"
-                                    style="max-width: 100%; max-height: 200px; border-radius: 10px; margin-top: 10px; object-fit: cover;">
-                            </div>
-                        </div>
-
-                        <div class="form-actions"
-                            style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-                            <button type="button" class="btn btn-secondary" id="cancelarObjeto">❌ Cancelar</button>
-                            <button type="submit" class="btn">💾 Salvar</button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- List/Table -->
-                <div class="card" style="padding: 0; overflow: hidden;">
-                    <table id="tabelaObjetos" style="width: 100%; border-collapse: collapse;">
-                        <thead style="background: rgba(0,0,0,0.2);">
-                            <tr>
-                                <th style="padding: 15px; width: 80px;">Foto</th>
-                                <th style="padding: 15px; text-align: left; cursor: pointer;" data-sort-key="id">ID
-                                    <span></span>
-                                </th>
-                                <th style="padding: 15px; text-align: left; cursor: pointer;"
-                                    data-sort-key="imovelTitulo">Imóvel <span></span></th>
-                                <th style="padding: 15px; text-align: left; cursor: pointer;"
-                                    data-sort-key="comodoNome">Cômodo <span></span></th>
-                                <th style="padding: 15px; text-align: left; cursor: pointer;" data-sort-key="tipo">Tipo
-                                    <span></span>
-                                </th>
-                                <th style="padding: 15px; text-align: left; cursor: pointer;" data-sort-key="nome">Nome
-                                    <span></span>
-                                </th>
-                                <th style="padding: 15px; text-align: center; cursor: pointer;"
-                                    data-sort-key="quantidade">Qtd <span></span></th>
-                                <th style="padding: 15px; text-align: right;">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- Modal de Detalhes do Objeto (Zoom) -->
-        <div id="modalDetalhesObjeto" class="modal" style="display: none;">
-            <div class="modal-content" style="max-width: 400px;">
-                <span class="close-button" onclick="fecharModalDetalhes()">&times;</span>
-                <h3 id="detalheTitulo" style="margin-bottom: 15px; color: var(--accent);">📦 Detalhes do Item</h3>
-
-                <img id="detalheImagem" src="" alt="Foto do Objeto" class="modal-image-zoom">
-
-                <div class="detail-row">
-                    <span class="detail-label">Nome:</span>
-                    <span class="detail-value" id="detalheNome"></span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Tipo:</span>
-                    <span class="detail-value" id="detalheTipo"></span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Quantidade:</span>
-                    <span class="detail-value" id="detalheQuantidade"></span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Imóvel:</span>
-                    <span class="detail-value" id="detalheImovel"></span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Cômodo:</span>
-                    <span class="detail-value" id="detalheComodo"></span>
-                </div>
-
-                <div class="modal-actions" style="margin-top: 20px;">
-                    <button class="btn btn-secondary" onclick="fecharModalDetalhes()">Fechar</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal de Confirmação de Exclusão -->
-        <div id="modalConfirmacaoExclusao" class="modal" style="display: none;">
-            <div class="modal-content" style="max-width: 400px; text-align: center;">
-                <div style="font-size: 3rem; margin-bottom: 10px;">⚠️</div>
-                <h3 style="margin-bottom: 10px;">Confirmar Exclusão</h3>
-                <p style="margin-bottom: 20px; color: var(--text-muted);">Tem certeza que deseja excluir este item? Esta
-                    ação não pode ser desfeita.</p>
-
-                <div class="modal-actions" style="justify-content: center;">
-                    <button class="btn btn-secondary" onclick="fecharModalConfirmacao()">Cancelar</button>
-                    <button class="btn btn-danger" id="btnConfirmarExclusao">Sim, Excluir</button>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Scripts Essenciais -->
-    <script src="assets/js/storage.js"></script>
-    <script src="assets/js/main.js"></script>
-    <script src="assets/js/toast.js"></script>
-
-
-    <!-- Scripts de Lógica de Página -->
-    <script type="module" src="assets/js/objetos-comodo.js"></script>
-
-    <!-- Script de Inicialização e Navegação -->
     <script>
-        // Lógica para marcar o link ativo na sidebar
-        const setActiveSidebarLink = () => {
-            const path = window.location.pathname.split("/").pop();
-
-            document.querySelectorAll(".sidebar a").forEach(link => {
-                link.classList.remove("active");
-                const linkHref = link.getAttribute("href");
-
-                if (linkHref === path) {
-                    link.classList.add("active");
-                    const parentSubmenu = link.closest('.has-submenu');
-                    if (parentSubmenu) {
-                        const submenuElement = parentSubmenu.querySelector('.submenu');
-                        const arrowElement = parentSubmenu.querySelector('.arrow');
-                        if (submenuElement) submenuElement.style.display = 'block';
-                        if (arrowElement) arrowElement.textContent = '▼';
-                        parentSubmenu.classList.add('expanded');
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        dark: '#0f172a',
+                        surface: '#1e293b',
                     }
                 }
-            });
-        };
-
-        // Carrega a sidebar e depois inicializa a lógica da página
-        fetch("assets/components/sidebar.html")
-            .then(res => res.text())
-            .then(html => {
-                document.getElementById("sidebar").innerHTML = html;
-
-                // Configura os toggles da sidebar e o comportamento responsivo
-                setupSidebarToggles();
-
-                // Adiciona listeners para os links da sidebar
-                document.querySelector('.sidebar').addEventListener('click', handleSidebarClick);
-
-                // Define o link ativo inicial na sidebar
-                setActiveSidebarLink();
-            });
-
-        function setupSidebarToggles() {
-            const body = document.body;
-            const loadedSidebarElement = document.querySelector('.sidebar');
-            const menuToggleBtnInSidebar = document.getElementById('menu-toggle');
-            const headerMenuToggleButton = document.getElementById('header-menu-toggle');
-
-            function toggleSidebar() {
-                body.classList.toggle('sidebar-open-mobile');
-            }
-
-            if (menuToggleBtnInSidebar) menuToggleBtnInSidebar.addEventListener('click', (e) => { e.stopPropagation(); toggleSidebar(); });
-            if (headerMenuToggleButton) headerMenuToggleButton.addEventListener('click', (e) => { e.stopPropagation(); toggleSidebar(); });
-
-            document.addEventListener('click', (e) => {
-                if (body.classList.contains('sidebar-open-mobile') && !loadedSidebarElement.contains(e.target) && !headerMenuToggleButton.contains(e.target)) {
-                    toggleSidebar();
-                }
-            });
-        }
-
-        function handleSidebarClick(e) {
-            const submenuToggle = e.target.closest('.submenu-toggle');
-            if (submenuToggle) {
-                e.preventDefault();
-                const parentLi = submenuToggle.closest('.has-submenu');
-                const submenu = parentLi.querySelector('.submenu');
-                const arrow = submenuToggle.querySelector('.arrow');
-
-                if (submenu && arrow) {
-                    const isExpanded = submenu.style.display === 'block';
-                    submenu.style.display = isExpanded ? 'none' : 'block';
-                    arrow.textContent = isExpanded ? '▶' : '▼';
-                    parentLi.classList.toggle('expanded', !isExpanded);
-                }
-            }
-
-            let clickedLink = e.target.closest("a");
-            if (clickedLink) {
-                document.querySelectorAll(".sidebar a").forEach(link => link.classList.remove("active"));
-                clickedLink.classList.add("active");
-                const parentSubmenuItem = clickedLink.closest('.has-submenu');
-                if (parentSubmenuItem) {
-                    parentSubmenuItem.querySelector('.submenu-toggle')?.classList.add('active');
-                }
-                if (window.innerWidth <= 768 && !clickedLink.classList.contains('submenu-toggle')) {
-                    document.body.classList.remove('sidebar-open-mobile');
-                }
-            }
-        }
-
-        window.addEventListener('resize', () => {
-            if (window.innerWidth > 768 && document.body.classList.contains('sidebar-open-mobile')) {
-                document.body.classList.remove('sidebar-open-mobile');
-            }
-        });
-
-        // Funções globais para os modais
-        window.fecharModalDetalhes = () => {
-            document.getElementById('modalDetalhesObjeto').style.display = 'none';
-        };
-
-        window.fecharModalConfirmacao = () => {
-            document.getElementById('modalConfirmacaoExclusao').style.display = 'none';
-        };
-
-        // Fechar modais ao clicar fora
-        window.onclick = function (event) {
-            const modalDetalhes = document.getElementById('modalDetalhesObjeto');
-            const modalConfirmacao = document.getElementById('modalConfirmacaoExclusao');
-            if (event.target == modalDetalhes) {
-                modalDetalhes.style.display = "none";
-            }
-            if (event.target == modalConfirmacao) {
-                modalConfirmacao.style.display = "none";
             }
         }
     </script>
 
+    <style>
+        /* Base & Glassmorphism */
+        body {
+            background-color: #f8fafc;
+        }
+
+        body.dark-mode {
+            background-color: #020617;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        .input-animated {
+            transition: all 0.3s ease;
+        }
+
+        .input-animated:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.3);
+        }
+
+        .card-hoverable {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-hoverable:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body class="antialiased transition-colors duration-300">
+
+    <!-- Sidebar Wrapper -->
+    <div id="sidebar" class="fixed inset-y-0 left-0 z-50"></div>
+
+    <main class="content transition-all duration-300 min-h-screen flex flex-col md:ml-[220px]">
+
+        <!-- Header -->
+        <header
+            class="sticky top-0 z-40 glass-panel border-b border-gray-200/50 dark:border-gray-800/50 px-6 py-4 flex justify-between items-center mr-6 mt-6 rounded-2xl mx-4 lg:mx-8">
+            <div class="flex items-center gap-4">
+                <button class="menu-toggle md:hidden text-2xl text-slate-600 dark:text-slate-300"
+                    id="header-menu-toggle">
+                    ☰
+                </button>
+                <div>
+                    <h1
+                        class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+                        Inventário
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Gestão de Itens e Mobiliário
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button id="toggle-theme"
+                    class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xl shadow-sm hover:shadow-md transition-all">
+                    🌓
+                </button>
+                <button id="btnNovoObjeto"
+                    class="hidden sm:flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-blue-500/30 transition-all transform hover:-translate-y-0.5 font-medium">
+                    <span class="text-lg">+</span> Novo Item
+                </button>
+            </div>
+        </header>
+
+        <!-- Mobile FAB -->
+        <button id="btnNovoObjetoMobile"
+            class="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center text-3xl z-40 hover:scale-110 transition-transform">
+            +
+        </button>
+
+        <section class="p-4 lg:p-8 space-y-8 max-w-[1600px] mx-auto w-full relative">
+
+            <!-- Filters -->
+            <div
+                class="glass-panel p-6 rounded-2xl flex flex-col md:flex-row items-center gap-6 justify-between bg-white/50 dark:bg-slate-800/50">
+                <div class="flex flex-col sm:flex-row gap-4 w-full">
+                    <div class="relative w-full sm:w-1/3">
+                        <label
+                            class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1 ml-1">Imóvel</label>
+                        <select id="selectImovelObjetos"
+                            class="w-full appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 py-3 pl-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all cursor-pointer font-medium">
+                            <option value="">Carregando...</option>
+                        </select>
+                        <div
+                            class="pointer-events-none absolute bottom-3 right-0 flex items-center px-3 text-slate-500">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="relative w-full sm:w-1/3">
+                        <label
+                            class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1 ml-1">Cômodo</label>
+                        <select id="selectComodoObjetos"
+                            class="w-full appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 py-3 pl-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all cursor-pointer font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                            <option value="">Todos</option>
+                        </select>
+                        <div
+                            class="pointer-events-none absolute bottom-3 right-0 flex items-center px-3 text-slate-500">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="relative w-full sm:w-1/3">
+                        <label
+                            class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1 ml-1">Busca</label>
+                        <input type="text" id="filtroBusca" placeholder="Nome, tipo..."
+                            class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 py-3 pl-4 pr-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all text-sm h-[50px]">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid Layout -->
+            <div id="gridObjetos" class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+                <!-- Cards Injected Here -->
+            </div>
+
+            <!-- Empty States -->
+            <div id="loadingState" class="hidden col-span-full py-20 flex justify-center">
+                <div class="animate-spin text-4xl text-blue-500">🌀</div>
+            </div>
+
+            <div id="emptyState"
+                class="hidden flex flex-col items-center justify-center py-24 opacity-0 transition-opacity duration-500">
+                <div
+                    class="w-24 h-24 bg-blue-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center mb-4">
+                    <span class="text-4xl">📦</span>
+                </div>
+                <h3 class="text-xl font-bold text-slate-700 dark:text-slate-200">Nenhum item encontrado</h3>
+                <p class="text-slate-400 mt-2">Selecione um imóvel ou adicione novos itens ao inventário.</p>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Slide-Over Modal for Add/Edit -->
+    <div id="modalObjeto" class="fixed inset-0 z-[60] hidden" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity opacity-0" id="modalBackdrop">
+        </div>
+
+        <div class="fixed inset-y-0 right-0 flex max-w-full pl-0 sm:pl-10 pointer-events-none">
+            <div class="pointer-events-auto w-screen max-w-md transform transition ease-in-out duration-500 translate-x-full"
+                id="modalPanel">
+                <div class="flex h-full flex-col bg-white dark:bg-slate-900 shadow-2xl">
+
+                    <!-- Header -->
+                    <div
+                        class="px-6 py-6 bg-gradient-to-br from-indigo-500 to-blue-600 flex justify-between items-center shrink-0">
+                        <div>
+                            <h2 class="text-xl font-semibold text-white" id="modalTitle">Novo Item</h2>
+                            <p class="text-indigo-100 text-sm mt-1">Detalhes do objeto.</p>
+                        </div>
+                        <button onclick="closeModal()" type="button"
+                            class="rounded-full p-2 bg-white/20 hover:bg-white/30 text-white transition-colors focus:outline-none">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                        <form id="formObjeto" class="space-y-6">
+                            <input type="hidden" id="objetoId">
+
+                            <!-- Image Upload -->
+                            <div class="flex flex-col items-center gap-4">
+                                <div class="relative w-full h-48 bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden border-2 border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center group cursor-pointer transition-colors hover:border-blue-500"
+                                    onclick="document.getElementById('fotoObjeto').click()">
+                                    <img id="imgPreview" src=""
+                                        class="absolute inset-0 w-full h-full object-cover hidden">
+                                    <div class="text-center p-6 group-hover:scale-105 transition-transform"
+                                        id="uploadPlaceholder">
+                                        <div
+                                            class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
+                                            📷
+                                        </div>
+                                        <p class="text-sm font-medium text-slate-600 dark:text-slate-300">Foto do Item
+                                        </p>
+                                    </div>
+                                    <input type="file" id="fotoObjeto" accept="image/*" class="hidden"
+                                        onchange="previewImage(event)">
+                                </div>
+
+                                <button type="button" id="btnCamera"
+                                    class="hidden text-sm text-blue-500 hover:text-blue-600 font-medium flex items-center gap-2">
+                                    <span class="text-lg">📸</span> Usar Câmera
+                                </button>
+                                <!-- Camera elements hidden for now, keeping simple file input mostly -->
+                                <video id="cameraStream" class="hidden w-full rounded-lg"></video>
+                                <canvas id="cameraCanvas" class="hidden"></canvas>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Imóvel</label>
+                                    <select id="modalSelectImovel" required
+                                        class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 focus:ring-2 focus:ring-blue-500 outline-none dark:text-white text-sm">
+                                    </select>
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Cômodo</label>
+                                    <select id="modalSelectComodo" required
+                                        class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 focus:ring-2 focus:ring-blue-500 outline-none dark:text-white text-sm disabled:opacity-50">
+                                        <option value="">Selecione Imóvel Primeiro</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="col-span-2">
+                                    <label
+                                        class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nome</label>
+                                    <input type="text" id="nomeObjeto" required
+                                        class="w-full input-animated bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none dark:text-white"
+                                        placeholder="Ex: TV 50 pol">
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Qtd</label>
+                                    <input type="number" id="quantidadeObjeto" min="1" value="1" required
+                                        class="w-full input-animated bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none dark:text-white text-center">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tipo</label>
+                                <select id="tipoObjeto"
+                                    class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 focus:ring-2 focus:ring-blue-500 outline-none dark:text-white text-sm">
+                                    <option value="Móvel">🪑 Móvel</option>
+                                    <option value="Utensílio">🍴 Utensílio</option>
+                                    <option value="Eletrodoméstico">🔌 Eletrodoméstico</option>
+                                    <option value="Decoração">🖼️ Decoração</option>
+                                    <option value="Outro">📦 Outro</option>
+                                </select>
+                            </div>
+
+                        </form>
+                    </div>
+
+                    <!-- Footer -->
+                    <div
+                        class="border-t border-slate-200 dark:border-slate-700 px-6 py-6 bg-slate-50 dark:bg-slate-900/50 shrink-0 flex gap-3">
+                        <button type="button" onclick="closeModal()"
+                            class="flex-1 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">Cancelar</button>
+                        <button type="button" onclick="salvarObjeto(event)"
+                            class="flex-1 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-3 text-sm font-bold shadow-lg shadow-blue-500/30 transition-all transform hover:-translate-y-0.5">Salvar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Scripts -->
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/toast.js"></script>
+
+    <!-- Module for logic -->
+    <script type="module">
+        import { Imovel } from './assets/js/entities/imovel.js';
+        import { db } from './assets/js/firebase-config.js';
+        import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Global State
+        let allObjects = [];
+        let imoveisCache = [];
+        let currentImageBase64 = null;
+        let activeStream = null;
+
+        // UI Refs
+        const grid = document.getElementById('gridObjetos');
+        const emptyState = document.getElementById('emptyState');
+        const loadingState = document.getElementById('loadingState');
+        const selectImovel = document.getElementById('selectImovelObjetos');
+        const selectComodo = document.getElementById('selectComodoObjetos');
+        const filtroBusca = document.getElementById('filtroBusca');
+
+        // Modal Refs
+        const modal = document.getElementById('modalObjeto');
+        const modalBackdrop = document.getElementById('modalBackdrop');
+        const modalPanel = document.getElementById('modalPanel');
+        const modalSelectImovel = document.getElementById('modalSelectImovel');
+        const modalSelectComodo = document.getElementById('modalSelectComodo');
+
+        // Init
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Sidebar
+            fetch("assets/components/sidebar.html")
+                .then(res => res.text())
+                .then(html => {
+                    const sb = document.getElementById('sidebar');
+                    if (sb) {
+                        sb.innerHTML = html;
+                        setupSidebarLogic();
+                    }
+                });
+
+            await loadData();
+        });
+
+        // Event Listeners
+        selectImovel.addEventListener('change', updateFilters);
+        selectComodo.addEventListener('change', renderGrid);
+        filtroBusca.addEventListener('input', renderGrid);
+
+        // Modal Select Logic
+        modalSelectImovel.addEventListener('change', () => {
+            const imovelId = modalSelectImovel.value;
+            updateModalComodos(imovelId);
+        });
+
+        document.getElementById('btnNovoObjeto').onclick = () => openModal();
+        document.getElementById('btnNovoObjetoMobile').onclick = () => openModal();
+
+        window.previewImage = (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    currentImageBase64 = e.target.result;
+                    const img = document.getElementById('imgPreview');
+                    const ph = document.getElementById('uploadPlaceholder');
+                    img.src = currentImageBase64;
+                    img.classList.remove('hidden');
+                    ph.classList.add('opacity-0');
+                }
+                reader.readAsDataURL(file);
+            }
+        };
+
+        async function loadData() {
+            try {
+                loadingState.classList.remove('hidden');
+                imoveisCache = await Imovel.listarTodos();
+
+                // Populate Filters
+                selectImovel.innerHTML = '<option value="">Todos os Imóveis</option>';
+                modalSelectImovel.innerHTML = '<option value="">Selecione o Imóvel</option>';
+
+                imoveisCache.forEach(im => {
+                    const opt = document.createElement('option');
+                    opt.value = im.id;
+                    opt.textContent = im.titulo || `Imóvel #${im.id}`;
+                    selectImovel.appendChild(opt);
+
+                    const optModal = document.createElement('option');
+                    optModal.value = im.id;
+                    optModal.textContent = im.titulo || `Imóvel #${im.id}`;
+                    modalSelectImovel.appendChild(optModal);
+                });
+
+                // Flatten Objects
+                flattenObjects();
+                renderGrid();
+                loadingState.classList.add('hidden');
+
+            } catch (err) {
+                console.error(err);
+                if (window.Toast) window.Toast.error("Erro ao carregar dados.");
+                loadingState.classList.add('hidden');
+            }
+        }
+
+        function flattenObjects() {
+            allObjects = [];
+            imoveisCache.forEach(im => {
+                if (im.comodos) {
+                    im.comodos.forEach(com => {
+                        if (com.objetos) {
+                            com.objetos.forEach(obj => {
+                                allObjects.push({
+                                    ...obj,
+                                    imovelId: im.id,
+                                    imovelTitulo: im.titulo || 'Sem Nome',
+                                    comodoId: com.id,
+                                    comodoNome: com.nome || 'Cômodo'
+                                });
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        function updateFilters() {
+            const imovelId = selectImovel.value;
+            selectComodo.innerHTML = '<option value="">Todos os Cômodos</option>';
+
+            if (imovelId) {
+                const im = imoveisCache.find(i => i.id == imovelId);
+                if (im && im.comodos) {
+                    selectComodo.disabled = false;
+                    im.comodos.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.id;
+                        opt.textContent = c.nome;
+                        selectComodo.appendChild(opt);
+                    });
+                } else {
+                    selectComodo.disabled = true;
+                }
+            } else {
+                selectComodo.disabled = true;
+            }
+            renderGrid();
+        }
+
+        function updateModalComodos(imovelId) {
+            modalSelectComodo.innerHTML = '<option value="">Selecione o Cômodo</option>';
+            if (imovelId) {
+                const im = imoveisCache.find(i => i.id == imovelId);
+                if (im && im.comodos) {
+                    modalSelectComodo.disabled = false;
+                    im.comodos.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.id;
+                        opt.textContent = c.nome;
+                        modalSelectComodo.appendChild(opt);
+                    });
+                } else {
+                    modalSelectComodo.disabled = true;
+                }
+            } else {
+                modalSelectComodo.disabled = true;
+            }
+        }
+
+        // Define function in global scope for use
+        window.renderGrid = function renderGrid() {
+            const imovelId = selectImovel.value;
+            const comodoId = selectComodo.value;
+            const term = filtroBusca.value.toLowerCase();
+
+            const filtrados = allObjects.filter(obj => {
+                const matchImovel = !imovelId || obj.imovelId == imovelId;
+                const matchComodo = !comodoId || obj.comodoId == comodoId;
+                const matchTerm = !term ||
+                    obj.nome.toLowerCase().includes(term) ||
+                    obj.tipo.toLowerCase().includes(term) ||
+                    obj.imovelTitulo.toLowerCase().includes(term) ||
+                    obj.comodoNome.toLowerCase().includes(term);
+                return matchImovel && matchComodo && matchTerm;
+            });
+
+            grid.innerHTML = '';
+
+            if (filtrados.length === 0) {
+                emptyState.classList.remove('hidden');
+                setTimeout(() => emptyState.classList.remove('opacity-0'), 10);
+                return;
+            }
+            emptyState.classList.add('hidden');
+            emptyState.classList.add('opacity-0');
+
+            filtrados.forEach(obj => {
+                const card = document.createElement('div');
+                card.className = 'glass-panel rounded-2xl overflow-hidden card-hoverable flex flex-col group h-full relative cursor-pointer bg-white/60 dark:bg-slate-900/60 border border-white/40 dark:border-slate-700/50';
+
+                // Async load image logic could be integrated here, but for simplicity let's use placeholder or direct url if available
+                let imgSrc = 'https://placehold.co/400x300?text=Sem+Foto';
+                const hasPhoto = obj.fotoId || obj.fotoUrl;
+
+                card.innerHTML = `
+                    <div class="relative h-48 overflow-hidden bg-slate-100 dark:bg-slate-800">
+                        <img src="${imgSrc}" id="img-card-${obj.imovelId}-${obj.comodoId}-${obj.id}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        <div class="absolute top-3 right-3 px-2 py-1 bg-white/90 dark:bg-slate-900/90 rounded-lg text-xs font-bold shadow-sm uppercase tracking-wide backdrop-blur-sm">
+                            ${obj.tipo}
+                        </div>
+                        <div class="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-black/60 to-transparent"></div>
+                        <div class="absolute bottom-3 left-4 text-white">
+                             <p class="text-xs opacity-80">${obj.imovelTitulo}</p>
+                             <p class="font-bold text-sm">📍 ${obj.comodoNome}</p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 flex-1 flex flex-col gap-2">
+                        <div class="flex justify-between items-start">
+                             <h3 class="font-bold text-lg text-slate-800 dark:text-white leading-tight">${obj.nome}</h3>
+                             <div class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded text-sm font-bold">x${obj.quantidade}</div>
+                        </div>
+                        
+                        <div class="mt-auto pt-4 flex items-center justify-end gap-2 border-t border-slate-100 dark:border-slate-700/50">
+                             <button onclick="window.editarObjeto(${obj.imovelId}, ${obj.comodoId}, ${obj.id})" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-orange-50 dark:hover:bg-orange-900/30 text-slate-400 hover:text-orange-500 transition-colors" title="Editar">✏️</button>
+                             <button onclick="window.excluirObjeto(${obj.imovelId}, ${obj.comodoId}, ${obj.id})" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-400 hover:text-red-500 transition-colors" title="Excluir">🗑️</button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+
+                // Lazy Load Image
+                if (obj.fotoId) {
+                    recuperarFotoInventario(obj.fotoId).then(base64 => {
+                        const imgEl = document.getElementById(`img-card-${obj.imovelId}-${obj.comodoId}-${obj.id}`);
+                        if (imgEl && base64) imgEl.src = base64;
+                    });
+                } else if (obj.fotoUrl) {
+                    const imgEl = document.getElementById(`img-card-${obj.imovelId}-${obj.comodoId}-${obj.id}`);
+                    if (imgEl) imgEl.src = obj.fotoUrl;
+                }
+            });
+        };
+
+        // --- CRUD Logic ---
+
+        window.openModal = (obj = null) => {
+            const title = document.getElementById('modalTitle');
+            const placeholder = document.getElementById('uploadPlaceholder');
+            const imgPreview = document.getElementById('imgPreview');
+
+            if (obj) {
+                title.innerText = 'Editar Item';
+                document.getElementById('objetoId').value = obj.id;
+                document.getElementById('nomeObjeto').value = obj.nome;
+                document.getElementById('quantidadeObjeto').value = obj.quantidade;
+                document.getElementById('tipoObjeto').value = obj.tipo;
+
+                // Selects
+                modalSelectImovel.value = obj.imovelId;
+                updateModalComodos(obj.imovelId);
+                modalSelectComodo.value = obj.comodoId;
+
+                // Image
+                currentImageBase64 = null; // Reset temp
+                if (obj.fotoId) {
+                    // We need to fetch it potentially if not in memory? 
+                    // For now, let's try to fetch or skip.
+                    recuperarFotoInventario(obj.fotoId).then(b64 => {
+                        if (b64) {
+                            imgPreview.src = b64;
+                            imgPreview.classList.remove('hidden');
+                            placeholder.classList.add('opacity-0');
+                        }
+                    });
+                } else if (obj.fotoUrl) {
+                    imgPreview.src = obj.fotoUrl;
+                    imgPreview.classList.remove('hidden');
+                    placeholder.classList.add('opacity-0');
+                } else {
+                    imgPreview.classList.add('hidden');
+                    placeholder.classList.remove('opacity-0');
+                }
+
+            } else {
+                title.innerText = 'Novo Item';
+                document.getElementById('formObjeto').reset();
+                document.getElementById('objetoId').value = '';
+                currentImageBase64 = null;
+                imgPreview.classList.add('hidden');
+                placeholder.classList.remove('opacity-0');
+
+                // Auto-fill form if filter is selected on main page
+                if (selectImovel.value) {
+                    modalSelectImovel.value = selectImovel.value;
+                    updateModalComodos(selectImovel.value);
+                    if (selectComodo.value) modalSelectComodo.value = selectComodo.value;
+                }
+            }
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalBackdrop.classList.remove('opacity-0');
+                modalPanel.classList.remove('translate-x-full');
+            }, 10);
+        };
+
+        window.closeModal = () => {
+            modalBackdrop.classList.add('opacity-0');
+            modalPanel.classList.add('translate-x-full');
+            setTimeout(() => modal.classList.add('hidden'), 500);
+        };
+
+        window.editarObjeto = (imovelId, comodoId, objetoId) => {
+            const obj = allObjects.find(o => o.id == objetoId && o.imovelId == imovelId && o.comodoId == comodoId);
+            if (obj) openModal(obj);
+        };
+
+        window.excluirObjeto = async (imovelId, comodoId, objetoId) => {
+            if (confirm('Tem certeza que deseja excluir este item?')) {
+                try {
+                    const imovel = await Imovel.buscarPorId(imovelId);
+                    if (imovel) {
+                        await imovel.removerObjeto(comodoId, objetoId);
+                        if (window.Toast) window.Toast.success('Item excluído!');
+
+                        // Local update
+                        allObjects = allObjects.filter(o => !(o.id == objetoId && o.imovelId == imovelId && o.comodoId == comodoId));
+                        renderGrid(); // Refresh grid without full reload if possible, or reload
+                        // Reloading data from server to be safe about sync
+                        await loadData();
+                    }
+                } catch (e) { console.error(e); }
+            }
+        };
+
+        window.salvarObjeto = async (e) => {
+            e.preventDefault();
+            const btn = e.target;
+            const originalText = btn.innerText;
+            btn.innerText = 'Salvando...';
+            btn.disabled = true;
+
+            try {
+                const imovelId = parseInt(modalSelectImovel.value);
+                const comodoId = parseInt(modalSelectComodo.value);
+                const objetoId = document.getElementById('objetoId').value ? parseInt(document.getElementById('objetoId').value) : null;
+                const nome = document.getElementById('nomeObjeto').value;
+                const qtd = parseInt(document.getElementById('quantidadeObjeto').value);
+                const tipo = document.getElementById('tipoObjeto').value;
+
+                if (!imovelId || !comodoId) {
+                    throw new Error("Selecione imóvel e cômodo.");
+                }
+
+                let fotoId = null;
+
+                // Handle Photo Save
+                if (currentImageBase64) {
+                    fotoId = `foto_${imovelId}_${comodoId}_${Date.now()}`;
+                    await setDoc(doc(db, "inventario_fotos", fotoId), { base64: currentImageBase64 });
+                } else if (objetoId) {
+                    // Keep existing photoId if editing and no new photo
+                    const existing = allObjects.find(o => o.id == objetoId && o.imovelId == imovelId && o.comodoId == comodoId);
+                    if (existing) fotoId = existing.fotoId;
+                }
+
+                const objetoData = {
+                    id: objetoId,
+                    tipo: tipo,
+                    nome: nome,
+                    quantidade: qtd,
+                    fotoId: fotoId,
+                    fotoUrl: null // Legacy clear
+                };
+
+                const imovel = await Imovel.buscarPorId(imovelId);
+                await imovel.salvarObjeto(comodoId, objetoData);
+
+                if (window.Toast) window.Toast.success('Salvo com sucesso!');
+                closeModal();
+                await loadData(); // Reload all to refresh
+
+            } catch (err) {
+                console.error(err);
+                if (window.Toast) window.Toast.error("Erro ao salvar: " + err.message);
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        };
+
+        // Auxiliar Image Fetcher
+        async function recuperarFotoInventario(fotoId) {
+            try {
+                const docRef = doc(db, "inventario_fotos", fotoId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    return docSnap.data().base64;
+                }
+            } catch (error) {
+                console.error("Erro foto:", error);
+            }
+            return null;
+        }
+
+        // Load sidebar logic
+        function setupSidebarLogic() {
+            const btn = document.getElementById('header-menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const body = document.body;
+
+            if (btn) {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    body.classList.toggle('sidebar-open-mobile');
+                };
+            }
+            const currentPage = 'inventario.html';
+            const links = sidebar.querySelectorAll('a');
+            links.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && href.includes(currentPage)) {
+                    link.classList.add('active');
+                }
+            });
+        }
+    </script>
 </body>
 
 </html>
