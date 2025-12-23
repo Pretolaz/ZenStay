@@ -204,6 +204,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setupEventListeners() {
         if (startWizardBtn) startWizardBtn.addEventListener('click', openWizard);
+        const startWizardMobileBtn = document.getElementById('start-reservation-wizard-mobile-btn');
+        if (startWizardMobileBtn) startWizardMobileBtn.addEventListener('click', openWizard);
         if (closeWizardBtn) closeWizardBtn.addEventListener('click', closeWizard);
         if (wizardModal) wizardModal.addEventListener('click', (e) => { if (e.target === wizardModal) closeWizard(); });
         if (closeDetailsBtn) closeDetailsBtn.addEventListener('click', closeReservationDetails);
@@ -419,6 +421,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateStepIndicator(stepNumber) {
+        // Step Indicators Dots (added in new UI)
+        const dotContainer = document.getElementById('step-indicator-dots');
+        const stepTitleDisplay = document.getElementById('wizard-step-title-display');
+
+        if (dotContainer) {
+            dotContainer.innerHTML = '';
+            for (let i = 1; i <= totalSteps; i++) {
+                const dot = document.createElement('div');
+                dot.className = `step-dot ${i === stepNumber ? 'active' : ''}`;
+                dotContainer.appendChild(dot);
+            }
+        }
+
+        if (stepTitleDisplay) {
+            stepTitleDisplay.textContent = `Passo ${stepNumber} de ${totalSteps}`;
+        }
+
+        // Legacy support if old indicators still exist
         stepIndicators.forEach(indicator => {
             const step = parseInt(indicator.dataset.step);
             indicator.classList.toggle('active', step === stepNumber);
@@ -697,11 +717,30 @@ document.addEventListener('DOMContentLoaded', () => {
         if (detailsHospedes) {
             if (reserva.hospedes && reserva.hospedes.length > 0) {
                 const primeiroHospede = clientes.find(c => c.id == reserva.hospedes[0]);
-                const nomePrimeiro = primeiroHospede ? primeiroHospede.nome.split(' ')[0] : '...';
+                const nomePrimeiro = primeiroHospede ? primeiroHospede.nome : '...';
                 const extras = reserva.hospedes.length - 1;
-                detailsHospedes.textContent = extras > 0 ? `${nomePrimeiro} (+${extras})` : nomePrimeiro;
+                detailsHospedes.textContent = extras > 0 ? `${nomePrimeiro.split(' ')[0]} (+${extras})` : nomePrimeiro;
+
+                // WhatsApp Shortcut
+                const whatsappContainer = document.getElementById('whatsapp-shortcut-container');
+                if (whatsappContainer && primeiroHospede && primeiroHospede.telefone) {
+                    const cleanPhone = primeiroHospede.telefone.replace(/\D/g, '');
+                    // Assuming DDI 55 if not present, or just leave as is if user expects full number
+                    const ddi = cleanPhone.length <= 11 ? '55' : '';
+                    const zapUrl = `https://wa.me/${ddi}${cleanPhone}?text=Olá%20${encodeURIComponent(nomePrimeiro)},%20sua%20reserva%20no%20ZenStay...`;
+
+                    whatsappContainer.innerHTML = `
+                        <a href="${zapUrl}" target="_blank" class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white hover:bg-green-600 transition-colors shadow-sm ml-2" title="Conversar no WhatsApp">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-4.821 4.754a8.132 8.132 0 0 1-3.136-.619l-.225-.134-2.333.612.623-2.274-.147-.234a8.132 8.132 0 0 1-1.251-4.322c0-4.49 3.654-8.145 8.147-8.145 2.176 0 4.223.847 5.761 2.387 1.54 1.54 2.387 3.587 2.387 5.76 0 4.491-3.654 8.146-8.146 8.146m9.761-14.928A11.522 11.522 0 0 0 12.651 1c-6.391 0-11.59 5.2-11.59 11.59 0 2.043.533 4.038 1.544 5.812L1 23l4.708-1.234a11.517 11.517 0 0 0 5.617 1.458c6.393 0 11.593-5.2 11.593-11.593 0-3.099-1.206-6.012-3.398-8.205"/>
+                            </svg>
+                        </a>
+                    `;
+                }
             } else {
                 detailsHospedes.textContent = 'Nenhum';
+                const whatsappContainer = document.getElementById('whatsapp-shortcut-container');
+                if (whatsappContainer) whatsappContainer.innerHTML = '';
             }
         }
 

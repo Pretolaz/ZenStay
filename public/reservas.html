@@ -6,344 +6,622 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZenStay | Reservas</title>
 
+    <!-- Tailwind & Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- External CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/components.css">
     <link rel="stylesheet" href="assets/css/wizard-reservas.css">
     <link rel="stylesheet" href="assets/css/timeline.css">
     <link rel="stylesheet" href="assets/css/toast.css">
     <link rel="stylesheet" href="theme/dark.css" id="theme-style">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        dark: '#0f172a',
+                        surface: '#1e293b',
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 
-<body>
+<body
+    class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased transition-colors duration-300">
     <!-- Sidebar dinâmica -->
     <div id="sidebar"></div>
 
-    <main class="content">
-        <header class="header">
-            <button class="menu-toggle" id="header-menu-toggle">☰</button>
-            <h1>🗓️ Reservas</h1>
-            <button id="toggle-theme">🌓</button>
+    <main class="content transition-all duration-300 min-h-screen flex flex-col md:ml-[220px]">
+        <!-- Header Moderno -->
+        <header
+            class="sticky top-0 z-40 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 px-6 py-4 flex justify-between items-center mr-6 mt-6 rounded-2xl mx-4 lg:mx-8">
+            <div class="flex items-center gap-4">
+                <button class="menu-toggle md:hidden text-2xl text-slate-600 dark:text-slate-300"
+                    id="header-menu-toggle">
+                    ☰
+                </button>
+                <div>
+                    <h1
+                        class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+                        Reservas
+                    </h1>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Controle de Estadias</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button id="toggle-theme"
+                    class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xl shadow-sm hover:shadow-md transition-all">
+                    🌓
+                </button>
+                <button id="start-reservation-wizard-btn"
+                    class="hidden sm:flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-blue-500/30 transition-all transform hover:-translate-y-0.5 font-medium">
+                    <span class="text-lg">+</span> Nova Reserva
+                </button>
+            </div>
         </header>
 
-        <section class="kanban-actions" style="margin-bottom: 20px; text-align: center;">
-            <button id="start-reservation-wizard-btn" class="btn">✨ Nova Reserva (Assistente)</button>
-        </section>
+        <!-- Mobile FAB -->
+        <button id="start-reservation-wizard-mobile-btn"
+            class="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-2xl flex items-center justify-center text-3xl z-40 hover:scale-110 transition-transform">
+            +
+        </button>
 
-        <!-- Linha do Tempo de Reservas -->
-        <section id="reservas-timeline-container" style="margin-bottom: 20px;">
-            <h2>Linha do Tempo de Reservas</h2>
-            <div id="timeline-view">
-                <!-- A linha do tempo será renderizada aqui via JS -->
-            </div>
-        </section>
+        <section class="p-4 lg:p-8 space-y-8 max-w-[1600px] mx-auto w-full">
 
-        <!-- Tabela de Reservas -->
-        <section id="reservas-table-container">
-            <h2>Reservas Atuais</h2>
-            <table id="reservas-table">
-                <thead>
-                    <tr>
-                        <th>Imóvel</th>
-                        <th>Check-in</th>
-                        <th>Check-out</th>
-                        <th>Hóspedes</th>
-                        <th>Status</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="reservas-table-body">
-                    <!-- Linhas da tabela serão inseridas aqui via JS -->
-                </tbody>
-            </table>
-        </section>
-
-        <!-- Wizard de Criação de Reserva (Modal Container) -->
-        <div id="reservation-wizard-modal" class="wizard-modal-overlay" style="display: none;">
-            <div class="wizard-container">
-                <!-- Painel Esquerdo: Resumo -->
-                <aside class="wizard-summary-panel">
-                    <div class="summary-header">
-                        <h3>Resumo da Reserva</h3>
-                        <p>Acompanhe os detalhes</p>
+            <!-- Linha do Tempo Estilizada -->
+            <div
+                class="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 relative overflow-hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-xl">
+                            🕒</div>
+                        <h2 class="text-xl font-bold">Mapa de Ocupação</h2>
                     </div>
-                    <div class="summary-content" id="wizard-summary-content">
-                        <div class="summary-group">
-                            <label>Plataforma</label>
-                            <div id="summary-plataforma" class="summary-value">- Selecione -</div>
-                        </div>
-
-                        <div class="summary-group">
-                            <label>Imóvel Selecionado</label>
-                            <div id="summary-imovel" class="summary-value">- Selecione -</div>
-                        </div>
-
-                        <div class="summary-group">
-                            <label>Hóspedes</label>
-                            <ul id="summary-hospedes" class="summary-list">
-                                <li>- Selecione -</li>
-                            </ul>
-                        </div>
-
-                        <div class="summary-group">
-                            <label>Pets</label>
-                            <div id="summary-pets" class="summary-value">Não</div>
-                        </div>
-
-                        <div class="summary-group">
-                            <label>Período</label>
-                            <div id="summary-periodo" class="summary-value">- Defina as datas -</div>
-                        </div>
-                    </div>
-                    <div class="summary-footer">
-                        <div class="summary-stat">
-                            <span>Diárias</span>
-                            <strong id="summary-diarias">0</strong>
-                        </div>
-                        <div class="summary-stat">
-                            <span>Total</span>
-                            <strong id="summary-total-valor">R$ 0,00</strong>
-                        </div>
-                    </div>
-                </aside>
-
-                <!-- Painel Direito: Conteúdo e Passos -->
-                <main class="wizard-main-content">
-                    <header class="wizard-header">
-                        <div class="step-indicator">
-                            <div class="step-item active" data-step="1">
-                                <span class="step-number">1</span>
-                                <span class="step-label">Plataforma</span>
-                            </div>
-                            <div class="step-item" data-step="2">
-                                <span class="step-number">2</span>
-                                <span class="step-label">Imóvel</span>
-                            </div>
-                            <div class="step-item" data-step="3">
-                                <span class="step-number">3</span>
-                                <span class="step-label">Detalhes</span>
-                            </div>
-                            <div class="step-item" data-step="4">
-                                <span class="step-number">4</span>
-                                <span class="step-label">Pets</span>
-                            </div>
-                            <div class="step-item" data-step="5">
-                                <span class="step-number">5</span>
-                                <span class="step-label">Valores</span>
-                            </div>
-                        </div>
-                        <button class="close-wizard-btn" id="close-wizard-btn">&times;</button>
-                    </header>
-
-                    <div class="wizard-body">
-                        <!-- Passo 1: Plataforma -->
-                        <div id="step-1" class="wizard-step">
-                            <h2 class="step-title">Escolha a Plataforma</h2>
-                            <p class="step-subtitle">Por onde a reserva foi feita?</p>
-                            <div class="property-grid" id="wizard-platform-list">
-                                <!-- Lista de Plataformas via JS -->
-                            </div>
-                        </div>
-
-                        <!-- Passo 2: Imóvel -->
-                        <div id="step-2" class="wizard-step" style="display: none;">
-                            <h2 class="step-title">Selecione o Imóvel</h2>
-                            <p class="step-subtitle">Qual imóvel foi reservado?</p>
-                            <div class="property-grid" id="wizard-property-list">
-                                <!-- Lista de Imóveis via JS -->
-                            </div>
-                        </div>
-
-                        <!-- Passo 3: Hóspedes e Datas -->
-                        <div id="step-3" class="wizard-step" style="display: none;">
-                            <h2 class="step-title">Detalhes da Reserva</h2>
-                            <p class="step-subtitle">Quem vem e quando?</p>
-
-                            <div class="form-section">
-                                <h3>👤 Hóspedes</h3>
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <input type="text" id="wizard-hospede-search-input" class="modern-input"
-                                            placeholder="Buscar hóspede por nome...">
-                                    </div>
-                                </div>
-                                <div id="wizard-hospedes-list" class="guest-list-container">
-                                    <!-- Lista de Hóspedes via JS -->
-                                </div>
-                            </div>
-
-                            <div class="form-section">
-                                <h3>📅 Período</h3>
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label>Check-in</label>
-                                        <input type="date" id="checkin-date" class="modern-input">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Check-out</label>
-                                        <input type="date" id="checkout-date" class="modern-input">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Passo 4: Pets -->
-                        <div id="step-4" class="wizard-step" style="display: none;">
-                            <h2 class="step-title">Pets</h2>
-                            <p class="step-subtitle">Haverá animais de estimação?</p>
-
-                            <div class="pet-slider-wrapper"
-                                style="display: flex; align-items: center; justify-content: space-between;">
-                                <div>
-                                    <h4 style="margin: 0; font-size: 1.1rem;">Trazer Pets?</h4>
-                                    <p style="margin: 5px 0 0; color: #666; font-size: 0.9rem;">Ative se a reserva
-                                        incluir animais.</p>
-                                </div>
-                                <label class="switch">
-                                    <input type="checkbox" id="has-pets-toggle">
-                                    <span class="slider round"></span>
-                                </label>
-                            </div>
-
-                            <div id="pet-warning-container"
-                                style="display: none; margin-top: 20px; padding: 15px; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; border-radius: 8px;">
-                                ⚠️ <strong>Atenção:</strong> O imóvel selecionado não aceita pets.
-                            </div>
-                        </div>
-
-                        <!-- Passo 5: Valores -->
-                        <div id="step-5" class="wizard-step" style="display: none;">
-                            <h2 class="step-title">Valores da Reserva</h2>
-                            <p class="step-subtitle">Confira e ajuste os valores.</p>
-
-                            <div class="form-section">
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label>Valor da Diária (R$)</label>
-                                        <input type="number" id="valor-diaria" class="modern-input" step="0.01" min="0">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Total de Diárias</label>
-                                        <input type="text" id="total-dias-display" class="modern-input" readonly
-                                            disabled>
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label>Taxa de Limpeza (R$)</label>
-                                        <input type="number" id="taxa-limpeza" class="modern-input" step="0.01" min="0">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Taxas Extras (R$)</label>
-                                        <input type="number" id="taxas-extras" class="modern-input" step="0.01" min="0">
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label>Desconto (R$)</label>
-                                        <input type="number" id="valor-desconto" class="modern-input" step="0.01"
-                                            min="0">
-                                    </div>
-                                    <div class="form-group">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <footer class="wizard-footer">
-                        <button class="btn btn-ghost" id="wizard-prev-btn" style="display: none;">Voltar</button>
-                        <button class="btn" id="wizard-next-btn">Continuar</button>
-                    </footer>
-                </main>
-            </div>
-        </div>
-
-        <!-- Modal de Detalhes da Reserva (Zoom) -->
-        <div id="reservation-details-modal" class="details-modal-overlay" style="display: none;">
-            <div class="details-card">
-                <button class="close-details-btn" id="close-details-btn">&times;</button>
-                <div class="details-card-header">
-                    <div class="details-imovel-thumb">
-                        <img id="details-imovel-foto" src="" alt="Foto do Imóvel">
-                    </div>
-                    <div class="details-header-info">
-                        <h2 id="details-imovel-titulo">Título do Imóvel</h2>
-                        <span class="status-badge" id="details-status">Confirmada</span>
+                    <div class="flex items-center gap-2 text-xs text-slate-400 font-medium">
+                        <span class="w-3 h-3 rounded-full bg-blue-500"></span> Confirmada
+                        <span class="w-3 h-3 rounded-full bg-orange-400 ml-2"></span> Pendente
                     </div>
                 </div>
-                <div class="details-card-body">
-                    <div class="details-row">
-                        <div class="details-group">
-                            <label>Plataforma</label>
-                            <div id="details-plataforma"
-                                style="display: flex; align-items: center; gap: 8px; font-weight: 500;">
-                                <!-- Preenchido via JS -->
-                            </div>
-                        </div>
-                        <div class="details-group">
-                            <label>Hóspedes</label>
-                            <p id="details-hospedes">Nome (mais 0)</p>
+
+                <div id="timeline-view" class="timeline-container-modern">
+                    <!-- A linha do tempo será renderizada aqui via JS -->
+                    <div class="flex items-center justify-center py-20 animate-pulse">
+                        <div class="text-slate-300">Carregando mapa...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela de Reservas Atuais -->
+            <div
+                class="bg-white dark:bg-slate-900 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden">
+                <div class="p-6 border-b border-slate-50 dark:border-slate-800 flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-xl">
+                        📋</div>
+                    <h2 class="text-xl font-bold">Listagem de Reservas</h2>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr
+                                class="bg-slate-50/50 dark:bg-slate-800/50 text-slate-500 text-[11px] font-bold uppercase tracking-widest">
+                                <th class="px-6 py-4">Imóvel</th>
+                                <th class="px-6 py-4">Hóspede</th>
+                                <th class="px-6 py-4">Período</th>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4 text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reservas-table-body" class="divide-y divide-slate-50 dark:divide-slate-800">
+                            <!-- Injected JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Wizard Modal Container -->
+    <div id="reservation-wizard-modal"
+        class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md transition-all duration-300"
+        style="opacity: 0;">
+        <div
+            class="bg-white dark:bg-slate-900 w-full max-w-5xl h-[90vh] md:h-[80vh] rounded-[2.5rem] shadow-2xl flex flex-col md:flex-row overflow-hidden border border-slate-200 dark:border-slate-800">
+
+            <!-- Sidebar do Wizard -->
+            <aside
+                class="w-full md:w-80 bg-slate-50 dark:bg-slate-800/50 p-8 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 flex flex-col">
+                <div class="mb-8">
+                    <h3 class="text-2xl font-bold text-slate-800 dark:text-white">Nova Reserva</h3>
+                    <p class="text-slate-400 text-sm mt-1">Siga os passos ao lado</p>
+                </div>
+
+                <div class="flex-1 space-y-6 overflow-y-auto pr-2 custom-scrollbar" id="wizard-summary-content">
+                    <div class="summary-item group">
+                        <label
+                            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Plataforma</label>
+                        <div id="summary-plataforma" class="text-slate-700 dark:text-slate-200 font-medium">- Selecione
+                            -</div>
+                    </div>
+                    <div class="summary-item">
+                        <label
+                            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Imóvel</label>
+                        <div id="summary-imovel" class="text-slate-700 dark:text-slate-200 font-medium">- Selecione -
                         </div>
                     </div>
-                    <div class="details-row">
-                        <div class="details-group">
-                            <label>Check-in</label>
-                            <p id="details-checkin">00/00/0000</p>
-                            <div class="details-row">
-                                <div class="details-group">
-                                    <label>Check-in</label>
-                                    <p id="details-checkin">00/00/0000</p>
+                    <div class="summary-item">
+                        <label
+                            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Período</label>
+                        <div id="summary-periodo" class="text-slate-700 dark:text-slate-200 font-medium">- Datas -</div>
+                        <div class="flex items-center gap-3 mt-1 text-slate-400 text-xs">
+                            <span>Diárias: <strong id="summary-diarias" class="text-blue-500">0</strong></span>
+                        </div>
+                    </div>
+                    <div class="summary-item">
+                        <label
+                            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Hóspedes</label>
+                        <ul id="summary-hospedes"
+                            class="text-slate-600 dark:text-slate-300 space-y-1 text-sm font-medium">
+                            <li>- Selecione -</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-8 p-6 bg-blue-600 rounded-3xl text-white shadow-xl shadow-blue-500/20">
+                    <p class="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-1">Valor Total</p>
+                    <div id="summary-total-valor" class="text-2xl font-bold">R$ 0,00</div>
+                </div>
+            </aside>
+
+            <!-- Conteúdo do Wizard -->
+            <div class="flex-1 flex flex-col bg-white dark:bg-slate-900">
+                <header
+                    class="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="flex -space-x-2" id="step-indicator-dots">
+                            <!-- Indicators JS -->
+                        </div>
+                        <span id="wizard-step-title-display" class="font-bold text-slate-800 dark:text-white">Passo 1 de
+                            5</span>
+                    </div>
+                    <button
+                        class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                        id="close-wizard-btn">&times;</button>
+                </header>
+
+                <div class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+                    <!-- Step 1: Plataforma -->
+                    <div id="step-1" class="wizard-step space-y-6">
+                        <div class="text-center md:text-left">
+                            <h2
+                                class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                                Onde foi feita a reserva?</h2>
+                            <p class="text-slate-400 mt-1">Selecione o canal de origem.</p>
+                        </div>
+                        <div class="grid grid-cols-2 lg:grid-cols-3 gap-4" id="wizard-platform-list"></div>
+                    </div>
+
+                    <!-- Step 2: Imóvel -->
+                    <div id="step-2" class="wizard-step hidden space-y-6">
+                        <div class="text-center md:text-left">
+                            <h2
+                                class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                                Qual o imóvel?</h2>
+                            <p class="text-slate-400 mt-1">Selecione a propriedade reservada.</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4" id="wizard-property-list"></div>
+                    </div>
+
+                    <!-- Step 3: Hóspedes e Datas -->
+                    <div id="step-3" class="wizard-step hidden space-y-8">
+                        <div>
+                            <h2
+                                class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                                Detalhes Principais</h2>
+                            <p class="text-slate-400 mt-1">Diga-nos quem e quando.</p>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="space-y-3">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Buscar
+                                    Hóspede</label>
+                                <div class="relative group">
+                                    <div
+                                        class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                                        🔍</div>
+                                    <input type="text" id="wizard-hospede-search-input"
+                                        class="w-full pl-10 pr-4 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
+                                        placeholder="Nome ou telefone...">
                                 </div>
-                                <div class="details-group">
-                                    <label>Check-out</label>
-                                    <p id="details-checkout">00/00/0000</p>
+                                <div id="wizard-hospedes-list"
+                                    class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                                 </div>
                             </div>
-                            <div class="details-row">
-                                <div class="details-group">
-                                    <label>Pets</label>
-                                    <p id="details-pets">0</p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                                <div class="space-y-3">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Check-in</label>
+                                    <input type="date" id="checkin-date"
+                                        class="w-full p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-blue-500 outline-none">
                                 </div>
-                                <div class="details-group">
-                                    <label>Diárias</label>
-                                    <p id="details-diarias">0</p>
-                                    <!-- Scripts -->
-                                    <script
-                                        src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
-                                        integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg=="
-                                        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-                                    <script src="assets/js/storage.js"></script>
-                                    <script src="assets/js/main.js"></script>
+                                <div class="space-y-3">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Check-out</label>
+                                    <input type="date" id="checkout-date"
+                                        class="w-full p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-blue-500 outline-none">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                                    <!-- Módulos que usam 'import' e expõem classes para o escopo global -->
-                                    <script type="module" src="assets/js/firebase-config.js"></script>
-                                    <script type="module" src="assets/js/entities/cliente.js"></script>
-                                    <script type="module" src="assets/js/entities/imovel.js?v=2"></script>
-                                    <script type="module" src="assets/js/entities/reserva.js"></script>
-                                    <script type="module" src="assets/js/entities/plataforma.js"></script>
+                    <!-- Step 4: Pets -->
+                    <div id="step-4" class="wizard-step hidden space-y-8">
+                        <div>
+                            <h2
+                                class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                                Animais de Estimação</h2>
+                            <p class="text-slate-400 mt-1">Configuração de Pets para esta estadia.</p>
+                        </div>
 
-                                    <!-- Scripts que não são módulos e dependem das classes acima -->
-                                    <script src="assets/js/toast.js"></script>
-                                    <script src="assets/js/entities/comodo.js"></script>
-                                    <script type="module" src="assets/js/wizard-reservas.js"></script>
-                                    <script type="module" src="assets/js/timeline.js"></script>
-                                    <script src="assets/js/entities/anfitriao.js"></script>
+                        <div
+                            class="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="text-4xl">🐾</div>
+                                <div>
+                                    <h4 class="font-bold text-lg text-slate-800 dark:text-white">Trazer Pets?</h4>
+                                    <p class="text-slate-400 text-sm">A propriedade permite animais.</p>
+                                </div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="has-pets-toggle" class="sr-only peer">
+                                <div
+                                    class="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600">
+                                </div>
+                            </label>
+                        </div>
 
-                                    <!-- Sidebar dinâmica -->
-                                    <script type="module">
-                                        import { initSidebar } from './assets/js/sidebar-manager.js';
+                        <div id="pet-warning-container"
+                            class="hidden animate-bounce bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 p-6 rounded-3xl text-sm flex items-center gap-3">
+                            <span class="text-2xl">⚠️</span>
+                            <p><strong>Atenção:</strong> O imóvel selecionado não permite animais domésticos.</p>
+                        </div>
+                    </div>
 
-                                        window.addEventListener('DOMContentLoaded', () => {
-                                            initSidebar();
-                                        });
+                    <!-- Step 5: Valores -->
+                    <div id="step-5" class="wizard-step hidden space-y-6">
+                        <div>
+                            <h2
+                                class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                                Ajuste Financeiro</h2>
+                            <p class="text-slate-400 mt-1">Confira os valores e adicione taxas ou descontos.</p>
+                        </div>
 
-                                        window.addEventListener('resize', () => {
-                                            if (window.innerWidth > 768 && document.body.classList.contains('sidebar-open-mobile')) {
-                                                document.body.classList.remove('sidebar-open-mobile');
-                                            }
-                                        });
-                                    </script>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-3">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Valor da
+                                    Diária (R$)</label>
+                                <input type="number" id="valor-diaria"
+                                    class="w-full p-4 rounded-2xl bg-white dark:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                    step="0.01">
+                            </div>
+                            <div class="space-y-3">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Total de
+                                    Noites</label>
+                                <input type="text" id="total-dias-display"
+                                    class="w-full p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800 text-slate-400 font-bold"
+                                    readonly>
+                            </div>
+                            <div class="space-y-3">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Taxa de
+                                    Limpeza (R$)</label>
+                                <input type="number" id="taxa-limpeza"
+                                    class="w-full p-4 rounded-2xl bg-white dark:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                    step="0.01">
+                            </div>
+                            <div class="space-y-3">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Desconto
+                                    Especial (R$)</label>
+                                <input type="number" id="valor-desconto"
+                                    class="w-full p-4 rounded-2xl bg-white dark:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none text-red-500 font-bold"
+                                    step="0.01">
+                            </div>
+                            <input type="hidden" id="taxas-extras" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <footer
+                    class="px-8 py-6 bg-slate-50/50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
+                    <button id="wizard-prev-btn"
+                        class="px-6 py-3 rounded-xl font-bold text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors invisible">Voltar</button>
+                    <button id="wizard-next-btn"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-3 rounded-xl shadow-lg shadow-blue-500/30 font-bold transition-all transform active:scale-95">Próximo
+                        Passo</button>
+                </footer>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes da Reserva (Zoom) -->
+    <div id="reservation-details-modal"
+        class="fixed inset-0 z-[70] hidden flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md transition-all duration-300"
+        style="opacity: 0;">
+        <div
+            class="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] shadow-2xl relative overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col">
+            <button id="close-details-btn"
+                class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-lg flex items-center justify-center text-white z-50 transition-colors">&times;</button>
+
+            <div class="h-48 relative overflow-hidden shrink-0">
+                <img id="details-imovel-foto" src="" alt="Imóvel" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent"></div>
+                <div class="absolute bottom-6 left-8 flex items-end justify-between right-8">
+                    <div>
+                        <h2 id="details-imovel-titulo" class="text-2xl font-bold text-white">Título do Imóvel</h2>
+                        <div id="details-plataforma-container" class="flex items-center gap-2 mt-1">
+                            <!-- Injected JS -->
+                        </div>
+                    </div>
+                    <span id="details-status"
+                        class="px-3 py-1 bg-blue-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-full">Confirmada</span>
+                </div>
+            </div>
+
+            <div class="p-8 space-y-8 flex-1 overflow-y-auto custom-scrollbar">
+                <div class="grid grid-cols-2 gap-8">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Hóspede
+                            Principal</label>
+                        <div id="details-hospede-wrapper" class="flex items-center gap-2">
+                            <span id="details-hospedes"
+                                class="text-lg font-bold text-slate-800 dark:text-white">Nome</span>
+                            <div id="whatsapp-shortcut-container"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Código
+                            Reserva</label>
+                        <span id="details-reserva-id" class="text-sm font-mono font-medium text-slate-500">#---</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="space-y-1">
+                        <label
+                            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Check-in</label>
+                        <p id="details-checkin" class="font-bold text-lg text-green-600 italic">--/--/--</p>
+                    </div>
+                    <div class="space-y-1">
+                        <label
+                            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Check-out</label>
+                        <p id="details-checkout" class="font-bold text-lg text-red-500 italic">--/--/--</p>
+                    </div>
+                    <div class="space-y-1">
+                        <label
+                            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Diárias</label>
+                        <p id="details-diarias" class="font-bold text-lg">0</p>
+                    </div>
+                    <div class="space-y-1 text-right">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Pets</label>
+                        <p id="details-pets" class="font-bold text-lg">0</p>
+                    </div>
+                </div>
+
+                <div id="details-financial-row"
+                    class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <div>
+                        <button id="btn-generate-pdf"
+                            class="flex items-center gap-2 text-slate-500 hover:text-blue-600 font-bold text-xs transition-colors py-2 px-4 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+                            📄 BAIXAR COMPROVANTE PDF
+                        </button>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Saldo Líquido</p>
+                        <p id="details-valor-total"
+                            class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                            R$ 0,00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/toast.js"></script>
+    <script src="assets/js/entities/comodo.js"></script>
+
+    <script type="module" src="assets/js/firebase-config.js"></script>
+    <script type="module" src="assets/js/entities/cliente.js"></script>
+    <script type="module" src="assets/js/entities/imovel.js?v=2"></script>
+    <script type="module" src="assets/js/entities/reserva.js"></script>
+    <script type="module" src="assets/js/entities/plataforma.js"></script>
+    <script type="module" src="assets/js/wizard-reservas.js"></script>
+    <script type="module" src="assets/js/timeline.js"></script>
+    <script src="assets/js/entities/anfitriao.js"></script>
+
+    <script type="module">
+        import { initSidebar } from './assets/js/sidebar-manager.js';
+        window.addEventListener('DOMContentLoaded', () => initSidebar());
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768 && document.body.classList.contains('sidebar-open-mobile')) {
+                document.body.classList.remove('sidebar-open-mobile');
+            }
+        });
+    </script>
+
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .timeline-container-modern {
+            overflow-x: auto;
+            position: relative;
+            scrollbar-width: thin;
+            padding-bottom: 20px;
+        }
+
+        /* Property Cards in Wizard - Plain CSS since @apply isn't for browser CDN */
+        .property-card {
+            border: 2px solid #f1f5f9;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background-color: #f8fafc;
+            border-radius: 1.5rem;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 0.75rem;
+        }
+
+        .dark .property-card {
+            background-color: #1e293b;
+            border-color: #334155;
+        }
+
+        .property-card:hover {
+            transform: translateY(-0.25rem);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            border-color: #bfdbfe;
+        }
+
+        .dark .property-card:hover {
+            background-color: #334155;
+            border-color: #1e3a8a;
+        }
+
+        .property-card.selected {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .dark .property-card.selected {
+            background-color: rgba(30, 58, 138, 0.3);
+        }
+
+        .property-card-thumbnail {
+            width: 100%;
+            height: 6rem;
+            object-fit: cover;
+            border-radius: 1rem;
+        }
+
+        .property-card-name {
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: #1e293b;
+        }
+
+        .dark .property-card-name {
+            color: #f1f5f9;
+        }
+
+        /* Guest Selection in Wizard */
+        .guest-list-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 1rem;
+            transition: color 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .guest-list-item:hover {
+            background-color: #f8fafc;
+            border-color: #f1f5f9;
+        }
+
+        .dark .guest-list-item:hover {
+            background-color: #1e293b;
+            border-color: #334155;
+        }
+
+        /* Step Dot Indicators */
+        .step-dot {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 9999px;
+            background-color: #e2e8f0;
+            transition: all 0.3s duration-300;
+        }
+
+        .dark .step-dot {
+            background-color: #334155;
+        }
+
+        .step-dot.active {
+            width: 2rem;
+            background-color: #2563eb;
+        }
+
+        /* Tabela Modernization fixes */
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-badge.confirmada {
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+
+        .dark .status-badge.confirmada {
+            background-color: rgba(20, 83, 45, 0.3);
+            color: #4ade80;
+        }
+
+        .status-badge.pendente {
+            background-color: #fef3c7;
+            color: #b45309;
+        }
+
+        .dark .status-badge.pendente {
+            background-color: rgba(120, 53, 15, 0.3);
+            color: #fbbf24;
+        }
+    </style>
 </body>
+
 
 </html>

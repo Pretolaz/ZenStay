@@ -103,9 +103,7 @@ function createTimelineHeader(days, columnWidth) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         if (diffDays(today, day) === 0) {
-            dayEl.style.backgroundColor = 'var(--accent)';
-            dayEl.style.color = '#fff';
-            dayEl.style.fontWeight = 'bold';
+            dayEl.classList.add('today');
         }
 
         daysContainer.appendChild(dayEl);

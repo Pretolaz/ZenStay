@@ -1,91 +1,107 @@
-/* Estilos para a Timeline de Reservas */
-.timeline-view {
-    display: flex;
-    flex-direction: column;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow-x: auto;
-    background-color: var(--card);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+/* Modernized Timeline Stylings */
+:root {
+    --timeline-imovel-width: 180px;
+    --timeline-bg: transparent;
+    --timeline-border: rgba(226, 232, 240, 0.5);
+}
+
+.dark {
+    --timeline-border: rgba(51, 65, 85, 0.5);
+}
+
+#timeline-view {
+    border: none;
+    border-radius: 0;
+    overflow: visible;
 }
 
 .timeline-header {
     display: flex;
-    font-weight: 600;
-    border-bottom: 1px solid var(--border);
-    background-color: var(--background);
-    color: var(--text);
+    font-weight: 700;
+    border-bottom: 2px solid var(--timeline-border);
+    background-color: transparent;
+    color: inherit;
     position: sticky;
     top: 0;
-    z-index: 10;
-    height: 60px;
-    /* Altura fixa para o cabeçalho */
+    z-index: 20;
+    height: 70px;
 }
 
 .timeline-imoveis-header {
-    flex: 0 0 200px;
-    padding: 10px;
-    border-right: 1px solid var(--border);
+    flex: 0 0 var(--timeline-imovel-width);
+    padding: 10px 20px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    background-color: var(--background);
-    z-index: 11;
-    /* Fica acima dos dias ao rolar horizontalmente */
+    background-color: white;
+    z-index: 21;
     position: sticky;
     left: 0;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #94a3b8;
+}
+
+.dark .timeline-imoveis-header {
+    background-color: #0f172a;
 }
 
 .timeline-row {
     display: flex;
-    flex-wrap: nowrap;
-    /* Garante que as células fiquem na mesma linha */
-    border-bottom: 1px solid var(--border);
-    height: 50px;
-    /* Altura fixa */
+    border-bottom: 1px solid var(--timeline-border);
+    height: 64px;
     position: relative;
+    transition: background-color 0.2s;
 }
 
-.timeline-row:last-child {
-    border-bottom: none;
+.timeline-row:hover {
+    background-color: rgba(241, 245, 249, 0.5);
+}
+
+.dark .timeline-row:hover {
+    background-color: rgba(30, 41, 59, 0.3);
 }
 
 .timeline-imovel-cell {
-    flex: 0 0 200px;
-    padding: 0 15px;
-    border-right: 1px solid var(--border);
-    font-weight: 500;
-    font-size: 0.9rem;
-    background-color: var(--card);
-    color: var(--text);
+    flex: 0 0 var(--timeline-imovel-width);
+    padding: 0 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    background-color: white;
+    color: inherit;
     display: flex;
     align-items: center;
     position: sticky;
     left: 0;
-    z-index: 5;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+    z-index: 10;
+    border-right: 1px solid var(--timeline-border);
+}
+
+.dark .timeline-imovel-cell {
+    background-color: #0f172a;
 }
 
 .timeline-days {
     display: grid;
-    /* O template columns será definido via JS para garantir sincronia */
     flex-grow: 1;
 }
 
 .timeline-day {
-    /* Removido flex: 1 e min-width, agora controlado pelo grid */
-    padding: 5px;
+    padding: 8px;
     text-align: center;
-    border-right: 1px solid var(--border);
-    font-size: 0.75rem;
-    color: var(--text);
+    border-right: 1px solid var(--timeline-border);
+    font-size: 0.7rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background-color: var(--background);
-    /* Altura total da célula do header */
-    height: 100%;
+    background-color: transparent;
+}
+
+.day-number {
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1;
 }
 
 .timeline-reservas-cell {
@@ -93,61 +109,64 @@
     position: relative;
     display: grid;
     grid-template-rows: 100%;
-    /* Garante uma única linha de altura total */
     align-items: center;
-    /* Centraliza verticalmente as barras */
-    background-color: rgba(76, 175, 80, 0.15);
-    /* Grid lines alinhadas à direita para coincidir com border-right do header */
-    background-image: linear-gradient(to right, transparent calc(100% - 1px), var(--border) 1px);
-    /* background-size definido no JS */
+    background-color: rgba(248, 250, 252, 0.3);
+    background-image: linear-gradient(to right, transparent calc(100% - 1px), var(--timeline-border) 1px);
 }
 
-/* Ajuste para o modo escuro */
-[data-theme="dark"] .timeline-reservas-cell {
-    background-color: rgba(76, 175, 80, 0.1);
+.dark .timeline-reservas-cell {
+    background-color: rgba(15, 23, 42, 0.1);
 }
 
 .reserva-bar {
     position: relative;
-    /* Mudado de absolute para relative se estiver dentro de um grid cell, mas aqui usamos grid placement */
-    height: 36px;
+    height: 42px;
     align-self: center;
-    background-color: #e53935;
-    /* Vermelho para ocupado */
-    border: 1px solid #c62828;
-    /* Contorno vermelho mais escuro */
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    border: none;
     color: #fff;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    padding: 0 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    padding: 0 12px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
     cursor: pointer;
-    z-index: 1;
+    z-index: 5;
     display: flex;
     align-items: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    transition: transform 0.2s, box-shadow 0.2s;
-    margin: 0 2px;
-    /* Pequeno espaçamento lateral */
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .reserva-bar:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    z-index: 2;
-}
-
-.reserva-bar-content {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    width: 100%;
+    transform: scale(1.02) translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.5);
+    z-index: 10;
+    filter: brightness(1.1);
 }
 
 .reserva-bar-name {
-    font-weight: 600;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+/* Hotel Style alignment - matching 14h / 11h convention */
+.reserva-bar-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: center;
+}
+
+/* Today Highlighter */
+.timeline-day.today {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.timeline-day.today .day-number {
+    color: #2563eb;
+    text-decoration: underline;
+    text-underline-offset: 4px;
 }
