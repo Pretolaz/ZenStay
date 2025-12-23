@@ -57,7 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const detailsImovelFoto = document.getElementById('details-imovel-foto');
     const detailsImovelTitulo = document.getElementById('details-imovel-titulo');
     const detailsStatus = document.getElementById('details-status');
-    const detailsPlataforma = document.getElementById('details-plataforma');
+    const detailsPlataforma = document.getElementById('details-plataforma-container');
+    const detailsReservaId = document.getElementById('details-reserva-id');
     const detailsHospedes = document.getElementById('details-hospedes');
     const detailsCheckin = document.getElementById('details-checkin');
     const detailsCheckout = document.getElementById('details-checkout');
@@ -706,8 +707,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (plataforma) {
                 const logoSrc = plataforma.logo || 'assets/img/placeholder.jpg';
                 detailsPlataforma.innerHTML = `
-                    <img src="${logoSrc}" alt="${plataforma.nome}" style="width: 24px; height: 24px; object-fit: contain; border-radius: 4px;">
-                    <span>${plataforma.nome}</span>
+                    <div class="flex items-center gap-2 bg-white/10 px-2 py-1 rounded-lg backdrop-blur-sm border border-white/20">
+                        <img src="${logoSrc}" alt="${plataforma.nome}" class="w-4 h-4 object-contain">
+                        <span class="text-xs text-white/90 font-medium">${plataforma.nome}</span>
+                    </div>
                 `;
             } else {
                 detailsPlataforma.textContent = 'Plataforma desconhecida';
@@ -754,7 +757,7 @@ document.addEventListener('DOMContentLoaded', () => {
             detailsCheckout.style.color = '#dc3545'; // Red
             detailsCheckout.style.fontWeight = '600';
         }
-        if (detailsPets) detailsPets.textContent = reserva.numPets;
+        if (detailsPets) detailsPets.textContent = reserva.numPets || 0;
 
         if (detailsDiarias) {
             const checkinDate = new Date(reserva.checkin);
@@ -767,28 +770,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Adicionar exibição de valores no modal de detalhes se existirem
-        const detailsBody = detailsModal.querySelector('.details-card-body');
-        // Remove linha de valores anterior se existir para não duplicar
-        const existingValuesRow = detailsBody.querySelector('.details-values-row');
-        if (existingValuesRow) existingValuesRow.remove();
+        if (detailsReservaId) detailsReservaId.textContent = `#${reserva.id.slice(0, 8).toUpperCase()}`;
 
-        if (reserva.valorTotal !== undefined) {
-            const valuesRow = document.createElement('div');
-            valuesRow.className = 'details-row details-values-row';
-            valuesRow.style.marginTop = '15px';
-            valuesRow.style.paddingTop = '15px';
-            valuesRow.style.borderTop = '1px solid #eee';
-
+        // Atualizar valor total no elemento fixo do novo design
+        const detailsValorTotal = document.getElementById('details-valor-total');
+        if (detailsValorTotal) {
             const formatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-
-            valuesRow.innerHTML = `
-            <div class="details-group">
-                <label>Valor Total</label>
-                <p style="color: var(--primary-color); font-weight: 600;">${formatter.format(reserva.valorTotal)}</p>
-            </div>
-        `;
-            detailsBody.appendChild(valuesRow);
+            detailsValorTotal.textContent = reserva.valorTotal !== undefined ? formatter.format(reserva.valorTotal) : 'R$ 0,00';
         }
 
         // Configurar botão de PDF
