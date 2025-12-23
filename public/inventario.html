@@ -321,6 +321,7 @@
         import { Imovel } from './assets/js/entities/imovel.js';
         import { db } from './assets/js/firebase-config.js';
         import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { initSidebar } from './assets/js/sidebar-manager.js';
 
         // Global State
         let allObjects = [];
@@ -541,17 +542,7 @@
         window.updateFilters = updateFilters;
 
         window.addEventListener('DOMContentLoaded', async () => {
-            // Sidebar
-            fetch("assets/components/sidebar.html")
-                .then(res => res.text())
-                .then(html => {
-                    const sb = document.getElementById('sidebar');
-                    if (sb) {
-                        sb.innerHTML = html;
-                        setupSidebarLogic();
-                    }
-                });
-
+            initSidebar();
             await loadData();
         });
 
@@ -728,27 +719,6 @@
                 btn.disabled = false;
             }
         };
-
-        function setupSidebarLogic() {
-            const btn = document.getElementById('header-menu-toggle');
-            const sidebar = document.getElementById('sidebar');
-            const body = document.body;
-
-            if (btn) {
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    body.classList.toggle('sidebar-open-mobile');
-                };
-            }
-            const currentPage = 'inventario.html';
-            const links = sidebar.querySelectorAll('a');
-            links.forEach(link => {
-                const href = link.getAttribute('href');
-                if (href && href.includes(currentPage)) {
-                    link.classList.add('active');
-                }
-            });
-        }
     </script>
 </body>
 

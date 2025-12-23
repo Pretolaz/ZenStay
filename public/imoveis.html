@@ -431,6 +431,7 @@
 
     <script type="module">
         import { Imovel } from './assets/js/entities/imovel.js';
+        import { initSidebar } from './assets/js/sidebar-manager.js';
 
         let imoveisCache = [];
         let currentPhotoBase64 = null;
@@ -551,17 +552,7 @@
 
         // Init
         window.addEventListener('DOMContentLoaded', async () => {
-            // Sidebar Logic
-            fetch("assets/components/sidebar.html")
-                .then(res => res.text())
-                .then(html => {
-                    const sb = document.getElementById('sidebar');
-                    if (sb) {
-                        sb.innerHTML = html;
-                        setupSidebarLogic();
-                    }
-                });
-
+            initSidebar();
             await carregarImoveis();
         });
 
@@ -714,65 +705,6 @@
                 btn.disabled = false;
             }
         };
-
-        // Load sidebar logic tailored for sticky positioning and content push
-        function setupSidebarLogic() {
-            const btn = document.getElementById('header-menu-toggle');
-            const sidebar = document.getElementById('sidebar');
-            const body = document.body;
-
-            // Toggle sidebar for mobile
-            if (btn) {
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    body.classList.toggle('sidebar-open-mobile');
-                };
-            }
-
-            // Highlight Link
-            const currentPage = 'imoveis.html'; // Hardcoded for this file
-            const links = sidebar.querySelectorAll('a');
-            links.forEach(link => {
-                const href = link.getAttribute('href');
-                if (href && href.includes('imoveis.html')) {
-                    link.classList.add('active');
-
-                    // Expand Submenu if usually collapsed
-                    const sub = link.closest('.submenu');
-                    if (sub) {
-                        sub.style.display = 'block';
-                        const p = sub.closest('.has-submenu');
-                        if (p) {
-                            p.classList.add('expanded');
-                            const arrow = p.querySelector('.arrow');
-                            if (arrow) arrow.style.transform = 'rotate(90deg)';
-                        }
-                    }
-                }
-            });
-
-            // Submenu Toggles
-            sidebar.querySelectorAll('.submenu-toggle').forEach(t => {
-                t.onclick = (e) => {
-                    e.preventDefault();
-                    const li = t.closest('.has-submenu');
-                    const sub = li.querySelector('.submenu');
-                    const arrow = li.querySelector('.arrow');
-
-                    if (sub) {
-                        const hidden = window.getComputedStyle(sub).display === 'none';
-                        sub.style.display = hidden ? 'block' : 'none';
-                        if (hidden) {
-                            li.classList.add('expanded');
-                            if (arrow) arrow.style.transform = 'rotate(90deg)';
-                        } else {
-                            li.classList.remove('expanded');
-                            if (arrow) arrow.style.transform = 'rotate(0deg)';
-                        }
-                    }
-                }
-            });
-        }
 
     </script>
 </body>

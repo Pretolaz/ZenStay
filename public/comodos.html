@@ -289,6 +289,7 @@
 
     <script type="module">
         import { Imovel } from './assets/js/entities/imovel.js';
+        import { initSidebar } from './assets/js/sidebar-manager.js';
 
         // State
         let currentImovel = null;
@@ -314,17 +315,7 @@
 
         // Initialization
         window.addEventListener('DOMContentLoaded', async () => {
-            // Sidebar
-            fetch("assets/components/sidebar.html")
-                .then(res => res.text())
-                .then(html => {
-                    const sb = document.getElementById('sidebar');
-                    if (sb) {
-                        sb.innerHTML = html;
-                        setupSidebarLogic();
-                    }
-                });
-
+            initSidebar();
             await loadImoveis();
         });
 
@@ -525,31 +516,6 @@
                 }
             }
         };
-
-        // Load sidebar logic tailored for sticky positioning and content push
-        function setupSidebarLogic() {
-            const btn = document.getElementById('header-menu-toggle');
-            const sidebar = document.getElementById('sidebar');
-            const body = document.body;
-
-            // Toggle sidebar for mobile
-            if (btn) {
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    body.classList.toggle('sidebar-open-mobile');
-                };
-            }
-
-            // Highlight Link
-            const currentPage = 'comodos.html'; // Hardcoded for this file
-            const links = sidebar.querySelectorAll('a');
-            links.forEach(link => {
-                const href = link.getAttribute('href');
-                if (href && href.includes(currentPage)) {
-                    link.classList.add('active');
-                }
-            });
-        }
     </script>
 </body>
 

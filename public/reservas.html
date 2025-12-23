@@ -331,95 +331,16 @@
                                     <script src="assets/js/entities/anfitriao.js"></script>
 
                                     <!-- Sidebar dinâmica -->
-                                    <script>
-                                        const body = document.body;
+                                    <script type="module">
+                                        import { initSidebar } from './assets/js/sidebar-manager.js';
 
-                                        const setActiveSidebarLink = () => {
-                                            const path = window.location.pathname.split("/").pop();
-                                            const hash = window.location.hash;
-
-                                            document.querySelectorAll(".sidebar a").forEach(link => {
-                                                link.classList.remove("active");
-                                                const linkHref = link.getAttribute("href");
-
-                                                if (linkHref === path + hash) {
-                                                    link.classList.add("active");
-                                                    const parentSubmenu = link.closest('.has-submenu');
-                                                    if (parentSubmenu) {
-                                                        const submenuElement = parentSubmenu.querySelector('.submenu');
-                                                        const arrowElement = parentSubmenu.querySelector('.arrow');
-                                                        if (submenuElement) submenuElement.style.display = 'block';
-                                                        if (arrowElement) arrowElement.textContent = '▼';
-                                                        const submenuToggleElement = parentSubmenu.querySelector('.submenu-toggle');
-                                                        if (submenuToggleElement) submenuToggleElement.classList.add('active');
-                                                    }
-                                                }
-                                            });
-                                        };
-
-                                        fetch("assets/components/sidebar.html")
-                                            .then(res => res.text())
-                                            .then(html => {
-                                                document.getElementById("sidebar").innerHTML = html;
-
-                                                const sidebarElement = document.querySelector('.sidebar');
-                                                const menuToggleButton = document.getElementById('menu-toggle');
-                                                const headerMenuToggleButton = document.getElementById('header-menu-toggle');
-
-                                                function toggleSidebar() {
-                                                    body.classList.toggle('sidebar-open-mobile');
-                                                }
-
-                                                if (menuToggleButton) {
-                                                    menuToggleButton.addEventListener('click', function (e) {
-                                                        e.stopPropagation();
-                                                        toggleSidebar();
-                                                    });
-                                                }
-
-                                                if (headerMenuToggleButton) {
-                                                    headerMenuToggleButton.addEventListener('click', function (e) {
-                                                        e.stopPropagation();
-                                                        toggleSidebar();
-                                                    });
-                                                }
-
-                                                document.addEventListener('click', function (e) {
-                                                    if (body.classList.contains('sidebar-open-mobile') &&
-                                                        sidebarElement && !sidebarElement.contains(e.target) &&
-                                                        (menuToggleButton && !menuToggleButton.contains(e.target)) &&
-                                                        (headerMenuToggleButton && !headerMenuToggleButton.contains(e.target))) {
-                                                        toggleSidebar();
-                                                    }
-                                                });
-
-                                                document.querySelectorAll('.sidebar a').forEach(link => {
-                                                    link.addEventListener('click', function () {
-                                                        if (window.innerWidth <= 768 && !this.classList.contains('submenu-toggle')) {
-                                                            body.classList.remove('sidebar-open-mobile');
-                                                        }
-                                                    });
-                                                });
-
-                                                document.querySelectorAll('.submenu-toggle').forEach(item => {
-                                                    item.addEventListener('click', function (e) {
-                                                        e.preventDefault();
-                                                        const parentLi = this.closest('.has-submenu');
-                                                        parentLi.classList.toggle('expanded');
-                                                        const submenu = parentLi.querySelector('.submenu');
-                                                        if (submenu) {
-                                                            submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
-                                                        }
-                                                    });
-                                                });
-
-                                                setActiveSidebarLink();
-                                            })
-                                            .catch(err => console.error("Erro ao carregar sidebar: ", err));
+                                        window.addEventListener('DOMContentLoaded', () => {
+                                            initSidebar();
+                                        });
 
                                         window.addEventListener('resize', () => {
-                                            if (window.innerWidth > 768 && body.classList.contains('sidebar-open-mobile')) {
-                                                body.classList.remove('sidebar-open-mobile');
+                                            if (window.innerWidth > 768 && document.body.classList.contains('sidebar-open-mobile')) {
+                                                document.body.classList.remove('sidebar-open-mobile');
                                             }
                                         });
                                     </script>
